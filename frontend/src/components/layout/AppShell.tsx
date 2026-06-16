@@ -1,0 +1,59 @@
+"use client";
+
+import * as React from "react";
+import { Sidebar } from "./Sidebar";
+import { Topbar } from "./Topbar";
+import { MobileNav } from "./MobileNav";
+import { cn } from "@/lib/cn";
+
+interface AppShellProps { children: React.ReactNode; className?: string }
+
+export function AppShell({ children, className }: AppShellProps) {
+  const [collapsed, setCollapsed] = React.useState(false);
+  const [mobileOpen, setMobileOpen] = React.useState(false);
+
+  const toggleMenu = () => {
+    if (window.innerWidth < 768) {
+      setMobileOpen((o) => !o);
+    } else {
+      setCollapsed((c) => !c);
+    }
+  };
+
+  return (
+    <div className="flex h-screen overflow-hidden bg-surface-raised">
+      {/* Desktop sidebar */}
+      <div className="hidden md:flex shrink-0">
+        <Sidebar collapsed={collapsed} />
+      </div>
+
+      {/* Mobile drawer */}
+      {mobileOpen && (
+        <>
+          <div
+            className="fixed inset-0 z-40 bg-black/40 md:hidden"
+            onClick={() => setMobileOpen(false)}
+            aria-hidden
+          />
+          <div className="fixed inset-y-0 left-0 z-50 flex md:hidden">
+            <Sidebar collapsed={false} onClose={() => setMobileOpen(false)} />
+          </div>
+        </>
+      )}
+
+      {/* Main area */}
+      <div className="flex flex-1 flex-col overflow-hidden">
+        <Topbar onMenuToggle={toggleMenu} />
+        <main
+          id="main-content"
+          className={cn("flex-1 overflow-y-auto pb-16 md:pb-0", className)}
+        >
+          {children}
+        </main>
+      </div>
+
+      {/* Bottom nav — mobile only */}
+      <MobileNav />
+    </div>
+  );
+}

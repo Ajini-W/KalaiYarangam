@@ -1,0 +1,87 @@
+/* ─── KalaiArangam Design Tokens ───────────────────────────────────────────
+   All primitive values live here.
+   globals.css maps them into the Tailwind @theme.
+   ──────────────────────────────────────────────────────────────────────────── */
+
+:root {
+  /* Brand — Indigo blue */
+  --brand-50:  #eef2ff;
+  --brand-100: #e0e7ff;
+  --brand-200: #c7d2fe;
+  --brand-300: #a5b4fc;
+  --brand-400: #818cf8;
+  --brand-500: #6366f1;
+  --brand-600: #4f46e5;
+  --brand-700: #4338ca;
+  --brand-800: #3730a3;
+  --brand-900: #312e81;
+
+  /* Success — Green */
+  --success-50:  #f0fdf4;
+  --success-500: #22c55e;
+  --success-700: #15803d;
+
+  /* Warning — Amber */
+  --warning-50:  #fffbeb;
+  --warning-500: #f59e0b;
+  --warning-700: #b45309;
+
+  /* Danger — Red */
+  --danger-50:  #fff1f2;
+  --danger-500: #ef4444;
+  --danger-700: #b91c1c;
+
+  /* Info — Sky */
+  --info-50:  #f0f9ff;
+  --info-500: #0ea5e9;
+  --info-700: #0369a1;
+
+  /* Surfaces — Light */
+  --surface:         #ffffff;
+  --surface-raised:  #f8fafc;
+  --surface-overlay: #f1f5f9;
+
+  /* Borders — Light */
+  --border:        #e2e8f0;
+  --border-subtle: #f1f5f9;
+
+  /* Text — Light */
+  --text-primary:     #0f172a;
+  --text-secondary:   #475569;
+  --text-disabled:    #94a3b8;
+  --text-placeholder: #cbd5e1;
+
+  /* Sidebar */
+  --sidebar-width:           240px;
+  --sidebar-width-collapsed: 64px;
+  --topbar-height:           60px;
+}
+
+/* ─── Dark Mode ─────────────────────────────────────────────────────────────── */
+.dark {
+  /* Surfaces */
+  --surface:         #0f172a;
+  --surface-raised:  #1e293b;
+  --surface-overlay: #273344;
+
+  /* Borders */
+  --border:        #334155;
+  --border-subtle: #1e293b;
+
+  /* Text */
+  --text-primary:     #f1f5f9;
+  --text-secondary:   #94a3b8;
+  --text-disabled:    #475569;
+  --text-placeholder: #334155;
+
+  /* Brand (slightly brighter on dark) */
+  --brand-500: #818cf8;
+  --brand-600: #6366f1;
+  --brand-700: #4f46e5;
+
+  /* Semantic */
+  --success-500: #4ade80;
+  --warning-500: #fbbf24;
+  --danger-500:  #f87171;
+  --info-500:    #38bdf8;
+}

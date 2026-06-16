@@ -1,0 +1,4 @@
+import { PlaceholderPage } from "@/lib/placeholder-page";
+export default function Page() {
+  return <PlaceholderPage title="Audit Logs" description="Platform-wide audit trail." />;
+}
