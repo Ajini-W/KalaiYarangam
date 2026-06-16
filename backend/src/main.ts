@@ -3,7 +3,8 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
-import compression from 'compression';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const compression = require('compression');
 import { AppModule } from '@/app.module';
 import { env } from '@/config';
 
