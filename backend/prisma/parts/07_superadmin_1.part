@@ -1,0 +1,243 @@
+// ═══════════════════════════════════════════════════════════════
+// SUPER ADMIN — 1. NOTIFICATION SYSTEM
+// ═══════════════════════════════════════════════════════════════
+
+model NotificationTemplate {
+  id        String              @id @default(uuid()) @db.Uuid
+  name      String              @db.VarChar(200)
+  slug      String              @unique @db.VarChar(100)
+  channel   NotificationChannel
+  subject   String?             @db.VarChar(255)
+  body      String              @db.Text
+  variables Json?
+  isActive  Boolean             @default(true) @map("is_active")
+  createdAt DateTime            @default(now()) @map("created_at")
+  updatedAt DateTime            @updatedAt @map("updated_at")
+
+  @@map("notification_templates")
+}
+
+model NotificationPreference {
+  id        String              @id @default(uuid()) @db.Uuid
+  userId    String              @map("user_id") @db.Uuid
+  channel   NotificationChannel
+  eventType String              @map("event_type") @db.VarChar(100)
+  enabled   Boolean             @default(true)
+
+  @@unique([userId, channel, eventType])
+  @@map("notification_preferences")
+}
+
+model Notification {
+  id        String              @id @default(uuid()) @db.Uuid
+  tenantId  String?             @map("tenant_id") @db.Uuid
+  userId    String              @map("user_id") @db.Uuid
+  channel   NotificationChannel @default(IN_APP)
+  title     String              @db.VarChar(255)
+  body      String              @db.Text
+  link      String?             @db.VarChar(500)
+  isRead    Boolean             @default(false) @map("is_read")
+  readAt    DateTime?           @map("read_at")
+  createdAt DateTime            @default(now()) @map("created_at")
+
+  tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([tenantId])
+  @@map("notifications")
+}
+
+model NotificationLog {
+  id        String              @id @default(uuid()) @db.Uuid
+  channel   NotificationChannel
+  recipient String              @db.VarChar(255)
+  subject   String?             @db.VarChar(255)
+  body      String              @db.Text
+  status    String              @db.VarChar(30) /// SENT, FAILED, BOUNCED
+  errorMsg  String?             @map("error_msg") @db.Text
+  sentAt    DateTime            @default(now()) @map("sent_at")
+
+  @@index([sentAt])
+  @@index([channel])
+  @@map("notification_logs")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SUPER ADMIN — 2. AUDIT & SECURITY
+// ═══════════════════════════════════════════════════════════════
+
+model AuditLog {
+  id         String      @id @default(uuid()) @db.Uuid
+  userId     String?     @map("user_id") @db.Uuid
+  tenantId   String?     @map("tenant_id") @db.Uuid
+  action     AuditAction
+  entity     String      @db.VarChar(100)
+  entityId   String?     @map("entity_id") @db.VarChar(100)
+  oldValues  Json?       @map("old_values")
+  newValues  Json?       @map("new_values")
+  ipAddress  String?     @map("ip_address") @db.VarChar(45)
+  userAgent  String?     @map("user_agent") @db.VarChar(500)
+  createdAt  DateTime    @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([entity, entityId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model ActivityLog {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String?  @map("user_id") @db.Uuid
+  tenantId  String?  @map("tenant_id") @db.Uuid
+  activity  String   @db.VarChar(255)
+  details   Json?
+  ipAddress String?  @map("ip_address") @db.VarChar(45)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("activity_logs")
+}
+
+model ApiLog {
+  id           String   @id @default(uuid()) @db.Uuid
+  method       String   @db.VarChar(10)
+  path         String   @db.VarChar(500)
+  statusCode   Int      @map("status_code")
+  responseTime Int      @map("response_time") /// in ms
+  userId       String?  @map("user_id") @db.Uuid
+  ipAddress    String?  @map("ip_address") @db.VarChar(45)
+  requestBody  Json?    @map("request_body")
+  errorMessage String?  @map("error_message") @db.Text
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([path])
+  @@index([createdAt])
+  @@map("api_logs")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SUPER ADMIN — 3. SaaS SALES CRM
+// ═══════════════════════════════════════════════════════════════
+
+model PlatformLead {
+  id           String   @id @default(uuid()) @db.Uuid
+  name         String   @db.VarChar(150)
+  email        String   @db.VarChar(255)
+  phone        String   @db.VarChar(20)
+  companyName  String?  @map("company_name") @db.VarChar(200)
+  industry     String?  @db.VarChar(100)
+  source       String?  @db.VarChar(100)
+  status       String   @default("NEW") @db.VarChar(30)
+  assignedTo   String?  @map("assigned_to") @db.Uuid
+  notes        String?  @db.Text
+  convertedAt  DateTime? @map("converted_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  followups PlatformFollowup[]
+  customer  PlatformCustomer?
+
+  @@index([status])
+  @@index([email])
+  @@map("platform_leads")
+}
+
+model PlatformFollowup {
+  id        String   @id @default(uuid()) @db.Uuid
+  leadId    String   @map("lead_id") @db.Uuid
+  notes     String   @db.Text
+  outcome   String?  @db.VarChar(100)
+  nextDate  DateTime? @map("next_date")
+  createdBy String?  @map("created_by") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  lead PlatformLead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId])
+  @@map("platform_followups")
+}
+
+model PlatformCustomer {
+  id             String   @id @default(uuid()) @db.Uuid
+  leadId         String?  @unique @map("lead_id") @db.Uuid
+  tenantId       String?  @map("tenant_id") @db.Uuid
+  companyName    String   @map("company_name") @db.VarChar(200)
+  contactName    String   @map("contact_name") @db.VarChar(150)
+  email          String   @db.VarChar(255)
+  phone          String   @db.VarChar(20)
+  industry       String?  @db.VarChar(100)
+  status         String   @default("ACTIVE") @db.VarChar(30)
+  csmId          String?  @map("csm_id") @db.Uuid
+  onboardedAt    DateTime @default(now()) @map("onboarded_at")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  lead          PlatformLead?          @relation(fields: [leadId], references: [id])
+  csm           CustomerSuccessManager? @relation(fields: [csmId], references: [id])
+  healthScores  CustomerHealthScore[]
+  interactions  CustomerInteraction[]
+  feedbacks     CustomerFeedback[]
+
+  @@index([status])
+  @@map("platform_customers")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SUPER ADMIN — 4. REFERRAL SYSTEM
+// ═══════════════════════════════════════════════════════════════
+
+model ReferralProgram {
+  id              String   @id @default(uuid()) @db.Uuid
+  name            String   @db.VarChar(200)
+  description     String?  @db.Text
+  rewardType      String   @map("reward_type") @db.VarChar(30) /// DISCOUNT, CREDIT, CASH
+  rewardValue     Decimal  @map("reward_value") @db.Decimal(10, 2)
+  maxRedemptions  Int?     @map("max_redemptions")
+  validFrom       DateTime @map("valid_from") @db.Date
+  validTo         DateTime? @map("valid_to") @db.Date
+  isActive        Boolean  @default(true) @map("is_active")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  codes   ReferralCode[]
+  rewards ReferralReward[]
+
+  @@map("referral_programs")
+}
+
+model ReferralCode {
+  id          String   @id @default(uuid()) @db.Uuid
+  programId   String   @map("program_id") @db.Uuid
+  code        String   @unique @db.VarChar(30)
+  referrerId  String?  @map("referrer_id") @db.Uuid
+  usedCount   Int      @default(0) @map("used_count")
+  maxUses     Int?     @map("max_uses")
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  program ReferralProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@index([code])
+  @@map("referral_codes")
+}
+
+model ReferralReward {
+  id          String   @id @default(uuid()) @db.Uuid
+  programId   String   @map("program_id") @db.Uuid
+  referrerId  String   @map("referrer_id") @db.Uuid
+  refereeId   String   @map("referee_id") @db.Uuid
+  rewardType  String   @map("reward_type") @db.VarChar(30)
+  rewardValue Decimal  @map("reward_value") @db.Decimal(10, 2)
+  status      String   @default("PENDING") @db.VarChar(30)
+  redeemedAt  DateTime? @map("redeemed_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  program ReferralProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@map("referral_rewards")
+}

@@ -1,0 +1,243 @@
+// ═══════════════════════════════════════════════════════════════
+// SUPER ADMIN — 6. PLATFORM BILLING (Refunds + Payment Transactions)
+// ═══════════════════════════════════════════════════════════════
+
+model PaymentTransaction {
+  id            String        @id @default(uuid()) @db.Uuid
+  tenantId      String?       @map("tenant_id") @db.Uuid
+  amount        Decimal       @db.Decimal(10, 2)
+  currency      String        @default("INR") @db.VarChar(3)
+  mode          PaymentMode   @default(ONLINE)
+  status        PaymentStatus @default(PENDING)
+  gatewayName   String?       @map("gateway_name") @db.VarChar(50)
+  gatewayRef    String?       @map("gateway_ref") @db.VarChar(255)
+  gatewayResponse Json?       @map("gateway_response")
+  description   String?       @db.Text
+  paidAt        DateTime?     @map("paid_at")
+  createdAt     DateTime      @default(now()) @map("created_at")
+
+  refunds Refund[]
+
+  @@index([tenantId])
+  @@index([status])
+  @@map("payment_transactions")
+}
+
+model Refund {
+  id               String        @id @default(uuid()) @db.Uuid
+  transactionId    String        @map("transaction_id") @db.Uuid
+  amount           Decimal       @db.Decimal(10, 2)
+  reason           String?       @db.Text
+  status           PaymentStatus @default(PENDING)
+  gatewayRef       String?       @map("gateway_ref") @db.VarChar(255)
+  processedAt      DateTime?     @map("processed_at")
+  createdAt        DateTime      @default(now()) @map("created_at")
+
+  transaction PaymentTransaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+
+  @@index([transactionId])
+  @@map("refunds")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SUPER ADMIN — 7. SUPPORT DESK
+// ═══════════════════════════════════════════════════════════════
+
+model SupportCategory {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String   @db.VarChar(100)
+  slug      String   @unique @db.VarChar(100)
+  sortOrder Int      @default(0) @map("sort_order")
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  tickets SupportTicket[]
+
+  @@map("support_categories")
+}
+
+model SupportTicket {
+  id          String         @id @default(uuid()) @db.Uuid
+  categoryId  String?        @map("category_id") @db.Uuid
+  tenantId    String?        @map("tenant_id") @db.Uuid
+  userId      String?        @map("user_id") @db.Uuid
+  ticketNo    String         @unique @map("ticket_no") @db.VarChar(20)
+  subject     String         @db.VarChar(255)
+  description String         @db.Text
+  priority    TicketPriority @default(MEDIUM)
+  status      TicketStatus   @default(OPEN)
+  assignedTo  String?        @map("assigned_to") @db.Uuid
+  resolvedAt  DateTime?      @map("resolved_at")
+  closedAt    DateTime?      @map("closed_at")
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+
+  category SupportCategory? @relation(fields: [categoryId], references: [id])
+
+  @@index([status])
+  @@index([tenantId])
+  @@map("support_tickets")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SUPER ADMIN — 8. CUSTOMER SUCCESS
+// ═══════════════════════════════════════════════════════════════
+
+model CustomerSuccessManager {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  name      String   @db.VarChar(150)
+  email     String   @db.VarChar(255)
+  phone     String?  @db.VarChar(20)
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  customers PlatformCustomer[]
+
+  @@map("customer_success_managers")
+}
+
+model CustomerHealthScore {
+  id         String       @id @default(uuid()) @db.Uuid
+  customerId String       @map("customer_id") @db.Uuid
+  score      Int          /// 0-100
+  status     HealthStatus @default(HEALTHY)
+  factors    Json?        /// Scoring factors breakdown
+  scoredAt   DateTime     @default(now()) @map("scored_at")
+
+  customer PlatformCustomer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@map("customer_health_scores")
+}
+
+model CustomerInteraction {
+  id           String   @id @default(uuid()) @db.Uuid
+  customerId   String   @map("customer_id") @db.Uuid
+  type         String   @db.VarChar(50) /// CALL, EMAIL, MEETING, DEMO
+  summary      String   @db.Text
+  conductedBy  String?  @map("conducted_by") @db.Uuid
+  conductedAt  DateTime @default(now()) @map("conducted_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  customer PlatformCustomer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@map("customer_interactions")
+}
+
+model CustomerFeedback {
+  id         String   @id @default(uuid()) @db.Uuid
+  customerId String   @map("customer_id") @db.Uuid
+  rating     Int      /// 1-5
+  category   String?  @db.VarChar(100)
+  feedback   String   @db.Text
+  response   String?  @db.Text
+  respondedAt DateTime? @map("responded_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  customer PlatformCustomer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@map("customer_feedback")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SUPER ADMIN — 9. PLATFORM NOTIFICATIONS
+// ═══════════════════════════════════════════════════════════════
+
+model AnnouncementTemplate {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String   @db.VarChar(200)
+  subject   String   @db.VarChar(255)
+  body      String   @db.Text
+  type      String   @db.VarChar(50) /// MAINTENANCE, FEATURE, BILLING, GENERAL
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  notifications PlatformNotification[]
+
+  @@map("announcement_templates")
+}
+
+model PlatformNotification {
+  id         String   @id @default(uuid()) @db.Uuid
+  templateId String?  @map("template_id") @db.Uuid
+  title      String   @db.VarChar(255)
+  body       String   @db.Text
+  type       String   @db.VarChar(50)
+  targetType String   @map("target_type") @db.VarChar(30) /// ALL, TENANT, ROLE
+  targetIds  String[] @map("target_ids") @db.Uuid
+  publishedAt DateTime? @map("published_at")
+  expiresAt  DateTime?  @map("expires_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  template AnnouncementTemplate? @relation(fields: [templateId], references: [id])
+
+  @@index([publishedAt])
+  @@map("platform_notifications")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SUPER ADMIN — 10. FINANCE & REVENUE
+// ═══════════════════════════════════════════════════════════════
+
+model PlatformExpense {
+  id          String   @id @default(uuid()) @db.Uuid
+  category    String   @db.VarChar(100)
+  description String   @db.Text
+  amount      Decimal  @db.Decimal(12, 2)
+  currency    String   @default("INR") @db.VarChar(3)
+  vendor      String?  @db.VarChar(200)
+  invoiceRef  String?  @map("invoice_ref") @db.VarChar(100)
+  expenseDate DateTime @map("expense_date") @db.Date
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([expenseDate])
+  @@map("platform_expenses")
+}
+
+model PlatformRevenue {
+  id          String   @id @default(uuid()) @db.Uuid
+  tenantId    String?  @map("tenant_id") @db.Uuid
+  source      String   @db.VarChar(100) /// SUBSCRIPTION, ADDON, SETUP_FEE
+  amount      Decimal  @db.Decimal(12, 2)
+  currency    String   @default("INR") @db.VarChar(3)
+  description String?  @db.Text
+  revenueDate DateTime @map("revenue_date") @db.Date
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([revenueDate])
+  @@index([tenantId])
+  @@map("platform_revenue")
+}
+
+model PlatformProfitability {
+  id          String   @id @default(uuid()) @db.Uuid
+  period      String   @db.VarChar(7) /// YYYY-MM format
+  totalRevenue Decimal @map("total_revenue") @db.Decimal(12, 2)
+  totalExpense Decimal @map("total_expense") @db.Decimal(12, 2)
+  netProfit    Decimal @map("net_profit") @db.Decimal(12, 2)
+  margin       Decimal @db.Decimal(5, 2) /// percentage
+  metadata     Json?
+  calculatedAt DateTime @default(now()) @map("calculated_at")
+
+  @@unique([period])
+  @@map("platform_profitability")
+}
+
+model CommissionPayout {
+  id          String        @id @default(uuid()) @db.Uuid
+  referrerId  String        @map("referrer_id") @db.Uuid
+  tenantId    String?       @map("tenant_id") @db.Uuid
+  amount      Decimal       @db.Decimal(10, 2)
+  currency    String        @default("INR") @db.VarChar(3)
+  status      PaymentStatus @default(PENDING)
+  paidAt      DateTime?     @map("paid_at")
+  reference   String?       @db.VarChar(255)
+  createdAt   DateTime      @default(now()) @map("created_at")
+
+  @@index([referrerId])
+  @@index([status])
+  @@map("commission_payouts")
+}

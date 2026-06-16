@@ -1,0 +1,199 @@
+// ═══════════════════════════════════════════════════════════════
+// 7. BATCH / CLASS / COMPETITIONS MANAGEMENT
+// ═══════════════════════════════════════════════════════════════
+
+model Batch {
+  id         String      @id @default(uuid()) @db.Uuid
+  tenantId   String      @map("tenant_id") @db.Uuid
+  branchId   String?     @map("branch_id") @db.Uuid
+  courseId    String?     @map("course_id") @db.Uuid
+  name       String      @db.VarChar(200)
+  code       String?     @db.VarChar(30)
+  capacity   Int         @default(30)
+  enrolled   Int         @default(0)
+  status     BatchStatus @default(UPCOMING)
+  startDate  DateTime?   @map("start_date") @db.Date
+  endDate    DateTime?   @map("end_date") @db.Date
+  isActive   Boolean     @default(true) @map("is_active")
+  createdAt  DateTime    @default(now()) @map("created_at")
+  updatedAt  DateTime    @updatedAt @map("updated_at")
+
+  tenant       Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  branch       Branch?         @relation(fields: [branchId], references: [id])
+  course       Course?         @relation(fields: [courseId], references: [id])
+  trainers     BatchTrainer[]
+  schedules    BatchSchedule[]
+  enrollments  Enrollment[]
+  sessions     ClassSession[]
+
+  @@unique([tenantId, code])
+  @@index([tenantId])
+  @@index([status])
+  @@map("batches")
+}
+
+model BatchTrainer {
+  id        String   @id @default(uuid()) @db.Uuid
+  batchId   String   @map("batch_id") @db.Uuid
+  trainerId String   @map("trainer_id") @db.Uuid
+  isPrimary Boolean  @default(false) @map("is_primary")
+  assignedAt DateTime @default(now()) @map("assigned_at")
+
+  batch   Batch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  trainer User  @relation(fields: [trainerId], references: [id])
+
+  @@unique([batchId, trainerId])
+  @@map("batch_trainers")
+}
+
+model BatchSchedule {
+  id        String    @id @default(uuid()) @db.Uuid
+  batchId   String    @map("batch_id") @db.Uuid
+  dayOfWeek DayOfWeek @map("day_of_week")
+  startTime String    @map("start_time") @db.VarChar(5) /// HH:MM format
+  endTime   String    @map("end_time") @db.VarChar(5)   /// HH:MM format
+  room      String?   @db.VarChar(100)
+  isActive  Boolean   @default(true) @map("is_active")
+
+  batch Batch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+
+  @@unique([batchId, dayOfWeek, startTime])
+  @@map("batch_schedules")
+}
+
+model Competition {
+  id          String   @id @default(uuid()) @db.Uuid
+  tenantId    String   @map("tenant_id") @db.Uuid
+  name        String   @db.VarChar(200)
+  description String?  @db.Text
+  eventDate   DateTime @map("event_date") @db.Date
+  venue       String?  @db.VarChar(255)
+  maxParticipants Int? @map("max_participants")
+  registrationDeadline DateTime? @map("registration_deadline")
+  status      String   @default("UPCOMING") @db.VarChar(30)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("competitions")
+}
+
+model ClassSession {
+  id        String        @id @default(uuid()) @db.Uuid
+  batchId   String        @map("batch_id") @db.Uuid
+  date      DateTime      @db.Date
+  startTime String        @map("start_time") @db.VarChar(5)
+  endTime   String        @map("end_time") @db.VarChar(5)
+  topic     String?       @db.VarChar(255)
+  notes     String?       @db.Text
+  status    SessionStatus @default(SCHEDULED)
+  createdAt DateTime      @default(now()) @map("created_at")
+
+  batch             Batch               @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  attendanceSession AttendanceSession?
+
+  @@index([batchId, date])
+  @@map("class_sessions")
+}
+
+model StudentProgress {
+  id         String   @id @default(uuid()) @db.Uuid
+  studentId  String   @map("student_id") @db.Uuid
+  batchId    String?  @map("batch_id") @db.Uuid
+  trainerId  String?  @map("trainer_id") @db.Uuid
+  module     String?  @db.VarChar(200)
+  percentage Int      @default(0)
+  grade      String?  @db.VarChar(10)
+  remarks    String?  @db.Text
+  assessedAt DateTime @default(now()) @map("assessed_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  trainer User?   @relation(fields: [trainerId], references: [id])
+
+  @@index([studentId])
+  @@map("student_progress")
+}
+
+model AttendanceSession {
+  id           String   @id @default(uuid()) @db.Uuid
+  tenantId     String   @map("tenant_id") @db.Uuid
+  branchId     String?  @map("branch_id") @db.Uuid
+  classSessionId String? @unique @map("class_session_id") @db.Uuid
+  batchId      String?  @map("batch_id") @db.Uuid
+  date         DateTime @db.Date
+  markedBy     String?  @map("marked_by") @db.Uuid
+  markedAt     DateTime @default(now()) @map("marked_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  tenant       Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  branch       Branch?             @relation(fields: [branchId], references: [id])
+  classSession ClassSession?       @relation(fields: [classSessionId], references: [id])
+  records      StudentAttendance[]
+
+  @@index([tenantId, date])
+  @@map("attendance_sessions")
+}
+
+model StudentAttendance {
+  id                  String           @id @default(uuid()) @db.Uuid
+  attendanceSessionId String           @map("attendance_session_id") @db.Uuid
+  studentId           String           @map("student_id") @db.Uuid
+  status              AttendanceStatus @default(PRESENT)
+  remarks             String?          @db.VarChar(255)
+  checkInTime         String?          @map("check_in_time") @db.VarChar(5)
+
+  session AttendanceSession @relation(fields: [attendanceSessionId], references: [id], onDelete: Cascade)
+  student Student           @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([attendanceSessionId, studentId])
+  @@map("student_attendance")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 8. FEE MANAGEMENT
+// ═══════════════════════════════════════════════════════════════
+
+model FeePlan {
+  id             String   @id @default(uuid()) @db.Uuid
+  tenantId       String   @map("tenant_id") @db.Uuid
+  courseId        String?  @map("course_id") @db.Uuid
+  name           String   @db.VarChar(200)
+  feeType        FeeType  @default(MONTHLY) @map("fee_type")
+  totalAmount    Decimal  @map("total_amount") @db.Decimal(10, 2)
+  currency       String   @default("INR") @db.VarChar(3)
+  installments   Int      @default(1)
+  durationMonths Int?     @map("duration_months")
+  isActive       Boolean  @default(true) @map("is_active")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  tenant      Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  course      Course?       @relation(fields: [courseId], references: [id])
+  enrollments Enrollment[]
+  discounts   FeeDiscount[]
+
+  @@index([tenantId])
+  @@map("fee_plans")
+}
+
+model FeeDiscount {
+  id          String   @id @default(uuid()) @db.Uuid
+  feePlanId   String   @map("fee_plan_id") @db.Uuid
+  name        String   @db.VarChar(100)
+  type        String   @db.VarChar(20) /// PERCENTAGE or FLAT
+  value       Decimal  @db.Decimal(10, 2)
+  code        String?  @db.VarChar(30)
+  maxUses     Int?     @map("max_uses")
+  usedCount   Int      @default(0) @map("used_count")
+  validFrom   DateTime? @map("valid_from") @db.Date
+  validTo     DateTime? @map("valid_to") @db.Date
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  feePlan FeePlan @relation(fields: [feePlanId], references: [id], onDelete: Cascade)
+
+  @@map("fee_discounts")
+}

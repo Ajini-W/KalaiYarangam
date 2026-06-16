@@ -52,7 +52,7 @@ export class AuthService {
     });
 
     const user = tenant.users[0];
-    return this.buildAuthResponse(user);
+    return { message: 'Registration successful', data: this.buildAuthResponse(user) };
   }
 
   async login(dto: LoginDto) {
@@ -69,11 +69,11 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    return this.buildAuthResponse(user);
+    return { message: 'Login successful', data: this.buildAuthResponse(user) };
   }
 
   me(user: AuthenticatedUser) {
-    return user;
+    return { message: 'User profile retrieved', data: user };
   }
 
   private buildAuthResponse(user: {

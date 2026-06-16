@@ -1,0 +1,212 @@
+// ─────────────────────────────────────────────────────────────
+// KalaiArangam — Multi-Tenant SaaS ERP
+// Module: Class & Training Management (MVP)
+// Database: PostgreSQL via Prisma ORM
+// ─────────────────────────────────────────────────────────────
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ENUMS
+// ═══════════════════════════════════════════════════════════════
+
+enum UserRole {
+  SUPER_ADMIN
+  OWNER
+  BRANCH_MANAGER
+  TRAINER
+  STAFF
+  STUDENT
+  CLIENT
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  PENDING
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum TenantStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  TRIAL
+}
+
+enum IndustryType {
+  TRAINING
+  RENTAL
+  EVENT
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  REVOKED
+}
+
+enum PlanInterval {
+  MONTHLY
+  HALF_YEARLY
+  YEARLY
+}
+
+enum SubscriptionStatus {
+  TRIAL
+  ACTIVE
+  PAST_DUE
+  CANCELLED
+  EXPIRED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+enum PaymentMode {
+  ONLINE
+  CASH
+  BANK_TRANSFER
+  UPI
+  CHEQUE
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  FOLLOWUP
+  INTERESTED
+  DEMO_SCHEDULED
+  CONVERTED
+  LOST
+}
+
+enum LeadSource {
+  WALK_IN
+  PHONE
+  WEBSITE
+  SOCIAL_MEDIA
+  REFERRAL
+  ADVERTISEMENT
+  OTHER
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  COMPLETED
+  DROPPED
+  SUSPENDED
+  TRANSFERRED
+}
+
+enum BatchStatus {
+  UPCOMING
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum SessionStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  EXCUSED
+}
+
+enum FeeType {
+  ONE_TIME
+  MONTHLY
+  QUARTERLY
+  TERM
+  YEARLY
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+  PARTIALLY_PAID
+  OVERDUE
+  CANCELLED
+  REFUNDED
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+  REFUND
+}
+
+enum NotificationChannel {
+  EMAIL
+  SMS
+  WHATSAPP
+  IN_APP
+  PUSH
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  WAITING
+  RESOLVED
+  CLOSED
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+  LOGOUT
+  EXPORT
+  IMPORT
+}
+
+enum HealthStatus {
+  HEALTHY
+  AT_RISK
+  CRITICAL
+  CHURNED
+}
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}

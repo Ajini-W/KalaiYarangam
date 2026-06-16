@@ -1,0 +1,163 @@
+// ═══════════════════════════════════════════════════════════════
+// 3. SUBSCRIPTION & BILLING (SaaS)
+// ═══════════════════════════════════════════════════════════════
+
+model Plan {
+  id            String       @id @default(uuid()) @db.Uuid
+  name          String       @db.VarChar(100)
+  slug          String       @unique @db.VarChar(100)
+  description   String?      @db.Text
+  interval      PlanInterval @default(MONTHLY)
+  price         Decimal      @db.Decimal(10, 2)
+  currency      String       @default("INR") @db.VarChar(3)
+  trialDays     Int          @default(15) @map("trial_days")
+  maxUsers      Int?         @map("max_users")
+  maxBranches   Int?         @map("max_branches")
+  maxStudents   Int?         @map("max_students")
+  isActive      Boolean      @default(true) @map("is_active")
+  sortOrder     Int          @default(0) @map("sort_order")
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
+
+  features      PlanFeature[]
+  subscriptions Subscription[]
+  modules       SubscriptionModule[]
+
+  @@map("plans")
+}
+
+model PlanFeature {
+  id        String  @id @default(uuid()) @db.Uuid
+  planId    String  @map("plan_id") @db.Uuid
+  feature   String  @db.VarChar(200)
+  value     String? @db.VarChar(100)
+  isEnabled Boolean @default(true) @map("is_enabled")
+
+  plan Plan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@unique([planId, feature])
+  @@map("plan_features")
+}
+
+model SubscriptionModule {
+  id       String @id @default(uuid()) @db.Uuid
+  planId   String @map("plan_id") @db.Uuid
+  module   String @db.VarChar(50)
+  isActive Boolean @default(true) @map("is_active")
+
+  plan Plan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@unique([planId, module])
+  @@map("subscription_modules")
+}
+
+model Subscription {
+  id           String             @id @default(uuid()) @db.Uuid
+  tenantId     String             @map("tenant_id") @db.Uuid
+  planId       String             @map("plan_id") @db.Uuid
+  status       SubscriptionStatus @default(TRIAL)
+  startDate    DateTime           @map("start_date") @db.Date
+  endDate      DateTime           @map("end_date") @db.Date
+  trialEndsAt  DateTime?          @map("trial_ends_at")
+  cancelledAt  DateTime?          @map("cancelled_at")
+  autoRenew    Boolean            @default(true) @map("auto_renew")
+  createdAt    DateTime           @default(now()) @map("created_at")
+  updatedAt    DateTime           @updatedAt @map("updated_at")
+
+  tenant   Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  plan     Plan                 @relation(fields: [planId], references: [id])
+  usage    SubscriptionUsage[]
+  invoices SubscriptionInvoice[]
+  payments SubscriptionPayment[]
+  history  SubscriptionHistory[]
+
+  @@index([tenantId])
+  @@index([status])
+  @@map("subscriptions")
+}
+
+model SubscriptionUsage {
+  id             String   @id @default(uuid()) @db.Uuid
+  tenantId       String   @map("tenant_id") @db.Uuid
+  subscriptionId String   @map("subscription_id") @db.Uuid
+  metric         String   @db.VarChar(100)
+  currentValue   Int      @default(0) @map("current_value")
+  maxValue       Int?     @map("max_value")
+  periodStart    DateTime @map("period_start") @db.Date
+  periodEnd      DateTime @map("period_end") @db.Date
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  tenant       Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@unique([subscriptionId, metric, periodStart])
+  @@map("subscription_usage")
+}
+
+model SubscriptionInvoice {
+  id             String        @id @default(uuid()) @db.Uuid
+  subscriptionId String        @map("subscription_id") @db.Uuid
+  invoiceNumber  String        @unique @map("invoice_number") @db.VarChar(50)
+  amount         Decimal       @db.Decimal(10, 2)
+  tax            Decimal       @default(0) @db.Decimal(10, 2)
+  totalAmount    Decimal       @map("total_amount") @db.Decimal(10, 2)
+  currency       String        @default("INR") @db.VarChar(3)
+  status         InvoiceStatus @default(DRAFT)
+  dueDate        DateTime      @map("due_date") @db.Date
+  paidAt         DateTime?     @map("paid_at")
+  pdfUrl         String?       @map("pdf_url") @db.VarChar(500)
+  createdAt      DateTime      @default(now()) @map("created_at")
+
+  subscription Subscription          @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  payments     SubscriptionPayment[]
+
+  @@index([subscriptionId])
+  @@map("subscription_invoices")
+}
+
+model SubscriptionPayment {
+  id             String        @id @default(uuid()) @db.Uuid
+  subscriptionId String        @map("subscription_id") @db.Uuid
+  invoiceId      String?       @map("invoice_id") @db.Uuid
+  amount         Decimal       @db.Decimal(10, 2)
+  currency       String        @default("INR") @db.VarChar(3)
+  mode           PaymentMode   @default(ONLINE)
+  status         PaymentStatus @default(PENDING)
+  gatewayRef     String?       @map("gateway_ref") @db.VarChar(255)
+  gatewayResponse Json?        @map("gateway_response")
+  paidAt         DateTime?     @map("paid_at")
+  createdAt      DateTime      @default(now()) @map("created_at")
+
+  subscription Subscription         @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  invoice      SubscriptionInvoice? @relation(fields: [invoiceId], references: [id])
+
+  @@index([subscriptionId])
+  @@map("subscription_payments")
+}
+
+model SubscriptionHistory {
+  id             String             @id @default(uuid()) @db.Uuid
+  subscriptionId String             @map("subscription_id") @db.Uuid
+  action         String             @db.VarChar(50)
+  previousStatus SubscriptionStatus? @map("previous_status")
+  newStatus      SubscriptionStatus? @map("new_status")
+  metadata       Json?
+  createdAt      DateTime           @default(now()) @map("created_at")
+
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@index([subscriptionId])
+  @@map("subscription_history")
+}
+
+model ModuleInterest {
+  id        String   @id @default(uuid()) @db.Uuid
+  email     String   @db.VarChar(255)
+  name      String?  @db.VarChar(150)
+  phone     String?  @db.VarChar(20)
+  modules   String[] @db.VarChar(50)
+  message   String?  @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("modules_interest")
+}

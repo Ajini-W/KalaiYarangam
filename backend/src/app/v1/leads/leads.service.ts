@@ -24,7 +24,7 @@ export class LeadsService {
         : {}),
     };
 
-    const [data, total] = await Promise.all([
+    const [items, total] = await Promise.all([
       this.prisma.lead.findMany({
         where,
         skip,
@@ -34,12 +34,13 @@ export class LeadsService {
       this.prisma.lead.count({ where }),
     ]);
 
-    return paginate(data, total, page, pageSize);
+    return { message: 'Leads retrieved successfully', data: paginate(items, total, page, pageSize) };
   }
 
-  create(user: AuthenticatedUser, dto: CreateLeadDto) {
-    return this.prisma.lead.create({
+  async create(user: AuthenticatedUser, dto: CreateLeadDto) {
+    const lead = await this.prisma.lead.create({
       data: { ...dto, tenantId: user.tenantId },
     });
+    return { message: 'Lead created successfully', data: lead };
   }
 }
