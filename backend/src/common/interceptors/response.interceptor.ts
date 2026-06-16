@@ -13,12 +13,15 @@ export class ResponseInterceptor implements NestInterceptor {
     const response = context.switchToHttp().getResponse<Response>();
 
     return next.handle().pipe(
-      map(({ message, data } = {}) => ({
-        httpStatusCode: response.statusCode,
-        message: message ?? 'Success',
-        data: data ?? null,
-        timestamp: new Date().toISOString(),
-      })),
+      map((result: unknown) => {
+        const { message, data } = (result ?? {}) as { message?: string; data?: unknown };
+        return {
+          httpStatusCode: response.statusCode,
+          message: message ?? 'Success',
+          data: data ?? null,
+          timestamp: new Date().toISOString(),
+        };
+      }),
     );
   }
 }

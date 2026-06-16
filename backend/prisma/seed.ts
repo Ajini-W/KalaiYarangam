@@ -12,7 +12,7 @@ async function main() {
     create: {
       name: 'Demo Academy',
       slug: 'demo-academy',
-      industry: 'training',
+      industry: 'TRAINING',
       branches: {
         create: { name: 'Main Branch', city: 'Chennai', isDefault: true },
       },
@@ -31,81 +31,39 @@ async function main() {
             name: 'Priya Sharma',
             phone: '9876543210',
             course: 'Bharatanatyam',
-            source: 'Walk-in',
+            source: 'WALK_IN',
             status: 'NEW',
           },
           {
             name: 'Ravi Kumar',
             phone: '9876543211',
             course: 'Karate',
-            source: 'Referral',
+            source: 'REFERRAL',
             status: 'FOLLOWUP',
           },
         ],
       },
-      events: {
-        create: [
-          {
-            name: 'Raj & Priya Wedding',
-            client: 'Raj Family',
-            type: 'Wedding',
-            eventDate: new Date('2026-06-20'),
-            budget: 800000,
-            status: 'CONFIRMED',
-          },
-        ],
-      },
-      trainingBatches: {
+      batches: {
         create: [
           {
             name: 'Morning Batch A',
-            course: 'Bharatanatyam',
-            schedule: 'Mon/Wed/Fri 6–8 AM',
             capacity: 25,
           },
         ],
       },
-      rentalItems: {
-        create: [
-          {
-            name: 'LED Par Can',
-            category: 'Lighting',
-            sku: 'LED-001',
-            dailyRate: 500,
-            quantity: 20,
-            available: 18,
-          },
-        ],
-      },
     },
-    include: { branches: true, trainingBatches: true, rentalItems: true },
+    include: { branches: true, batches: true },
   });
 
-  const batch = tenant.trainingBatches[0];
-  const item = tenant.rentalItems[0];
+  const batch = tenant.batches[0];
 
   if (batch) {
     await prisma.student.create({
       data: {
         tenantId: tenant.id,
-        batchId: batch.id,
         name: 'Meena Devi',
         phone: '9876543212',
         email: 'meena@example.com',
-      },
-    });
-  }
-
-  if (item) {
-    await prisma.rentalBooking.create({
-      data: {
-        tenantId: tenant.id,
-        itemId: item.id,
-        client: 'TechCorp Events',
-        startDate: new Date('2026-06-25'),
-        endDate: new Date('2026-06-27'),
-        quantity: 4,
-        status: 'CONFIRMED',
       },
     });
   }

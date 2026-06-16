@@ -13,22 +13,26 @@ export class TrainingService {
     const where = { tenantId: user.tenantId };
 
     const [data, total] = await Promise.all([
-      this.prisma.trainingBatch.findMany({
+      this.prisma.batch.findMany({
         where,
         skip,
         take,
         orderBy: { createdAt: 'desc' },
-        include: { _count: { select: { students: true } } },
+        include: { _count: { select: { enrollments: true } } },
       }),
-      this.prisma.trainingBatch.count({ where }),
+      this.prisma.batch.count({ where }),
     ]);
 
     return paginate(data, total, page, pageSize);
   }
 
   createBatch(user: AuthenticatedUser, dto: CreateBatchDto) {
-    return this.prisma.trainingBatch.create({
-      data: { ...dto, tenantId: user.tenantId },
+    return this.prisma.batch.create({
+      data: {
+        tenantId: user.tenantId,
+        name: dto.name,
+        capacity: dto.capacity ?? 30,
+      },
     });
   }
 
@@ -42,7 +46,7 @@ export class TrainingService {
         skip,
         take,
         orderBy: { createdAt: 'desc' },
-        include: { batch: { select: { id: true, name: true, course: true } } },
+        include: { enrollments: { include: { batch: { select: { id: true, name: true } } } } },
       }),
       this.prisma.student.count({ where }),
     ]);
@@ -52,7 +56,12 @@ export class TrainingService {
 
   createStudent(user: AuthenticatedUser, dto: CreateStudentDto) {
     return this.prisma.student.create({
-      data: { ...dto, tenantId: user.tenantId },
+      data: {
+        tenantId: user.tenantId,
+        name: dto.name,
+        phone: dto.phone,
+        ...(dto.email ? { email: dto.email } : {}),
+      },
     });
   }
 }

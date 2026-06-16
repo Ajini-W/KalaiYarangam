@@ -1,6 +1,7 @@
 import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { IndustryType, UserStatus } from '@prisma/client';
 import { PrismaService } from '@/database';
 import { AuthenticatedUser } from '@/common/interfaces';
 import { LoginDto, RegisterDto } from './dto/auth.dto';
@@ -34,7 +35,7 @@ export class AuthService {
       data: {
         name: dto.businessName,
         slug,
-        industry: dto.industry,
+        industry: dto.industry as IndustryType,
         branches: {
           create: { name: 'Main Branch', isDefault: true },
         },
@@ -51,13 +52,13 @@ export class AuthService {
       include: { users: true },
     });
 
-    const user = tenant.users[0];
+    const user = (tenant as any).users[0];
     return { message: 'Registration successful', data: this.buildAuthResponse(user) };
   }
 
   async login(dto: LoginDto) {
     const user = await this.prisma.user.findFirst({
-      where: { email: dto.email, isActive: true },
+      where: { email: dto.email, status: UserStatus.ACTIVE },
     });
 
     if (!user) {
@@ -78,16 +79,15 @@ export class AuthService {
 
   private buildAuthResponse(user: {
     id: string;
-    tenantId: string;
-    branchId: string | null;
+    tenantId: string | null;
     email: string;
     name: string;
     role: AuthenticatedUser['role'];
   }) {
     const payload: AuthenticatedUser = {
       id: user.id,
-      tenantId: user.tenantId,
-      branchId: user.branchId,
+      tenantId: user.tenantId ?? '',
+      branchId: null,
       email: user.email,
       name: user.name,
       role: user.role,
