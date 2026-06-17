@@ -9,6 +9,10 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(32),
   JWT_EXPIRES_IN: z.string().default('7d'),
   REDIS_URL: z.string().optional(),
+
+  BREVO_API_KEY: z.string().min(1),
+  BREVO_FROM_EMAIL: z.string().email(),
+  BREVO_FROM_NAME: z.string().default('KalaiArangam'),
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -22,4 +26,8 @@ export const env: Env = envSchema.parse({
   JWT_SECRET: process.env.JWT_SECRET,
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN,
   REDIS_URL: process.env.REDIS_URL,
+
+  BREVO_API_KEY: process.env.BREVO_API_KEY,
+  BREVO_FROM_EMAIL: process.env.BREVO_FROM_EMAIL,
+  BREVO_FROM_NAME: process.env.BREVO_FROM_NAME,
 });
