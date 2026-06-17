@@ -13,6 +13,15 @@ const envSchema = z.object({
   BREVO_API_KEY: z.string().min(1),
   BREVO_FROM_EMAIL: z.string().email(),
   BREVO_FROM_NAME: z.string().default('KalaiArangam'),
+
+  FIREBASE_API_KEY: z.string().min(1),
+  FIREBASE_AUTH_DOMAIN: z.string().min(1),
+  FIREBASE_PROJECT_ID: z.string().min(1),
+  FIREBASE_STORAGE_BUCKET: z.string().min(1),
+  FIREBASE_MESSAGING_SENDER_ID: z.string().min(1),
+  FIREBASE_APP_ID: z.string().min(1),
+  FIREBASE_MEASUREMENT_ID: z.string().optional(),
+  FIREBASE_SERVICE_ACCOUNT_JSON: z.string().min(1),
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -30,4 +39,13 @@ export const env: Env = envSchema.parse({
   BREVO_API_KEY: process.env.BREVO_API_KEY,
   BREVO_FROM_EMAIL: process.env.BREVO_FROM_EMAIL,
   BREVO_FROM_NAME: process.env.BREVO_FROM_NAME,
+
+  FIREBASE_API_KEY: process.env.FIREBASE_API_KEY,
+  FIREBASE_AUTH_DOMAIN: process.env.FIREBASE_AUTH_DOMAIN,
+  FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID,
+  FIREBASE_STORAGE_BUCKET: process.env.FIREBASE_STORAGE_BUCKET,
+  FIREBASE_MESSAGING_SENDER_ID: process.env.FIREBASE_MESSAGING_SENDER_ID,
+  FIREBASE_APP_ID: process.env.FIREBASE_APP_ID,
+  FIREBASE_MEASUREMENT_ID: process.env.FIREBASE_MEASUREMENT_ID,
+  FIREBASE_SERVICE_ACCOUNT_JSON: process.env.FIREBASE_SERVICE_ACCOUNT_JSON,
 });
