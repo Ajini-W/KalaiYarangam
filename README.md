@@ -33,19 +33,8 @@ cp .env.example .env
 
 #### Example `.env` Configuration:
 ```env
-# Application URL
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-
 # Backend API URL (NestJS API prefix)
-NEXT_PUBLIC_API_URL=http://localhost:4000/api/v1
-
-# Database Connection (if directly accessed by frontend/middleware)
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/kalai_arangam?schema=public
-
-# Secrets and Cache
-JWT_SECRET=change-me-to-a-secret-with-at-least-32-characters
-REDIS_URL=redis://localhost:6379
-
+BACKEND_URL=http://localhost:4000/api/v1
 ```
 
 ### 3. Run the Development Server
