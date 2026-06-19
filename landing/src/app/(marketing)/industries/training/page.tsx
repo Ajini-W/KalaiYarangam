@@ -1,0 +1,58 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { features } from "@/config/features";
+import { CtaBanner } from "@/components/shared/cta-banner";
+
+export const metadata: Metadata = { title: "Training Centers" };
+
+const trainingFeatures = [
+  "Batch & schedule management",
+  "Student enrollment & attendance",
+  "Fee collection & receipt generation",
+  "Progress tracking & reports",
+  "Automated reminder notifications",
+  "Multi-trainer assignment",
+];
+
+export default function TrainingPage() {
+  return (
+    <>
+      <section className="bg-black pt-32 pb-20 px-4">
+        <div className="mx-auto max-w-4xl">
+          <p className="text-xs font-semibold uppercase tracking-widest text-brand mb-4">Industry</p>
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">
+            🏋️ Training Centers
+          </h1>
+          <p className="text-zinc-400 text-lg leading-relaxed max-w-2xl">
+            Manage every aspect of your training business — from batch scheduling to fee collection
+            — in one streamlined platform.
+          </p>
+          <div className="mt-8 flex gap-4">
+            <Link href="/auth/sign-up" className="rounded-md bg-brand px-6 py-3 text-sm font-semibold text-black hover:bg-brand/90 transition-colors">
+              Start Free Trial
+            </Link>
+            <Link href="/pricing" className="rounded-md border border-white/10 bg-white/5 px-6 py-3 text-sm font-semibold text-white hover:bg-white/10 transition-colors">
+              View Pricing
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-zinc-950 py-20 px-4">
+        <div className="mx-auto max-w-4xl">
+          <h2 className="text-2xl font-bold text-white mb-8">Built for training businesses</h2>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {trainingFeatures.map((f) => (
+              <div key={f} className="flex items-center gap-3 rounded-lg border border-white/[0.06] bg-white/[0.02] p-4">
+                <span className="text-brand">✓</span>
+                <span className="text-sm text-zinc-300">{f}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <CtaBanner />
+    </>
+  );
+}
