@@ -1,10 +1,15 @@
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  ConflictException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { IndustryType, UserStatus } from '@prisma/client';
 import { PrismaService } from '@/database';
 import { AuthenticatedUser } from '@/common/interfaces';
-import { LoginDto, RegisterDto } from './dto/auth.dto';
+import { env } from '@/config';
+import { LoginDto, RegisterDto, RefreshTokenDto } from './dto/auth.dto';
 
 function slugify(value: string) {
   return value
@@ -46,6 +51,7 @@ export class AuthService {
             name: dto.name,
             phone: dto.phone,
             role: 'OWNER',
+            status: 'ACTIVE',
           },
         },
       },
@@ -56,35 +62,121 @@ export class AuthService {
     return { message: 'Registration successful', data: this.buildAuthResponse(user) };
   }
 
-  async login(dto: LoginDto) {
+  async login(dto: LoginDto, ipAddress?: string, userAgent?: string) {
     const user = await this.prisma.user.findFirst({
       where: { email: dto.email, status: UserStatus.ACTIVE },
     });
 
-    if (!user) {
+    const valid = user ? await bcrypt.compare(dto.password, user.passwordHash) : false;
+
+    if (!user || !valid) {
+      // Log failed attempt
+      await this.prisma.userLoginLog.create({
+        data: {
+          userId: user?.id ?? '00000000-0000-0000-0000-000000000000',
+          ipAddress,
+          userAgent,
+          success: false,
+        },
+      });
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const valid = await bcrypt.compare(dto.password, user.passwordHash);
-    if (!valid) {
-      throw new UnauthorizedException('Invalid credentials');
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { lastLoginAt: new Date() },
+    });
+
+    const tokens = await this.generateTokens(user);
+
+    // Log successful login with tokens
+    await this.prisma.userLoginLog.create({
+      data: {
+        userId: user.id,
+        ipAddress,
+        userAgent,
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+        success: true,
+      },
+    });
+
+    return { message: 'Login successful', data: { user: this.toPayload(user), ...tokens } };
+  }
+
+  async logout(refreshToken: string) {
+    await this.prisma.refreshToken.updateMany({
+      where: { token: refreshToken, revokedAt: null },
+      data: { revokedAt: new Date() },
+    });
+    return { message: 'Logged out successfully' };
+  }
+
+  async refresh(dto: RefreshTokenDto) {
+    const stored = await this.prisma.refreshToken.findUnique({
+      where: { token: dto.refreshToken },
+      include: { user: true },
+    });
+
+    if (!stored || stored.revokedAt || stored.expiresAt < new Date()) {
+      throw new UnauthorizedException('Invalid or expired refresh token');
     }
 
-    return { message: 'Login successful', data: this.buildAuthResponse(user) };
+    if (stored.user.status !== UserStatus.ACTIVE) {
+      throw new UnauthorizedException('Account is inactive');
+    }
+
+    // Rotate: revoke old, issue new
+    await this.prisma.refreshToken.update({
+      where: { id: stored.id },
+      data: { revokedAt: new Date() },
+    });
+
+    const tokens = await this.generateTokens(stored.user);
+    return {
+      message: 'Token refreshed',
+      data: { user: this.toPayload(stored.user), ...tokens },
+    };
   }
 
   me(user: AuthenticatedUser) {
     return { message: 'User profile retrieved', data: user };
   }
 
-  private buildAuthResponse(user: {
+  private async generateTokens(user: {
     id: string;
     tenantId: string | null;
     email: string;
     name: string;
     role: AuthenticatedUser['role'];
   }) {
-    const payload: AuthenticatedUser = {
+    const payload = this.toPayload(user);
+
+    const accessToken = this.jwtService.sign(payload);
+
+    const refreshToken = this.jwtService.sign(
+      { sub: user.id },
+      { secret: env.JWT_REFRESH_SECRET, expiresIn: env.JWT_REFRESH_EXPIRES_IN as any },
+    );
+
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7);
+
+    await this.prisma.refreshToken.create({
+      data: { userId: user.id, token: refreshToken, expiresAt },
+    });
+
+    return { accessToken, refreshToken };
+  }
+
+  private toPayload(user: {
+    id: string;
+    tenantId: string | null;
+    email: string;
+    name: string;
+    role: AuthenticatedUser['role'];
+  }): AuthenticatedUser {
+    return {
       id: user.id,
       tenantId: user.tenantId ?? '',
       branchId: null,
@@ -92,7 +184,17 @@ export class AuthService {
       name: user.name,
       role: user.role,
     };
+  }
 
+  // Keep backward compat for register
+  private buildAuthResponse(user: {
+    id: string;
+    tenantId: string | null;
+    email: string;
+    name: string;
+    role: AuthenticatedUser['role'];
+  }) {
+    const payload = this.toPayload(user);
     return {
       user: payload,
       accessToken: this.jwtService.sign(payload),

@@ -7,7 +7,9 @@ const envSchema = z.object({
   API_PREFIX: z.string().default('api/v1'),
   DATABASE_URL: z.string().min(1),
   JWT_SECRET: z.string().min(32),
-  JWT_EXPIRES_IN: z.string().default('7d'),
+  JWT_EXPIRES_IN: z.string().default('15m'),
+  JWT_REFRESH_SECRET: z.string().min(32),
+  JWT_REFRESH_EXPIRES_IN: z.string().default('7d'),
   REDIS_URL: z.string().optional(),
 
   BREVO_API_KEY: z.string().min(1),
@@ -34,6 +36,8 @@ export const env: Env = envSchema.parse({
   DATABASE_URL: process.env.DATABASE_URL,
   JWT_SECRET: process.env.JWT_SECRET,
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN,
+  JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET,
+  JWT_REFRESH_EXPIRES_IN: process.env.JWT_REFRESH_EXPIRES_IN,
   REDIS_URL: process.env.REDIS_URL,
 
   BREVO_API_KEY: process.env.BREVO_API_KEY,
