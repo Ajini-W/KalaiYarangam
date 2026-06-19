@@ -3,6 +3,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { env } from '@/config';
+import { AuthThrottlerGuard } from '@/common/guards';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './jwt.strategy';
@@ -15,12 +16,12 @@ import { JwtStrategy } from './jwt.strategy';
       signOptions: { expiresIn: env.JWT_EXPIRES_IN as any },
     }),
     ThrottlerModule.forRoot([{
-      ttl: 3600000, // 1 hour in milliseconds
-      limit: 5, // 5 attempts per hour
+      ttl: 3600000,
+      limit: 5,
     }]),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, AuthThrottlerGuard],
   exports: [AuthService],
 })
 export class AuthModule {}

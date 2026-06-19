@@ -16,7 +16,7 @@ export class AuthController {
   @Public()
   @Post('register')
   @UseGuards(AuthThrottlerGuard)
-  @Throttle({ default: { limit: 3, ttl: 3600000 } }) // 3 registrations per hour
+  @Throttle({ default: { limit: 3, ttl: 3600000 } })
   register(@Body() dto: RegisterDto) {
     return this.authService.register(dto);
   }
@@ -24,7 +24,7 @@ export class AuthController {
   @Public()
   @Post('login')
   @UseGuards(AuthThrottlerGuard)
-  @Throttle({ default: { limit: 5, ttl: 3600000 } }) // 5 login attempts per hour
+  @Throttle({ default: { limit: 5, ttl: 3600000 } })
   login(@Body() dto: LoginDto, @Req() req: Request) {
     const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0] ?? req.ip;
     return this.authService.login(dto, ip, req.headers['user-agent']);
@@ -33,11 +33,12 @@ export class AuthController {
   @Public()
   @Post('refresh')
   @UseGuards(AuthThrottlerGuard)
-  @Throttle({ default: { limit: 10, ttl: 3600000 } }) // 10 refresh attempts per hour
+  @Throttle({ default: { limit: 10, ttl: 3600000 } })
   refresh(@Body() dto: RefreshTokenDto) {
     return this.authService.refresh(dto);
   }
 
+  @Public()
   @ApiBearerAuth()
   @Post('logout')
   logout(@Body() dto: RefreshTokenDto) {

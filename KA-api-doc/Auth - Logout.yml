@@ -12,7 +12,7 @@ http:
       {
         "refreshToken": "<your-refresh-token>"
       }
-  auth: inherit
+  auth: none
 
 settings:
   encodeUrl: true

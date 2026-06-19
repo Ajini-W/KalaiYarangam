@@ -6,18 +6,18 @@ Rate limiting has been implemented to protect authentication endpoints from brut
 ## Rate Limits
 
 ### Login Endpoint
-- **Limit**: 5 attempts per hour
+- **Limit**: 5 attempts per 5Minutes
 - **Tracking**: By IP address + email combination
 - **Lockout**: 1 hour after exceeding limit
 - **Message**: "Too many attempts. Please try again after 1 hour."
 
 ### Registration Endpoint
-- **Limit**: 3 attempts per hour
+- **Limit**: 3 attempts per 10minutes
 - **Tracking**: By IP address + email combination
 - **Lockout**: 1 hour after exceeding limit
 
 ### Refresh Token Endpoint
-- **Limit**: 10 attempts per hour
+- **Limit**: 10 attempts per 5min
 - **Tracking**: By IP address + email combination
 - **Lockout**: 1 hour after exceeding limit
 
