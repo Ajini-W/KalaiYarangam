@@ -1,0 +1,71 @@
+info:
+  name: Auth - Refresh Token
+  type: http
+  seq: 5
+
+http:
+  method: POST
+  url: "{{base-url}}/auth/refresh"
+  body:
+    type: json
+    data: |-
+      {
+        "refreshToken": "<your-refresh-token>"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+examples:
+  - name: SUCCESS 200
+    request:
+      url: "{{base-url}}/auth/refresh"
+      method: POST
+      body:
+        type: json
+        data: |-
+          {
+            "refreshToken": "<your-refresh-token>"
+          }
+    response:
+      status: 200
+      statusText: OK
+      body:
+        type: json
+        data: |-
+          {
+            "httpStatusCode": 200,
+            "message": "Token refreshed",
+            "data": {
+              "user": {},
+              "accessToken": "<new-access-token>",
+              "refreshToken": "<new-refresh-token>"
+            },
+            "timestamp": ""
+          }
+  - name: UNAUTHORIZED 401
+    request:
+      url: "{{base-url}}/auth/refresh"
+      method: POST
+      body:
+        type: json
+        data: |-
+          {
+            "refreshToken": "invalid-token"
+          }
+    response:
+      status: 401
+      statusText: Unauthorized
+      body:
+        type: json
+        data: |-
+          {
+            "httpStatusCode": 401,
+            "message": "Invalid or expired refresh token",
+            "data": null,
+            "timestamp": ""
+          }
