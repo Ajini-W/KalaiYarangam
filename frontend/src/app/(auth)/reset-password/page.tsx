@@ -11,43 +11,60 @@ import { Input } from "@/components/ui/Input";
 
 const schema = z
   .object({
-    password: z.string().min(8, "Password must be at least 8 characters"),
+    password: z.string().min(8, "Min 8 characters"),
     confirm: z.string(),
   })
   .refine((d) => d.password === d.confirm, {
     message: "Passwords do not match",
     path: ["confirm"],
   });
+
 type FormData = z.infer<typeof schema>;
 
 export default function ResetPasswordPage() {
   const router = useRouter();
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({
-    resolver: zodResolver(schema),
-  });
 
-  const onSubmit = async (data: FormData) => {
-    console.log(data);
-    toast.success("Password updated! Please sign in.");
+  const { register, handleSubmit, formState: { errors, isSubmitting } } =
+    useForm<FormData>({ resolver: zodResolver(schema) });
+
+  const onSubmit = async () => {
+    toast.success("Password updated successfully!");
     router.push("/login");
   };
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-text-primary">Set new password</h1>
-      <p className="mt-1 text-sm text-text-secondary">Must be at least 8 characters.</p>
+    <div className="space-y-6">
+      <div className="text-center">
+        <h1 className="text-2xl font-bold">Reset Password</h1>
+        <p className="text-sm text-gray-500">
+          Enter your new password below
+        </p>
+      </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-4" noValidate>
-        <Input label="New Password"     type="password" placeholder="••••••••" required error={errors.password?.message} {...register("password")} />
-        <Input label="Confirm Password" type="password" placeholder="••••••••" required error={errors.confirm?.message}  {...register("confirm")} />
-        <Button type="submit" className="w-full" loading={isSubmitting}>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <Input
+          label="New Password"
+          type="password"
+          error={errors.password?.message}
+          {...register("password")}
+        />
+
+        <Input
+          label="Confirm Password"
+          type="password"
+          error={errors.confirm?.message}
+          {...register("confirm")}
+        />
+
+        <Button className="w-full" loading={isSubmitting}>
           Update Password
         </Button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-text-secondary">
-        <Link href="/login" className="font-medium text-brand-600 hover:underline">
-          ← Back to sign in
+      <p className="text-center text-sm">
+        Back to{" "}
+        <Link href="/login" className="text-blue-600 hover:underline">
+          Login
         </Link>
       </p>
     </div>
