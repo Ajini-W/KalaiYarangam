@@ -105,10 +105,23 @@ export class AuthService {
   }
 
   async logout(refreshToken: string) {
-    await this.prisma.refreshToken.updateMany({
-      where: { token: refreshToken, revokedAt: null },
+    const storedToken = await this.prisma.refreshToken.findUnique({
+      where: { token: refreshToken },
+    });
+
+    if (!storedToken) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+
+    if (storedToken.revokedAt) {
+      throw new UnauthorizedException('Token is already revoked');
+    }
+
+    await this.prisma.refreshToken.update({
+      where: { id: storedToken.id },
       data: { revokedAt: new Date() },
     });
+
     return { message: 'Logged out successfully' };
   }
 

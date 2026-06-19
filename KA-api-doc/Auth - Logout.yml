@@ -25,6 +25,7 @@ examples:
     request:
       url: "{{base-url}}/auth/logout"
       method: POST
+      auth: none
       body:
         type: json
         data: |-
