@@ -1,0 +1,98 @@
+info:
+  name: Register
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{base-url}}/auth/register"
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Demo Owner",
+        "email": "owner@demo.com",
+        "phone": "9876543210",
+        "businessName": "Demo Academy",
+        "industry": "TRAINING",
+        "password": "Password123!"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        if (res.body.data) { bru.setVar('token', res.body.data.accessToken); }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+examples:
+  - name: SUCCESS 201
+    request:
+      url: "{{base-url}}/auth/register"
+      method: POST
+      body:
+        type: json
+        data: |-
+          {
+            "name": "Demo Owner",
+            "email": "owner@demo.com",
+            "phone": "9876543210",
+            "businessName": "Demo Academy",
+            "industry": "TRAINING",
+            "password": "Password123!"
+          }
+    response:
+      status: 201
+      statusText: Created
+      body:
+        type: json
+        data: |-
+          {
+            "httpStatusCode": 201,
+            "message": "Registration successful. Please check your email to verify your account.",
+            "data": {
+              "user": {
+                "id": "<user-id>",
+                "tenantId": "<tenant-id>",
+                "branchId": null,
+                "email": "owner@demo.com",
+                "name": "Demo Owner",
+                "role": "OWNER"
+              },
+              "accessToken": "<access-token>"
+            },
+            "timestamp": ""
+          }
+  - name: CONFLICT 409
+    request:
+      url: "{{base-url}}/auth/register"
+      method: POST
+      body:
+        type: json
+        data: |-
+          {
+            "name": "Demo Owner",
+            "email": "owner@demo.com",
+            "phone": "9876543210",
+            "businessName": "Demo Academy",
+            "industry": "TRAINING",
+            "password": "Password123!"
+          }
+    response:
+      status: 409
+      statusText: Conflict
+      body:
+        type: json
+        data: |-
+          {
+            "httpStatusCode": 409,
+            "message": "A user with this email already exists",
+            "data": null,
+            "timestamp": ""
+          }

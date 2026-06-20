@@ -1,7 +1,7 @@
 info:
   name: Tenant - Update
   type: http
-  seq: 9
+  seq: 10
 
 http:
   method: PATCH
@@ -18,8 +18,7 @@ http:
       }
   auth:
     type: bearer
-    bearer:
-      token: "<access-token>"
+    token: ""
 
 settings:
   encodeUrl: true
@@ -34,7 +33,7 @@ examples:
       method: PATCH
       headers:
         - name: Authorization
-          value: "Bearer <access-token>"
+          value: Bearer <access-token>
       body:
         type: json
         data: |-

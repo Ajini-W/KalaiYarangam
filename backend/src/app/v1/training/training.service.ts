@@ -4,7 +4,7 @@ import * as bcrypt from 'bcrypt';
 import { PrismaService } from '@/database';
 import { AuthenticatedUser } from '@/common/interfaces';
 import { paginate, paginationArgs } from '@/common/utils';
-import { CreateBatchDto, CreateStudentDto, CreateTenantDto, QueryPaginationDto, UpdateTenantDto } from './dto/training.dto';
+import { CreateBatchDto, CreateBranchDto, CreateStudentDto, CreateTenantDto, QueryPaginationDto, UpdateBranchDto, UpdateBranchStatusDto, UpdateTenantDto } from './dto/training.dto';
 
 function slugify(value: string) {
   return value
@@ -148,5 +148,74 @@ export class TrainingService {
     });
 
     return { message: 'Tenant updated successfully', data: tenant };
+  }
+
+  async createBranch(user: AuthenticatedUser, dto: CreateBranchDto) {
+    const data = await this.prisma.branch.create({
+      data: {
+        tenantId: user.tenantId,
+        ...dto,
+      },
+    });
+
+    return { message: 'Branch created successfully', data };
+  }
+
+  async findBranches(user: AuthenticatedUser, query: QueryPaginationDto) {
+    const where = { tenantId: user.tenantId };
+    const { skip, take, page, pageSize } = paginationArgs(query.page, query.pageSize);
+
+    const [data, total] = await Promise.all([
+      this.prisma.branch.findMany({ where, skip, take, orderBy: { createdAt: 'desc' } }),
+      this.prisma.branch.count({ where }),
+    ]);
+
+    return paginate(data, total, page, pageSize);
+  }
+
+  async findOneBranch(user: AuthenticatedUser, id: string) {
+    const branch = await this.prisma.branch.findFirst({
+      where: { id, tenantId: user.tenantId },
+    });
+
+    if (!branch) {
+      throw new NotFoundException('Branch not found');
+    }
+
+    return { message: 'Branch retrieved successfully', data: branch };
+  }
+
+  async updateBranch(user: AuthenticatedUser, id: string, dto: UpdateBranchDto) {
+    const branch = await this.prisma.branch.findFirst({
+      where: { id, tenantId: user.tenantId },
+    });
+
+    if (!branch) {
+      throw new NotFoundException('Branch not found');
+    }
+
+    const data = await this.prisma.branch.update({
+      where: { id },
+      data: dto,
+    });
+
+    return { message: 'Branch updated successfully', data };
+  }
+
+  async updateBranchStatus(user: AuthenticatedUser, id: string, dto: UpdateBranchStatusDto) {
+    const branch = await this.prisma.branch.findFirst({
+      where: { id, tenantId: user.tenantId },
+    });
+
+    if (!branch) {
+      throw new NotFoundException('Branch not found');
+    }
+
+    const data = await this.prisma.branch.update({
+      where: { id },
+      data: { isActive: dto.isActive },
+    });
+
+    return { message: `Branch ${dto.isActive ? 'activated' : 'deactivated'} successfully`, data };
   }
 }

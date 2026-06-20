@@ -1,9 +1,9 @@
-import { Body, Controller, Get, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CurrentUser, Public } from '@/common/decorators';
 import { AuthenticatedUser } from '@/common/interfaces';
 import { TrainingService } from './training.service';
-import { CreateBatchDto, CreateStudentDto, CreateTenantDto, QueryPaginationDto, UpdateTenantDto } from './dto/training.dto';
+import { CreateBatchDto, CreateBranchDto, CreateStudentDto, CreateTenantDto, QueryPaginationDto, UpdateBranchDto, UpdateBranchStatusDto, UpdateTenantDto } from './dto/training.dto';
 
 @ApiTags('training')
 @ApiBearerAuth()
@@ -47,5 +47,38 @@ export class TrainingController {
   @Patch('tenant')
   updateTenant(@CurrentUser() user: AuthenticatedUser, @Body() dto: UpdateTenantDto) {
     return this.trainingService.updateTenant(user, dto);
+  }
+
+  @Post('branches')
+  createBranch(@CurrentUser() user: AuthenticatedUser, @Body() dto: CreateBranchDto) {
+    return this.trainingService.createBranch(user, dto);
+  }
+
+  @Get('branches')
+  findBranches(@CurrentUser() user: AuthenticatedUser, @Query() query: QueryPaginationDto) {
+    return this.trainingService.findBranches(user, query);
+  }
+
+  @Get('branches/:id')
+  findOneBranch(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string) {
+    return this.trainingService.findOneBranch(user, id);
+  }
+
+  @Patch('branches/:id')
+  updateBranch(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateBranchDto,
+  ) {
+    return this.trainingService.updateBranch(user, id, dto);
+  }
+
+  @Patch('branches/:id/status')
+  updateBranchStatus(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateBranchStatusDto,
+  ) {
+    return this.trainingService.updateBranchStatus(user, id, dto);
   }
 }

@@ -1,0 +1,73 @@
+info:
+  name: Get Branch
+  type: http
+  seq: 5
+
+http:
+  method: GET
+  url: "{{base-url}}/training/branches/{{branchId}}"
+  headers:
+    - name: Authorization
+      value: Bearer {{token}}
+  body:
+    type: json
+    data: ""
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+examples:
+  - name: SUCCESS 200
+    request:
+      url: "{{base-url}}/training/branches/<branch-id>"
+      method: GET
+      headers:
+        - name: Authorization
+          value: Bearer <access-token>
+    response:
+      status: 200
+      statusText: OK
+      body:
+        type: json
+        data: |-
+          {
+            "httpStatusCode": 200,
+            "message": "Branch retrieved successfully",
+            "data": {
+              "id": "<branch-id>",
+              "tenantId": "<tenant-id>",
+              "name": "Downtown Branch",
+              "code": "DT-001",
+              "address": "123 Main Street",
+              "city": "Chennai",
+              "state": "Tamil Nadu",
+              "pincode": "600001",
+              "phone": "9876543210",
+              "email": "downtown@branch.com",
+              "isDefault": false,
+              "isActive": true,
+              "createdAt": "",
+              "updatedAt": ""
+            },
+            "timestamp": ""
+          }
+  - name: UNAUTHORIZED 401
+    request:
+      url: "{{base-url}}/training/branches/<branch-id>"
+      method: GET
+    response:
+      status: 401
+      statusText: Unauthorized
+      body:
+        type: json
+        data: |-
+          {
+            "httpStatusCode": 401,
+            "message": "Unauthorized",
+            "data": null,
+            "timestamp": ""
+          }
