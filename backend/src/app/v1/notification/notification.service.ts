@@ -7,9 +7,12 @@ import { SendPushDto } from './dto/notification.dto';
 @Injectable()
 export class NotificationService implements OnModuleInit {
   onModuleInit() {
-    if (!getApps().length) {
+    if (getApps().length) return;
+    try {
       const serviceAccount = JSON.parse(env.FIREBASE_SERVICE_ACCOUNT_JSON);
       initializeApp({ credential: cert(serviceAccount) });
+    } catch (error) {
+      console.warn('Firebase init skipped:', (error as Error).message);
     }
   }
 
