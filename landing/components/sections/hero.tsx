@@ -1,6 +1,6 @@
-"use client";
+'use client'
 
-import { motion } from "framer-motion";
+import { motion } from 'framer-motion'
 import {
   ArrowRight,
   BarChart3,
@@ -10,18 +10,18 @@ import {
   GraduationCap,
   Package,
   PlayCircle,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { DashboardMockup } from "@/components/dashboard-mockup";
+} from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { DashboardMockup } from '@/components/dashboard-mockup'
 
 const heroFeatures = [
-  { icon: GraduationCap, label: "Student Management" },
-  { icon: Package, label: "Rental Management" },
-  { icon: CalendarCheck, label: "Event Management" },
-  { icon: Building2, label: "Multi-Branch Ops" },
-  { icon: CreditCard, label: "Billing & Payments" },
-  { icon: BarChart3, label: "Reports & Analytics" },
-];
+  { icon: GraduationCap, label: 'Student Management' },
+  { icon: Package, label: 'Rental Management' },
+  { icon: CalendarCheck, label: 'Event Management' },
+  { icon: Building2, label: 'Multi-Branch Ops' },
+  { icon: CreditCard, label: 'Billing & Payments' },
+  { icon: BarChart3, label: 'Reports & Analytics' },
+]
 
 export function Hero() {
   return (
@@ -45,7 +45,7 @@ export function Hero() {
           transition={{ duration: 0.5 }}
           className="inline-flex items-center gap-2.5 rounded-full border border-border bg-card/60 px-5 py-2 text-sm text-muted-foreground backdrop-blur-sm transition-colors hover:text-foreground"
         >
-          <span className="size-1.5 rounded-full bg-success animate-pulse" />
+          <span className="size-1.5 rounded-full bg-success animate-pulse" aria-hidden="true" />
           Multi-tenant SaaS ERP — built for Indian businesses
           <ArrowRight className="size-3.5" />
         </motion.a>
@@ -54,9 +54,9 @@ export function Hero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.05 }}
-          className="mx-auto mt-8 max-w-4xl text-balance font-heading text-4xl font-extrabold leading-[1.02] tracking-tight sm:text-6xl md:text-[4.5rem]"
+          className="mx-auto mt-8 max-w-4xl text-balance font-heading text-4xl font-extrabold leading-[1.02] tracking-tight sm:text-5xl md:text-6xl"
         >
-          Manage your entire business from{" "}
+          Manage your entire business from{' '}
           <span className="text-gradient">one platform</span>
         </motion.h1>
 
@@ -79,7 +79,8 @@ export function Hero() {
         >
           <Button
             size="lg"
-            className="h-13 w-full bg-brand px-8 text-base text-brand-foreground hover:bg-brand/90 sm:w-auto"
+            asChild
+            className="w-full px-8 text-base sm:w-auto"
           >
             <a href="#pricing">
               Start 20-Day Free Trial
@@ -89,9 +90,10 @@ export function Hero() {
           <Button
             size="lg"
             variant="outline"
-            className="h-13 w-full px-8 text-base sm:w-auto"
+            asChild
+            className="w-full px-8 text-base sm:w-auto"
           >
-            <a href="#demo">
+            <a href="#contact">
               <PlayCircle className="size-4" />
               Book Demo
             </a>
@@ -109,7 +111,7 @@ export function Hero() {
               key={f.label}
               className="inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-4 py-2 text-xs font-medium text-muted-foreground backdrop-blur-sm sm:text-sm"
             >
-              <f.icon className="size-3.5 text-brand" />
+              <f.icon className="size-3.5 text-brand" aria-hidden="true" />
               {f.label}
             </span>
           ))}
@@ -122,6 +124,7 @@ export function Hero() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.9, delay: 0.35, ease: [0.22, 1, 0.36, 1] }}
         className="relative mx-auto mt-20 max-w-5xl"
+        aria-hidden="true"
       >
         <div className="glow-brand rounded-2xl">
           <DashboardMockup />
@@ -129,7 +132,7 @@ export function Hero() {
 
         <motion.div
           animate={{ y: [0, -12, 0] }}
-          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+          transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
           className="absolute -left-6 top-16 hidden rounded-xl border border-border bg-card/90 p-3.5 shadow-2xl backdrop-blur-xl md:block"
         >
           <p className="text-[10px] text-muted-foreground">New Enrollment</p>
@@ -141,7 +144,7 @@ export function Hero() {
           transition={{
             duration: 6,
             repeat: Infinity,
-            ease: "easeInOut",
+            ease: 'easeInOut',
             delay: 1,
           }}
           className="absolute -right-6 bottom-20 hidden rounded-xl border border-border bg-card/90 p-3.5 shadow-2xl backdrop-blur-xl md:block"
@@ -151,5 +154,5 @@ export function Hero() {
         </motion.div>
       </motion.div>
     </section>
-  );
+  )
 }

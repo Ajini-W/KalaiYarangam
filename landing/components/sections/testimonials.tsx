@@ -1,8 +1,8 @@
 'use client'
 
 import { AnimatePresence, motion } from 'framer-motion'
-import { ChevronLeft, ChevronRight, Quote, Star } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
+import { ChevronLeft, ChevronRight, Pause, Play, Quote, Star } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { SectionHeading } from '@/components/section-heading'
 import { cn } from '@/lib/utils'
 
@@ -12,7 +12,7 @@ const testimonials = [
       'We replaced three different tools and a pile of spreadsheets. Fee collection that used to take a week now closes in a day, and our follow-up rate doubled.',
     name: 'Priya Raman',
     role: 'Founder, Nrithya Bharatanatyam Academy',
-    metric: '2× faster fee collection',
+    metric: '2x faster fee collection',
     initials: 'PR',
   },
   {
@@ -35,6 +35,8 @@ const testimonials = [
 
 export function Testimonials() {
   const [index, setIndex] = useState(0)
+  const [paused, setPaused] = useState(false)
+  const sectionRef = useRef<HTMLDivElement>(null)
 
   const next = useCallback(
     () => setIndex((i) => (i + 1) % testimonials.length),
@@ -44,9 +46,27 @@ export function Testimonials() {
     setIndex((i) => (i - 1 + testimonials.length) % testimonials.length)
 
   useEffect(() => {
+    if (paused) return
     const timer = setInterval(next, 6000)
     return () => clearInterval(timer)
-  }, [next])
+  }, [next, paused])
+
+  useEffect(() => {
+    const section = sectionRef.current
+    if (!section) return
+    const handleEnter = () => setPaused(true)
+    const handleLeave = () => setPaused(false)
+    section.addEventListener('mouseenter', handleEnter)
+    section.addEventListener('mouseleave', handleLeave)
+    section.addEventListener('focusin', handleEnter)
+    section.addEventListener('focusout', handleLeave)
+    return () => {
+      section.removeEventListener('mouseenter', handleEnter)
+      section.removeEventListener('mouseleave', handleLeave)
+      section.removeEventListener('focusin', handleEnter)
+      section.removeEventListener('focusout', handleLeave)
+    }
+  }, [])
 
   const active = testimonials[index]
 
@@ -58,8 +78,14 @@ export function Testimonials() {
           title="Loved by businesses that mean business"
         />
 
-        <div className="relative mt-12 overflow-hidden rounded-3xl border border-border bg-card p-8 sm:p-12">
-          <Quote className="absolute right-8 top-8 size-16 text-brand/10" />
+        <div
+          ref={sectionRef}
+          role="region"
+          aria-roledescription="carousel"
+          aria-label="Customer testimonials"
+          className="relative mt-12 overflow-hidden rounded-3xl border border-border bg-card p-8 sm:p-12"
+        >
+          <Quote className="absolute right-8 top-8 size-16 text-brand/10" aria-hidden="true" />
           <AnimatePresence mode="wait">
             <motion.div
               key={index}
@@ -67,8 +93,11 @@ export function Testimonials() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -30 }}
               transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              role="group"
+              aria-roledescription="slide"
+              aria-label={`Testimonial ${index + 1} of ${testimonials.length}`}
             >
-              <div className="flex gap-1 text-brand">
+              <div className="flex gap-1 text-brand" aria-hidden="true">
                 {Array.from({ length: 5 }).map((_, i) => (
                   <Star key={i} className="size-4 fill-current" />
                 ))}
@@ -92,11 +121,13 @@ export function Testimonials() {
           </AnimatePresence>
 
           <div className="mt-10 flex items-center justify-between">
-            <div className="flex gap-2">
+            <div className="flex gap-2" role="tablist" aria-label="Testimonial navigation">
               {testimonials.map((_, i) => (
                 <button
                   key={i}
                   onClick={() => setIndex(i)}
+                  role="tab"
+                  aria-selected={i === index}
                   aria-label={`Go to testimonial ${i + 1}`}
                   className={cn(
                     'h-2 rounded-full transition-all',
@@ -105,21 +136,30 @@ export function Testimonials() {
                 />
               ))}
             </div>
-            <div className="flex gap-2">
+            <div className="flex items-center gap-3">
               <button
-                onClick={prev}
-                aria-label="Previous testimonial"
-                className="grid size-10 place-items-center rounded-full border border-border transition-colors hover:bg-accent"
+                onClick={() => setPaused(!paused)}
+                aria-label={paused ? 'Resume auto-play' : 'Pause auto-play'}
+                className="grid size-8 place-items-center rounded-full border border-border text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
               >
-                <ChevronLeft className="size-4" />
+                {paused ? <Play className="size-3" /> : <Pause className="size-3" />}
               </button>
-              <button
-                onClick={next}
-                aria-label="Next testimonial"
-                className="grid size-10 place-items-center rounded-full border border-border transition-colors hover:bg-accent"
-              >
-                <ChevronRight className="size-4" />
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={prev}
+                  aria-label="Previous testimonial"
+                  className="grid size-10 place-items-center rounded-full border border-border transition-colors hover:bg-accent"
+                >
+                  <ChevronLeft className="size-4" />
+                </button>
+                <button
+                  onClick={next}
+                  aria-label="Next testimonial"
+                  className="grid size-10 place-items-center rounded-full border border-border transition-colors hover:bg-accent"
+                >
+                  <ChevronRight className="size-4" />
+                </button>
+              </div>
             </div>
           </div>
         </div>

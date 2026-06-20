@@ -4,7 +4,7 @@ import { Reveal } from '@/components/reveal'
 
 export function FinalCta() {
   return (
-    <section id="demo" className="scroll-mt-24 px-4 py-24">
+    <section id="contact" className="scroll-mt-24 px-4 py-24">
       <Reveal className="mx-auto max-w-5xl">
         <div className="relative overflow-hidden rounded-[2rem] border border-border bg-card px-6 py-16 text-center sm:px-12 sm:py-20">
           <div
@@ -39,7 +39,7 @@ export function FinalCta() {
               asChild
               className="h-13 w-full px-8 text-base sm:w-auto"
             >
-              <a href="#demo">
+              <a href="#contact">
                 <PlayCircle className="size-4" />
                 Book Demo
               </a>

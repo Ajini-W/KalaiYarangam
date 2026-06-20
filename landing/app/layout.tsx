@@ -71,7 +71,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} ${sora.variable} bg-background`}
+      className={`${geistSans.variable} ${geistMono.variable} ${sora.variable}`}
     >
       <body className="font-sans antialiased">
         <ThemeProvider

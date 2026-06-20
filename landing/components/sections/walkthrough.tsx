@@ -41,7 +41,7 @@ export function Walkthrough() {
         />
 
         <div className="relative mt-16">
-          <div className="absolute left-0 right-0 top-7 hidden h-px bg-gradient-to-r from-transparent via-border to-transparent lg:block" />
+          <div aria-hidden="true" className="absolute left-0 right-0 top-7 hidden h-px bg-gradient-to-r from-transparent via-border to-transparent lg:block" />
           <ol className="grid gap-8 sm:grid-cols-2 lg:grid-cols-5">
             {steps.map((step, i) => (
               <Reveal key={step.title} delay={i * 0.1} as="li">

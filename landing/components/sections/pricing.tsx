@@ -24,61 +24,90 @@ const discount: Record<Billing, number> = {
 const plans = [
   {
     name: 'Solo Module',
+    subtitle: 'Choose Any One Module',
     price: 999,
-    description: 'Choose any one module — Training, Rental, or Event.',
+    description: 'Training Management, Rental Management, or Event Management.',
     features: [
-      'Any 1 module',
-      'Lead management',
-      'Up to 5 staff users',
-      '1 branch',
-      '5 GB storage',
-      'Standard reports',
+      'Lead Management',
+      'Customer Management',
+      'Payment Tracking',
+      'Notifications',
+      'Dashboard',
+      'Reports',
+      'Export (PDF, Excel, CSV)',
+    ],
+    limits: [
+      'Staff Users: 5',
+      'Branches: 1',
+      'Storage: 5 GB',
+      'Records: 500',
     ],
     highlight: false,
   },
   {
     name: 'Business Plan',
+    subtitle: 'Choose Any Two Modules',
     price: 1899,
-    description: 'Choose any two modules for growing businesses.',
+    description: 'Everything in Solo, plus advanced features for growing teams.',
     features: [
-      'Any 2 modules',
-      'Multi-branch support',
-      'Up to 15 staff users',
-      '3 branches',
-      '25 GB storage',
-      'Advanced reports',
-      'WhatsApp automation',
+      'Multi Branch Support',
+      'Team Management',
+      'Role Management',
+      'Approval Workflows',
+      'Customer Portal',
+      'Student Portal',
+      'Advanced Reports',
+      'WhatsApp Automation',
     ],
-    highlight: false,
-  },
-  {
-    name: 'Complete Plan',
-    price: 2499,
-    description: 'All modules included with unlimited potential.',
-    features: [
-      'All modules included',
-      'AI insights & forecasting',
-      'Up to 50 staff users',
-      '10 branches',
-      '100 GB storage',
-      'Workflow automation',
-      'Priority support',
+    limits: [
+      'Staff Users: 15',
+      'Branches: 3',
+      'Storage: 25 GB',
+      'Records: 5,000',
     ],
     highlight: true,
   },
   {
-    name: 'Enterprise',
-    price: 0,
-    description: 'Custom solutions for large-scale operations.',
+    name: 'Complete Plan',
+    subtitle: 'Includes All Modules',
+    price: 2499,
+    description: 'All modules with premium features, AI, and unlimited records.',
     features: [
-      'Unlimited everything',
-      'White label solution',
-      'Custom domain & API',
-      'SSO & audit logs',
-      'Dedicated account manager',
-      'SLA support',
-      'Custom workflows',
+      'All module features included',
+      'AI Insights',
+      'Smart Follow-ups',
+      'Revenue Forecasting',
+      'Advanced Analytics',
+      'Customer / Student / Client Portals',
+      'Workflow Automation',
+      'Priority Support',
     ],
+    limits: [
+      'Staff Users: 50',
+      'Branches: 10',
+      'Storage: 100 GB',
+      'Records: Unlimited',
+    ],
+    highlight: false,
+  },
+  {
+    name: 'Enterprise',
+    subtitle: 'Custom Quotation',
+    price: 0,
+    description: 'For franchise academies, multi-city businesses, and large chains.',
+    features: [
+      'Unlimited Users & Branches',
+      'White Label Solution',
+      'Custom Domain',
+      'API Access',
+      'ERP Integrations',
+      'Dedicated Account Manager',
+      'SLA Support',
+      'Single Sign-On (SSO)',
+      'Audit Logs',
+      'Custom Workflows',
+    ],
+    limits: [],
     highlight: false,
     isEnterprise: true,
   },
@@ -110,7 +139,7 @@ export function Pricing() {
               <div>
                 <p className="font-heading font-semibold">20-Day Free Trial</p>
                 <p className="text-sm text-muted-foreground">
-                  Full access · All modules · No credit card
+                  All Modules · Unlimited Users · Mobile Access · No credit card
                 </p>
               </div>
             </div>
@@ -118,20 +147,22 @@ export function Pricing() {
               asChild
               className="bg-brand text-brand-foreground hover:bg-brand/90"
             >
-              <a href="#demo">Start Free Trial</a>
+              <a href="#contact">Start Free Trial</a>
             </Button>
           </div>
         </Reveal>
 
         {/* Billing toggle */}
         <div className="mt-10 flex justify-center">
-          <div className="inline-flex flex-wrap items-center justify-center gap-1 rounded-full border border-border bg-muted p-1.5">
+          <div role="tablist" aria-label="Billing period" className="inline-flex flex-wrap items-center justify-center gap-1 rounded-full border border-border bg-muted p-1.5">
             {billingOptions.map((option) => (
               <button
                 key={option.id}
+                role="tab"
+                aria-selected={billing === option.id}
                 onClick={() => setBilling(option.id)}
                 className={cn(
-                  'flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors',
+                  'flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand',
                   billing === option.id
                     ? 'bg-brand text-brand-foreground'
                     : 'text-muted-foreground hover:text-foreground',
@@ -176,7 +207,10 @@ export function Pricing() {
               <h3 className="font-heading text-lg font-semibold">
                 {plan.name}
               </h3>
-              <p className="mt-1 text-sm text-muted-foreground">
+              <p className="mt-0.5 text-xs font-medium text-brand">
+                {plan.subtitle}
+              </p>
+              <p className="mt-2 text-sm text-muted-foreground">
                 {plan.description}
               </p>
               <div className="mt-5 flex items-end gap-1">
@@ -195,7 +229,7 @@ export function Pricing() {
                   </>
                 )}
               </div>
-              <ul className="mt-6 flex-1 space-y-3">
+              <ul className="mt-6 flex-1 space-y-2.5">
                 {plan.features.map((feature) => (
                   <li key={feature} className="flex items-start gap-2 text-sm">
                     <span className="mt-0.5 grid size-4 shrink-0 place-items-center rounded-full bg-success/15 text-success">
@@ -205,16 +239,34 @@ export function Pricing() {
                   </li>
                 ))}
               </ul>
+              {plan.limits.length > 0 && (
+                <div className="mt-4 rounded-xl border border-border bg-muted/30 p-3">
+                  <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Limits
+                  </p>
+                  <ul className="space-y-1">
+                    {plan.limits.map((limit) => (
+                      <li
+                        key={limit}
+                        className="flex items-center justify-between text-xs text-foreground/70"
+                      >
+                        <span>{limit.split(':')[0]}</span>
+                        <span className="font-medium">{limit.split(':')[1]}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
               <Button
                 asChild
                 variant={plan.highlight ? 'default' : 'outline'}
                 className={cn(
-                  'mt-7 w-full',
+                  'mt-6 w-full',
                   plan.highlight &&
                     'bg-brand text-brand-foreground hover:bg-brand/90',
                 )}
               >
-                <a href="#demo">
+                <a href="#contact">
                   {plan.isEnterprise ? 'Contact Sales' : 'Get started'}
                   <ArrowRight className="size-4" />
                 </a>
