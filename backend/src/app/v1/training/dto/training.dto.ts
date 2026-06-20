@@ -38,6 +38,54 @@ export class CreateStudentDto {
   batchId?: string;
 }
 
+export class CreateTenantDto {
+  @IsString()
+  @MinLength(2)
+  businessName!: string;
+
+  @IsString()
+  @MinLength(2)
+  name!: string;
+
+  @IsEmail()
+  email!: string;
+
+  @IsString()
+  @MinLength(10)
+  phone!: string;
+
+  @IsOptional()
+  @IsString()
+  industry?: string;
+
+  @IsString()
+  @MinLength(8)
+  password!: string;
+}
+
+export class UpdateTenantDto {
+  @IsOptional()
+  @IsString()
+  @MinLength(2)
+  name?: string;
+
+  @IsOptional()
+  @IsString()
+  phone?: string;
+
+  @IsOptional()
+  @IsEmail()
+  email?: string;
+
+  @IsOptional()
+  @IsString()
+  website?: string;
+
+  @IsOptional()
+  @IsString()
+  logoUrl?: string;
+}
+
 export class QueryPaginationDto {
   @IsOptional()
   @Type(() => Number)

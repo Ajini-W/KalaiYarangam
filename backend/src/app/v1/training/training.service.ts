@@ -1,8 +1,18 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { IndustryType } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
 import { PrismaService } from '@/database';
 import { AuthenticatedUser } from '@/common/interfaces';
 import { paginate, paginationArgs } from '@/common/utils';
-import { CreateBatchDto, CreateStudentDto, QueryPaginationDto } from './dto/training.dto';
+import { CreateBatchDto, CreateStudentDto, CreateTenantDto, QueryPaginationDto, UpdateTenantDto } from './dto/training.dto';
+
+function slugify(value: string) {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+}
 
 @Injectable()
 export class TrainingService {
@@ -63,5 +73,80 @@ export class TrainingService {
         ...(dto.email ? { email: dto.email } : {}),
       },
     });
+  }
+
+  async createTenant(dto: CreateTenantDto) {
+    const slug = slugify(dto.businessName);
+    const existing = await this.prisma.tenant.findUnique({ where: { slug } });
+
+    if (existing) {
+      throw new ConflictException('Business name is already registered');
+    }
+
+    const passwordHash = await bcrypt.hash(dto.password, 10);
+
+    const tenant = await this.prisma.$transaction(async (tx) => {
+      const t = await tx.tenant.create({
+        data: {
+          name: dto.businessName,
+          slug,
+          ...(dto.industry ? { industry: dto.industry as IndustryType } : {}),
+          branches: {
+            create: { name: 'Main Branch', isDefault: true },
+          },
+          users: {
+            create: {
+              email: dto.email,
+              passwordHash,
+              name: dto.name,
+              phone: dto.phone,
+              role: 'OWNER',
+              status: 'ACTIVE',
+            },
+          },
+        },
+        include: { users: true, branches: true },
+      });
+
+      const user = t.users[0];
+      const branch = t.branches[0];
+
+      await tx.userRoleMapping.create({
+        data: { userId: user.id, role: 'OWNER', tenantId: t.id },
+      });
+
+      await tx.userBranch.create({
+        data: { userId: user.id, branchId: branch.id, isPrimary: true },
+      });
+
+      return t;
+    });
+
+    return { message: 'Tenant created successfully', data: { id: tenant.id, name: tenant.name, slug: tenant.slug } };
+  }
+
+  async getTenant(user: AuthenticatedUser) {
+    const tenant = await this.prisma.tenant.findUnique({ where: { id: user.tenantId } });
+
+    if (!tenant) {
+      throw new NotFoundException('Tenant not found');
+    }
+
+    return { message: 'Tenant retrieved successfully', data: tenant };
+  }
+
+  async updateTenant(user: AuthenticatedUser, dto: UpdateTenantDto) {
+    const tenant = await this.prisma.tenant.update({
+      where: { id: user.tenantId },
+      data: {
+        ...(dto.name ? { name: dto.name } : {}),
+        ...(dto.phone ? { phone: dto.phone } : {}),
+        ...(dto.email ? { email: dto.email } : {}),
+        ...(dto.website ? { website: dto.website } : {}),
+        ...(dto.logoUrl ? { logoUrl: dto.logoUrl } : {}),
+      },
+    });
+
+    return { message: 'Tenant updated successfully', data: tenant };
   }
 }
