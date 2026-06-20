@@ -7,6 +7,7 @@ import { AuthThrottlerGuard } from '@/common/guards';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './jwt.strategy';
+import { GoogleStrategy } from './google.strategy';
 
 @Module({
   imports: [
@@ -21,7 +22,7 @@ import { JwtStrategy } from './jwt.strategy';
     }]),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, AuthThrottlerGuard],
+  providers: [AuthService, JwtStrategy, GoogleStrategy, AuthThrottlerGuard],
   exports: [AuthService],
 })
 export class AuthModule {}

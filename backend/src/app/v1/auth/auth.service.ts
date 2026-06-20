@@ -182,6 +182,57 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
+  async googleLogin(req: any, ipAddress?: string, userAgent?: string) {
+    if (!req.user) {
+      throw new UnauthorizedException('No user from google');
+    }
+
+    const googleUser = req.user;
+
+    // Check if user exists
+    let user = await this.prisma.user.findFirst({
+      where: { email: googleUser.email },
+    });
+
+    if (!user) {
+      // Create user if not exists (Without a tenant by default)
+      user = await this.prisma.user.create({
+        data: {
+          email: googleUser.email,
+          passwordHash: await bcrypt.hash(Math.random().toString(36).slice(-8), 10), // Random password
+          name: googleUser.firstName ? `${googleUser.firstName} ${googleUser.lastName || ''}`.trim() : googleUser.email,
+          role: 'STAFF', // Defaulting to staff or could be specific role
+          status: 'ACTIVE',
+        },
+      });
+    } else if (user.status !== UserStatus.ACTIVE) {
+      throw new UnauthorizedException('Account is inactive');
+    }
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { lastLoginAt: new Date() },
+    });
+
+    const tokens = await this.generateTokens({
+      ...user,
+      role: user.role as AuthenticatedUser['role']
+    });
+
+    await this.prisma.userLoginLog.create({
+      data: {
+        userId: user.id,
+        ipAddress,
+        userAgent,
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+        success: true,
+      },
+    });
+
+    return { message: 'Google login successful', data: { user: this.toPayload(user as any), ...tokens } };
+  }
+
   private toPayload(user: {
     id: string;
     tenantId: string | null;
