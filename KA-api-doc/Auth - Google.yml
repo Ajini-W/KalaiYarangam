@@ -1,0 +1,15 @@
+info:
+  name: Auth - Google
+  type: http
+  seq: 8
+
+http:
+  method: GET
+  url: "{{base-url}}/auth/google"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

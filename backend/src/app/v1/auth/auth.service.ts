@@ -59,7 +59,8 @@ export class AuthService {
     });
 
     const user = (tenant as any).users[0];
-    return { message: 'Registration successful', data: this.buildAuthResponse(user) };
+    const tokens = await this.generateTokens(user);
+    return { message: 'Registration successful', data: { user: this.toPayload(user), ...tokens } };
   }
 
   async login(dto: LoginDto, ipAddress?: string, userAgent?: string) {
@@ -247,21 +248,6 @@ export class AuthService {
       email: user.email,
       name: user.name,
       role: user.role,
-    };
-  }
-
-  // Keep backward compat for register
-  private buildAuthResponse(user: {
-    id: string;
-    tenantId: string | null;
-    email: string;
-    name: string;
-    role: AuthenticatedUser['role'];
-  }) {
-    const payload = this.toPayload(user);
-    return {
-      user: payload,
-      accessToken: this.jwtService.sign(payload),
     };
   }
 }

@@ -16,10 +16,12 @@ import { GoogleStrategy } from './google.strategy';
       secret: env.JWT_SECRET,
       signOptions: { expiresIn: env.JWT_EXPIRES_IN as any },
     }),
-    ThrottlerModule.forRoot([{
-      ttl: 3600000,
-      limit: 5,
-    }]),
+    ThrottlerModule.forRoot({
+      throttlers: [{
+        ttl: 3600000,
+        limit: 5,
+      }],
+    }),
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy, GoogleStrategy, AuthThrottlerGuard],
