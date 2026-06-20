@@ -14,7 +14,7 @@ const faqs = [
   },
   {
     q: 'Is there a free trial?',
-    a: 'Yes — every plan starts with a 15-day free trial that includes full access to all modules. No credit card is required to get started.',
+    a: 'Yes — every plan starts with a 20-day free trial that includes full access to all modules. No credit card is required to get started.',
   },
   {
     q: 'Can I manage multiple branches?',
@@ -46,7 +46,7 @@ export function Faq() {
               <AccordionItem
                 key={i}
                 value={`item-${i}`}
-                className="rounded-2xl border border-border bg-card mb-3 px-5 data-[state=open]:border-brand/30"
+                className="mb-3 rounded-2xl border border-border bg-card px-5 data-[state=open]:border-brand/30"
               >
                 <AccordionTrigger className="text-left font-heading text-base font-semibold hover:no-underline">
                   {faq.q}

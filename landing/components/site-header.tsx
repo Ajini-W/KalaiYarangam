@@ -20,19 +20,19 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false)
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 12)
+    const onScroll = () => setScrolled(window.scrollY > 20)
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 px-4 pt-3 sm:pt-4">
+    <header className="fixed inset-x-0 top-0 z-50 px-4 pt-4 sm:pt-5">
       <div
         className={cn(
-          'mx-auto flex max-w-6xl items-center justify-between rounded-2xl border border-transparent px-4 py-2.5 transition-all duration-300',
+          'mx-auto flex max-w-6xl items-center justify-between rounded-2xl border border-border px-5 py-3 transition-all duration-500',
           scrolled &&
-            'border-border/70 bg-background/70 shadow-lg shadow-brand/5 backdrop-blur-xl',
+            'border-border/70 bg-background/70 shadow-2xl shadow-brand/5 backdrop-blur-2xl',
         )}
       >
         <a href="#top" aria-label="KalaiYarangam home">
@@ -44,14 +44,14 @@ export function SiteHeader() {
             <a
               key={link.href}
               href={link.href}
-              className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+              className="rounded-lg px-3.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
             >
               {link.label}
             </a>
           ))}
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <ThemeToggle />
           <Button
             variant="ghost"
@@ -79,14 +79,14 @@ export function SiteHeader() {
       </div>
 
       {open && (
-        <div className="mx-auto mt-2 max-w-6xl rounded-2xl border border-border/70 bg-background/95 p-3 shadow-xl backdrop-blur-xl lg:hidden">
+        <div className="mx-auto mt-2 max-w-6xl overflow-hidden rounded-2xl border border-border bg-background/95 p-3 shadow-2xl backdrop-blur-2xl lg:hidden">
           <nav className="flex flex-col">
             {navLinks.map((link) => (
               <a
                 key={link.href}
                 href={link.href}
                 onClick={() => setOpen(false)}
-                className="rounded-lg px-3 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                className="rounded-lg px-3.5 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
               >
                 {link.label}
               </a>

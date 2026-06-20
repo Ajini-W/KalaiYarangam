@@ -23,38 +23,64 @@ const discount: Record<Billing, number> = {
 
 const plans = [
   {
-    name: 'Training Plan',
+    name: 'Solo Module',
     price: 999,
-    description: 'For academies and coaching centers.',
-    features: ['Leads', 'Students', 'Attendance', 'Fees', 'Single branch'],
+    description: 'Choose any one module — Training, Rental, or Event.',
+    features: [
+      'Any 1 module',
+      'Lead management',
+      'Up to 5 staff users',
+      '1 branch',
+      '5 GB storage',
+      'Standard reports',
+    ],
     highlight: false,
   },
   {
-    name: 'Rental Plan',
-    price: 1499,
-    description: 'For rental and equipment businesses.',
-    features: ['Inventory', 'Rentals', 'Quotations', 'Returns', 'Calendar'],
+    name: 'Business Plan',
+    price: 1899,
+    description: 'Choose any two modules for growing businesses.',
+    features: [
+      'Any 2 modules',
+      'Multi-branch support',
+      'Up to 15 staff users',
+      '3 branches',
+      '25 GB storage',
+      'Advanced reports',
+      'WhatsApp automation',
+    ],
     highlight: false,
   },
   {
-    name: 'Event Plan',
-    price: 1999,
-    description: 'For event planners and organizers.',
-    features: ['Events', 'CRM', 'Tasks', 'Budgets', 'Team assignment'],
-    highlight: false,
-  },
-  {
-    name: 'Bundle Plan',
-    price: 3499,
-    description: 'All modules, unlimited potential.',
+    name: 'Complete Plan',
+    price: 2499,
+    description: 'All modules included with unlimited potential.',
     features: [
       'All modules included',
-      'Multi-branch operations',
-      'Advanced analytics',
+      'AI insights & forecasting',
+      'Up to 50 staff users',
+      '10 branches',
+      '100 GB storage',
+      'Workflow automation',
       'Priority support',
-      'Unlimited team members',
     ],
     highlight: true,
+  },
+  {
+    name: 'Enterprise',
+    price: 0,
+    description: 'Custom solutions for large-scale operations.',
+    features: [
+      'Unlimited everything',
+      'White label solution',
+      'Custom domain & API',
+      'SSO & audit logs',
+      'Dedicated account manager',
+      'SLA support',
+      'Custom workflows',
+    ],
+    highlight: false,
+    isEnterprise: true,
   },
 ]
 
@@ -71,18 +97,18 @@ export function Pricing() {
         <SectionHeading
           eyebrow="Pricing"
           title="Simple, transparent pricing"
-          description="Start with a 15-day free trial — full access, all modules, no credit card required."
+          description="Start with a 20-day free trial — full access, all modules, no credit card required."
         />
 
         {/* Free trial banner */}
         <Reveal className="mx-auto mt-10 max-w-3xl">
-          <div className="flex flex-col items-center justify-between gap-4 rounded-2xl border border-brand/30 bg-brand/5 p-5 sm:flex-row">
+          <div className="flex flex-col items-center justify-between gap-4 rounded-2xl border border-brand/20 bg-brand/5 p-5 dark:bg-brand/[0.06] sm:flex-row">
             <div className="flex items-center gap-3">
               <span className="grid size-10 place-items-center rounded-xl bg-brand/15 text-brand">
                 <Sparkles className="size-5" />
               </span>
               <div>
-                <p className="font-heading font-semibold">15-Day Free Trial</p>
+                <p className="font-heading font-semibold">20-Day Free Trial</p>
                 <p className="text-sm text-muted-foreground">
                   Full access · All modules · No credit card
                 </p>
@@ -130,16 +156,16 @@ export function Pricing() {
         </div>
 
         {/* Plans */}
-        <div className="mt-12 grid gap-6 lg:grid-cols-4">
+        <div className="mt-12 grid gap-5 lg:grid-cols-4">
           {plans.map((plan, i) => (
             <Reveal
               key={plan.name}
               delay={i * 0.08}
               className={cn(
-                'relative flex h-full flex-col rounded-2xl border p-6',
+                'relative flex h-full flex-col rounded-2xl border p-6 transition-all duration-300 hover:-translate-y-1',
                 plan.highlight
-                  ? 'border-brand bg-card shadow-2xl shadow-brand/20 lg:scale-[1.03]'
-                  : 'border-border bg-card',
+                  ? 'border-brand/30 bg-brand/5 shadow-2xl shadow-brand/10 dark:bg-brand/[0.04] dark:shadow-brand/[0.08] lg:scale-[1.03]'
+                  : 'border-border bg-card hover:border-border/80 hover:shadow-lg',
               )}
             >
               {plan.highlight && (
@@ -154,12 +180,20 @@ export function Pricing() {
                 {plan.description}
               </p>
               <div className="mt-5 flex items-end gap-1">
-                <span className="font-heading text-3xl font-extrabold tracking-tight">
-                  ₹{formatPrice(plan.price, billing)}
-                </span>
-                <span className="mb-1 text-sm text-muted-foreground">
-                  /month
-                </span>
+                {plan.isEnterprise ? (
+                  <span className="font-heading text-3xl font-extrabold tracking-tight">
+                    Custom
+                  </span>
+                ) : (
+                  <>
+                    <span className="font-heading text-3xl font-extrabold tracking-tight">
+                      ₹{formatPrice(plan.price, billing)}
+                    </span>
+                    <span className="mb-1 text-sm text-muted-foreground">
+                      /month
+                    </span>
+                  </>
+                )}
               </div>
               <ul className="mt-6 flex-1 space-y-3">
                 {plan.features.map((feature) => (
@@ -181,7 +215,7 @@ export function Pricing() {
                 )}
               >
                 <a href="#demo">
-                  Get started
+                  {plan.isEnterprise ? 'Contact Sales' : 'Get started'}
                   <ArrowRight className="size-4" />
                 </a>
               </Button>

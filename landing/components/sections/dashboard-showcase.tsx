@@ -50,7 +50,7 @@ export function DashboardShowcase() {
   const [active, setActive] = useState(screens[0])
 
   return (
-    <section className="border-y border-border bg-muted/30 px-4 py-24">
+    <section className="border-y border-border bg-muted/20 px-4 py-24">
       <div className="mx-auto max-w-6xl">
         <SectionHeading
           eyebrow="Dashboard Showcase"

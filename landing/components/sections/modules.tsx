@@ -120,7 +120,7 @@ export function Modules() {
                     {m.features.map((f) => (
                       <li
                         key={f}
-                        className="flex items-center gap-2 text-sm text-foreground/80"
+                        className="flex items-center gap-2 text-sm text-foreground/70"
                       >
                         <span className="grid size-5 place-items-center rounded-full bg-success/15 text-success">
                           <Check className="size-3" />
@@ -141,9 +141,9 @@ export function Modules() {
                 </div>
 
                 {/* Module preview */}
-                <div className="rounded-2xl border border-border bg-background/60 p-5 shadow-inner">
+                <div className="rounded-2xl border border-border bg-muted/30 p-5">
                   <div className="mb-4 flex items-center justify-between">
-                    <p className="text-sm font-medium">{m.title}</p>
+                    <p className="text-sm font-medium text-foreground/70">{m.title}</p>
                     <CalendarDays className="size-4 text-muted-foreground" />
                   </div>
                   <div className="space-y-2.5">

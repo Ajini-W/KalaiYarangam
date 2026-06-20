@@ -12,20 +12,20 @@ const segments = ['Academies', 'Rental Businesses', 'Event Companies']
 
 export function TrustedBy() {
   return (
-    <section className="border-y border-border bg-muted/30 px-4 py-16">
+    <section className="border-y border-border bg-muted/20 px-4 py-16">
       <div className="mx-auto max-w-6xl">
         <Reveal className="text-center">
           <p className="text-sm font-medium uppercase tracking-widest text-muted-foreground">
             Trusted by growing businesses across India
           </p>
-          <div className="mt-4 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-base font-semibold text-foreground/70">
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-base font-semibold text-foreground/60">
             {segments.map((s) => (
               <span key={s}>{s}</span>
             ))}
           </div>
         </Reveal>
 
-        <div className="mt-12 grid grid-cols-2 gap-6 lg:grid-cols-4">
+        <div className="mt-12 grid grid-cols-2 gap-5 lg:grid-cols-4">
           {stats.map((stat, i) => (
             <Reveal
               key={stat.label}

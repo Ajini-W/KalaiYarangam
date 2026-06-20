@@ -74,7 +74,7 @@ export function SiteFooter() {
         </div>
 
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border pt-8 text-sm text-muted-foreground sm:flex-row">
-          <p>© {new Date().getFullYear()} KalaiYarangam. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} KalaiYarangam. All rights reserved.</p>
           <p>Made for businesses that run on one platform.</p>
         </div>
       </div>

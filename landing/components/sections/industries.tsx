@@ -10,8 +10,7 @@ const industries = [
     description: 'Manage the student lifecycle from enquiry to certification.',
     features: ['Leads', 'Enrollments', 'Attendance', 'Fees', 'Certificates'],
     accent: 'text-brand',
-    ring: 'group-hover:border-brand/40',
-    glow: 'bg-brand/15',
+    glow: 'bg-brand/10',
   },
   {
     icon: Package,
@@ -20,8 +19,7 @@ const industries = [
       'Manage inventory, bookings, rentals, returns, and maintenance.',
     features: ['Inventory', 'Booking Calendar', 'Quotations', 'Returns'],
     accent: 'text-accent-cyan',
-    ring: 'group-hover:border-accent-cyan/40',
-    glow: 'bg-accent-cyan/15',
+    glow: 'bg-accent-cyan/10',
   },
   {
     icon: PartyPopper,
@@ -29,8 +27,7 @@ const industries = [
     description: 'Manage events from first enquiry to final billing.',
     features: ['CRM', 'Quotations', 'Planning', 'Budget Tracking'],
     accent: 'text-success',
-    ring: 'group-hover:border-success/40',
-    glow: 'bg-success/15',
+    glow: 'bg-success/10',
   },
 ]
 
@@ -44,22 +41,17 @@ export function Industries() {
           description="KalaiYarangam adapts to how your business actually operates — no generic templates, no compromise."
         />
 
-        <div className="mt-14 grid gap-6 md:grid-cols-3">
+        <div className="mt-14 grid gap-5 md:grid-cols-3">
           {industries.map((industry, i) => (
             <Reveal key={industry.name} delay={i * 0.1}>
-              <div className="group relative h-full overflow-hidden rounded-2xl border border-border bg-card p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+              <div className="group relative h-full overflow-hidden rounded-2xl border border-border bg-card p-6 transition-all duration-300 hover:-translate-y-1 hover:border-border/80 hover:shadow-xl">
                 <div
                   className={cn(
-                    'absolute -right-8 -top-8 size-32 rounded-full blur-3xl transition-opacity',
+                    'absolute -right-8 -top-8 size-36 rounded-full blur-3xl transition-opacity',
                     industry.glow,
                   )}
                 />
-                <div
-                  className={cn(
-                    'relative grid size-12 place-items-center rounded-xl border border-border bg-background transition-colors',
-                    industry.ring,
-                  )}
-                >
+                <div className="relative grid size-12 place-items-center rounded-xl border border-border bg-background transition-colors group-hover:border-border/80">
                   <industry.icon className={cn('size-6', industry.accent)} />
                 </div>
                 <h3 className="mt-5 font-heading text-xl font-semibold">
@@ -72,7 +64,7 @@ export function Industries() {
                   {industry.features.map((feature) => (
                     <li
                       key={feature}
-                      className="flex items-center gap-2 text-sm text-foreground/80"
+                      className="flex items-center gap-2 text-sm text-foreground/70"
                     >
                       <Check className={cn('size-4', industry.accent)} />
                       {feature}

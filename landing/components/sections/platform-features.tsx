@@ -52,7 +52,7 @@ export function PlatformFeatures() {
   return (
     <section
       id="platform"
-      className="scroll-mt-24 border-y border-border bg-muted/30 px-4 py-24"
+      className="scroll-mt-24 border-y border-border bg-muted/20 px-4 py-24"
     >
       <div className="mx-auto max-w-6xl">
         <SectionHeading

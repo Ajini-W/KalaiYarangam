@@ -12,7 +12,6 @@ import {
 import { useMemo, useState } from 'react'
 import { SectionHeading } from '@/components/section-heading'
 import { Reveal } from '@/components/reveal'
-import { cn } from '@/lib/utils'
 
 const categories = [
   {
@@ -64,7 +63,7 @@ export function Tutorials() {
         />
 
         <Reveal className="mx-auto mt-10 max-w-xl">
-          <div className="flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 shadow-sm focus-within:border-brand/50 focus-within:ring-2 focus-within:ring-brand/20">
+          <div className="flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 focus-within:border-brand/50 focus-within:ring-2 focus-within:ring-brand/20">
             <Search className="size-5 text-muted-foreground" />
             <input
               type="search"
@@ -77,12 +76,12 @@ export function Tutorials() {
           </div>
         </Reveal>
 
-        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {filtered.map((category, i) => (
             <Reveal
               key={category.title}
               delay={(i % 4) * 0.08}
-              className="rounded-2xl border border-border bg-card p-6 transition-all hover:-translate-y-1 hover:shadow-lg"
+              className="rounded-2xl border border-border bg-card p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
             >
               <div className="grid size-11 place-items-center rounded-xl bg-brand/10 text-brand">
                 <category.icon className="size-5" />

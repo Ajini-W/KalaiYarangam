@@ -11,8 +11,8 @@ export function FinalCta() {
             aria-hidden
             className="pointer-events-none absolute inset-0 -z-10"
           >
-            <div className="absolute left-1/2 top-0 h-72 w-[40rem] -translate-x-1/2 rounded-full bg-brand/25 blur-[120px]" />
-            <div className="absolute bottom-0 right-1/4 h-56 w-56 rounded-full bg-accent-cyan/20 blur-[100px]" />
+            <div className="absolute left-1/2 top-0 h-80 w-[45rem] -translate-x-1/2 rounded-full bg-brand/20 blur-[140px]" />
+            <div className="absolute bottom-0 right-1/4 h-60 w-60 rounded-full bg-accent-cyan/15 blur-[120px]" />
           </div>
 
           <h2 className="mx-auto max-w-2xl text-balance font-heading text-3xl font-bold tracking-tight sm:text-5xl">
@@ -26,7 +26,7 @@ export function FinalCta() {
             <Button
               size="lg"
               asChild
-              className="h-12 w-full bg-brand px-7 text-base text-brand-foreground hover:bg-brand/90 sm:w-auto"
+              className="h-13 w-full bg-brand px-8 text-base text-brand-foreground hover:bg-brand/90 sm:w-auto"
             >
               <a href="#pricing">
                 Start Free Trial
@@ -37,7 +37,7 @@ export function FinalCta() {
               size="lg"
               variant="outline"
               asChild
-              className="h-12 w-full px-7 text-base sm:w-auto"
+              className="h-13 w-full px-8 text-base sm:w-auto"
             >
               <a href="#demo">
                 <PlayCircle className="size-4" />
