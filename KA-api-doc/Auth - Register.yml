@@ -10,12 +10,12 @@ http:
     type: json
     data: |-
       {
-        "name": "John Doe",
-        "email": "john@example.com",
+        "name": "Demo",
+        "email": "sivabalanv2005@gmail.com",
         "phone": "9876543210",
-        "businessName": "Academy",
-        "industry": "TRAINING",
-        "password": "password123"
+        "businessName": "KalaiYarangam-1",
+        "industry": "TRAINING",//  TRAINING  RENTAL  EVENT
+        "password": "Demo@123"
       }
   auth: inherit
 
