@@ -1,10 +1,4 @@
-export interface TemplateVariables {
-  name?: string;
-  email?: string;
-  [key: string]: unknown;
-}
-
-export const welcomeTemplate = (vars: TemplateVariables) => ({
+export const welcomeTemplate = (vars: Record<string, unknown>) => ({
   subject: `Welcome to KalaiArangam, ${vars.name || 'User'}!`,
   html: `
 <!DOCTYPE html>

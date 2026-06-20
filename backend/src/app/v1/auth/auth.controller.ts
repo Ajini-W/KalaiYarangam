@@ -3,7 +3,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CurrentUser, Public } from '@/common/decorators';
 import { AuthenticatedUser } from '@/common/interfaces';
 import { AuthService } from './auth.service';
-import { LoginDto, RegisterDto } from './dto/auth.dto';
+import { LoginDto, RegisterDto, UpdateUserStatusDto, VerifyEmailDto } from './dto/auth.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -17,6 +17,12 @@ export class AuthController {
   }
 
   @Public()
+  @Post('verify-email')
+  verifyEmail(@Body() dto: VerifyEmailDto) {
+    return this.authService.verifyEmail(dto);
+  }
+
+  @Public()
   @Post('login')
   login(@Body() dto: LoginDto) {
     return this.authService.login(dto);
@@ -26,5 +32,11 @@ export class AuthController {
   @Get('me')
   me(@CurrentUser() user: AuthenticatedUser) {
     return this.authService.me(user);
+  }
+
+  @Public()
+  @Post('user-status')
+  updateUserStatus(@Body() dto: UpdateUserStatusDto) {
+    return this.authService.updateUserStatus(dto);
   }
 }
