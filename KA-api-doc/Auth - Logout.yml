@@ -10,9 +10,8 @@ http:
     type: json
     data: |-
       {
-        "refreshToken": "<your-refresh-token>"
+        "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZTFjNjg5Zi1iNDY3LTQ5ZWEtYjQwMi03YjVmYjg5NjM4Y2EiLCJpYXQiOjE3ODE5MDYxMjQsImV4cCI6MTc4MjUxMDkyNH0.dtozR5BP3KpZW0yyhzFcJLHgQSC_LWPyOdG_s7snYZM"
       }
-  auth: none
 
 settings:
   encodeUrl: true
@@ -25,7 +24,6 @@ examples:
     request:
       url: "{{base-url}}/auth/logout"
       method: POST
-      auth: none
       body:
         type: json
         data: |-
