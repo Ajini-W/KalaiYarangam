@@ -5,6 +5,7 @@ import {
   BadRequestException,
   NotFoundException,
   ForbiddenException,
+  GoneException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -54,6 +55,7 @@ export class AuthService {
     const slug = slugify(dto.businessName);
     const passwordHash = await bcrypt.hash(dto.password, 10);
     const verificationToken = randomBytes(32).toString('hex');
+    const verificationTokenExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
     const tenant = await this.prisma.tenant.create({
       data: {
@@ -72,6 +74,7 @@ export class AuthService {
             role: 'OWNER',
             status: UserStatus.PENDING,
             verificationToken,
+            verificationTokenExpiresAt,
           },
         },
       },
@@ -106,11 +109,15 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new BadRequestException('Invalid or expired verification token');
+      throw new BadRequestException('Invalid verification token');
     }
 
     if (user.status === UserStatus.ACTIVE) {
       throw new BadRequestException('Email is already verified');
+    }
+
+    if (user.verificationTokenExpiresAt && user.verificationTokenExpiresAt < new Date()) {
+      throw new GoneException('Verification token expired');
     }
 
     await this.prisma.user.update({
@@ -118,11 +125,12 @@ export class AuthService {
       data: {
         status: UserStatus.ACTIVE,
         verificationToken: null,
+        verificationTokenExpiresAt: null,
         verifiedAt: new Date(),
       },
     });
 
-    return { message: 'Email verified successfully. You can now log in.' };
+    return { message: 'Email verified successfully', data: { emailVerified: true } };
   }
 
   async login(dto: LoginDto) {
