@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -13,6 +14,7 @@ import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Checkbox } from "@/components/ui/Checkbox";
+import { useAuthStore } from "@/store/auth.store";
 
 /* ── Validation ────────────────────────────────────────────────────── */
 const schema = z.object({
@@ -23,6 +25,7 @@ const schema = z.object({
     "Enter a valid email or phone number"
   ),
   password: z.string().min(6, "Password must be at least 6 characters"),
+  rememberMe: z.boolean().optional(),
 });
 type FormData = z.infer<typeof schema>;
 
@@ -52,7 +55,10 @@ const itemVariants = {
 
 /* ── Component ─────────────────────────────────────────────────────── */
 export default function LoginPage() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+  const login = useAuthStore((s) => s.login);
+
   const {
     register,
     handleSubmit,
@@ -60,12 +66,24 @@ export default function LoginPage() {
   } = useForm<FormData>({ resolver: zodResolver(schema) });
 
   const onSubmit = async (data: FormData) => {
-    // TODO: call auth API
-    console.log(data);
-    toast.success("Logged in successfully!");
+    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.identifier);
+    try {
+      await login({
+        type: isEmail ? "email" : "phone",
+        ...(isEmail ? { email: data.identifier } : { phone: data.identifier }),
+        password: data.password,
+        rememberMe: data.rememberMe,
+      });
+      toast.success("Logged in successfully!");
+      router.push("/dashboard");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Login failed");
+    }
   };
 
-  const handleGoogleLogin = () => toast.info("Connecting to Google…");
+  const handleGoogleLogin = () => {
+    window.location.href = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api/v1"}/auth/google`;
+  };
 
   return (
     <>
@@ -139,7 +157,7 @@ export default function LoginPage() {
 
               {/* Remember me + Forgot password */}
               <motion.div variants={itemVariants} className="flex items-center justify-between">
-                <Checkbox label="Remember me" className="accent-brand-600" />
+                <Checkbox label="Remember me" className="accent-brand-600" {...register("rememberMe")} />
                 <Link
                   href="/forgot-password"
                   className="text-xs font-semibold text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 hover:underline transition-colors"

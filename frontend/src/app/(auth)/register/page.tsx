@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -13,6 +14,7 @@ import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { IndustrySelect } from "@/components/ui/IndustrySelect";
+import { useAuthStore } from "@/store/auth.store";
 
 /* ── Validation ────────────────────────────────────────────────────── */
 const schema = z.object({
@@ -72,7 +74,10 @@ const itemVariants = {
 
 /* ── Component ─────────────────────────────────────────────────────── */
 export default function RegisterPage() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+  const registerUser = useAuthStore((s) => s.register);
+
   const {
     register,
     handleSubmit,
@@ -81,11 +86,25 @@ export default function RegisterPage() {
   } = useForm<FormData>({ resolver: zodResolver(schema) });
 
   const onSubmit = async (data: FormData) => {
-    console.log(data);
-    toast.success("Account created! Check your email to verify.");
+    try {
+      await registerUser({
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        businessName: data.businessName,
+        industry: data.industry.toUpperCase(),
+        password: data.password,
+      });
+      toast.success("Account created! Check your email to verify.");
+      router.push("/verify-email");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Registration failed");
+    }
   };
 
-  const handleGoogleSignUp = () => toast.info("Connecting to Google…");
+  const handleGoogleSignUp = () => {
+    window.location.href = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api/v1"}/auth/google`;
+  };
 
   return (
     <>

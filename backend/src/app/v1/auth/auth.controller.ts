@@ -80,10 +80,12 @@ export class AuthController {
   async googleAuthRedirect(@Req() req: Request, @Res() res: Response) {
     const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0] ?? req.ip;
     const result = await this.authService.googleLogin(req as any, ip, req.headers['user-agent']);
-    
-    // Pass tokens back to the frontend in a secure way (e.g. cookies or redirect with tokens in URL)
-    // For now, returning JSON. In a real scenario, consider redirecting to frontend with a temporary token.
-    return res.json(result);
+
+    const { accessToken, refreshToken } = result.data;
+    const frontendUrl = env.APP_URL;
+    res.redirect(
+      `${frontendUrl}/auth/callback?accessToken=${accessToken}&refreshToken=${refreshToken}`,
+    );
   }
 
   @Get('me')

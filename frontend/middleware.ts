@@ -4,10 +4,11 @@ import type { NextRequest } from "next/server";
 const CSP = [
   "default-src 'self'",
   "img-src 'self' data: https:",
-  "script-src 'self'",
+  "script-src 'self' 'unsafe-inline'",
   "style-src 'self' 'unsafe-inline'",
   "font-src 'self'",
-  "connect-src 'self'",
+  "connect-src 'self' http://localhost:4000 https://api.brevo.com https://accounts.google.com",
+  "frame-src https://accounts.google.com",
 ].join("; ");
 
 export function middleware(request: NextRequest) {
