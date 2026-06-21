@@ -41,11 +41,14 @@ export class AuthService {
   ) {}
 
   async register(dto: RegisterDto) {
-    const [existingEmailUser, existingPhoneUser] = await Promise.all([
+    const slug = slugify(dto.businessName);
+
+    const [existingEmailUser, existingPhoneUser, existingTenant] = await Promise.all([
       this.prisma.user.findUnique({ where: { email: dto.email } }),
       dto.phone
         ? this.prisma.user.findUnique({ where: { phone: dto.phone } })
         : null,
+      this.prisma.tenant.findFirst({ where: { OR: [{ name: dto.businessName }, { slug }] } }),
     ]);
 
     if (existingEmailUser) {
@@ -56,10 +59,12 @@ export class AuthService {
       throw new ConflictException('A user with this phone number already exists');
     }
 
-    const slug = slugify(dto.businessName);
+    if (existingTenant) {
+      throw new ConflictException('A business with this name already exists');
+    }
+
     const passwordHash = await bcrypt.hash(dto.password, 10);
 
-    // Fields must match prisma User model
     const verificationToken = randomBytes(32).toString('hex');
     const verificationTokenExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
@@ -179,11 +184,15 @@ export class AuthService {
 
   async login(dto: LoginDto, ipAddress?: string, userAgent?: string) {
     const user = await this.prisma.user.findFirst({
-      where: { email: dto.email },
+      where:
+        dto.type === 'phone' && dto.phone
+          ? { phone: dto.phone }
+          : { email: dto.email },
     });
 
     if (!user) {
-      throw new UnauthorizedException('User not found. Please check your email or register.');
+      const field = dto.type === 'phone' ? 'phone number' : 'email';
+      throw new UnauthorizedException(`User not found with this ${field}. Please check or register.`);
     }
 
     if (user.status !== UserStatus.ACTIVE) {
@@ -204,7 +213,7 @@ export class AuthService {
       data: { lastLoginAt: new Date() },
     });
 
-    const tokens = await this.generateTokens(user);
+    const tokens = await this.generateTokens(user, dto.rememberMe);
 
     await this.prisma.userLoginLog.create({
       data: {
@@ -222,6 +231,7 @@ export class AuthService {
       data: {
         user: this.toPayload(user),
         ...tokens,
+        rememberMe: dto.rememberMe ?? false,
       },
     };
   }
@@ -322,18 +332,19 @@ export class AuthService {
     name: string;
     role: AuthenticatedUser['role'];
     status?: string;
-  }) {
+  }, rememberMe?: boolean) {
     const payload = this.toPayload(user);
 
     const accessToken = this.jwtService.sign(payload);
 
+    const refreshExpiresIn = rememberMe ? '30d' : env.JWT_REFRESH_EXPIRES_IN;
     const refreshToken = this.jwtService.sign(
       { sub: user.id },
-      { secret: env.JWT_REFRESH_SECRET, expiresIn: env.JWT_REFRESH_EXPIRES_IN as any },
+      { secret: env.JWT_REFRESH_SECRET, expiresIn: refreshExpiresIn as any },
     );
 
     const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 7);
+    expiresAt.setDate(expiresAt.getDate() + (rememberMe ? 30 : 7));
 
     await this.prisma.refreshToken.create({
       data: { userId: user.id, token: refreshToken, expiresAt },
