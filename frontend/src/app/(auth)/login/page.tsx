@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AtSign, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { AuthLeftPanel, AuthMobileNav } from "@/components/ui/AuthBackground";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { useAuthStore } from "@/store/auth.store";
+import { getDashboardRoute } from "@/lib/dashboard-route";
 
 /* ── Validation ────────────────────────────────────────────────────── */
 const schema = z.object({
@@ -57,7 +58,25 @@ const itemVariants = {
 export default function LoginPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+  const [checking, setChecking] = useState(true);
   const login = useAuthStore((s) => s.login);
+  const initialize = useAuthStore((s) => s.initialize);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const user = useAuthStore((s) => s.user);
+
+  useEffect(() => {
+    (async () => {
+      await initialize();
+      setChecking(false);
+    })();
+  }, [initialize]);
+
+  useEffect(() => {
+    if (checking) return;
+    if (isAuthenticated && user) {
+      router.replace(getDashboardRoute(user.role));
+    }
+  }, [isAuthenticated, user, checking, router]);
 
   const {
     register,
@@ -75,7 +94,8 @@ export default function LoginPage() {
         rememberMe: data.rememberMe,
       });
       toast.success("Logged in successfully!");
-      router.push("/dashboard");
+      const updatedUser = useAuthStore.getState().user;
+      router.push(updatedUser ? getDashboardRoute(updatedUser.role) : "/login");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Login failed");
     }
@@ -84,6 +104,14 @@ export default function LoginPage() {
   const handleGoogleLogin = () => {
     window.location.href = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api/v1"}/auth/google`;
   };
+
+  if (checking) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center bg-white dark:bg-gray-900">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-600 border-t-transparent" />
+      </div>
+    );
+  }
 
   return (
     <>

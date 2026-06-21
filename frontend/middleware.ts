@@ -11,7 +11,16 @@ const CSP = [
   "frame-src https://accounts.google.com",
 ].join("; ");
 
-const protectedRoutes = ["/dashboard"];
+const protectedRoutes = [
+  "/dashboard",
+  "/super-admin",
+  "/owner",
+  "/branch-manager",
+  "/trainer",
+  "/staff",
+  "/student",
+  "/client",
+];
 
 export function middleware(request: NextRequest) {
   const response = NextResponse.next();
