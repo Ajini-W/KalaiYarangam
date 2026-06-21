@@ -14,11 +14,11 @@ http:
     data: |-
       {
         "timezone": "Asia/Kolkata",
-        "dateFormat": "DD/MM/YYYY",
+        "dateFormat": "13/03/2026",
         "currency": "INR",
         "language": "en",
         "timeFormat": "12h",
-        "weekStartDay": "monday"
+        "weekStartDay": "wednesday"
       }
   auth: inherit
 
@@ -64,5 +64,30 @@ examples:
               "timeFormat": "12h",
               "weekStartDay": "monday"
             },
+            "timestamp": ""
+          }
+  - name: CONFLICT 409
+    request:
+      url: "{{base-url}}/training/settings"
+      method: POST
+      headers:
+        - name: Authorization
+          value: Bearer <access-token>
+      body:
+        type: json
+        data: |-
+          {
+            "timezone": "Asia/Kolkata"
+          }
+    response:
+      status: 409
+      statusText: Conflict
+      body:
+        type: json
+        data: |-
+          {
+            "httpStatusCode": 409,
+            "message": "Settings already exist for: timezone",
+            "data": null,
             "timestamp": ""
           }

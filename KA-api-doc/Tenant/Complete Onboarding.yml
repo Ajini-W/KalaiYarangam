@@ -10,10 +10,10 @@ http:
     type: json
     data: |-
       {
-        "name": "Onboarded Owner",
-        "email": "onboarded@demo.com",
-        "phone": "9876543299",
-        "businessName": "Onboarded Academy",
+        "name": "Kalai arangam",
+        "email": "kalaiarangam@gmail.com",
+        "phone": "8838121130",
+        "businessName": "kalai Academy",
         "industry": "TRAINING",
         "password": "Password123!"
       }
@@ -22,8 +22,7 @@ http:
 runtime:
   scripts:
     - type: after-response
-      code: |-
-        if (res.body.data) { bru.setVar('onboardingToken', res.body.data.token.accessToken); }
+      code: if (res.body.data) { bru.setVar('onboardingToken', res.body.data.token.accessToken); }
 
 settings:
   encodeUrl: true

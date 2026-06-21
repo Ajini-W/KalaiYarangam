@@ -13,22 +13,21 @@ http:
     type: json
     data: |-
       {
-        "name": "Downtown Branch",
+        "name": "ghama Branch",
         "code": "DT-001",
         "address": "123 Main Street",
         "city": "Chennai",
         "state": "Tamil Nadu",
         "pincode": "600001",
-        "phone": "9876543210",
-        "email": "downtown@branch.com"
+        "phone": "9787217678",
+        "email": "alpha@gmail.com"
       }
   auth: inherit
 
 runtime:
   scripts:
     - type: after-response
-      code: |-
-        if (res.body.data) { bru.setVar('branchId', res.body.data.id); }
+      code: if (res.body.data) { bru.setVar('branchId', res.body.data.id); }
 
 settings:
   encodeUrl: true

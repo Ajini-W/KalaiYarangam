@@ -13,8 +13,8 @@ http:
     type: json
     data: |-
       {
-        "name": "Downtown Branch Updated",
-        "phone": "9988776655",
+        "name": "gama academy",
+        "phone": "8838121130",
         "city": "Coimbatore"
       }
   auth: inherit

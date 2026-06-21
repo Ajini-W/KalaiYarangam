@@ -10,10 +10,10 @@ http:
     type: json
     data: |-
       {
-        "name": "qwenzarw Training academy",
-        "email": "qwenzarw123@demo.com",
-        "phone": "9870513260",
-        "businessName": "Qwenzarw Academy",
+        "name": "tenant01 academy",
+        "email": "tenant@gmail.com",
+        "phone": "9787217678",
+        "businessName": "Tenant01 Boarding",
         "industry": "TRAINING",
         "password": "Demo@123"
       }
@@ -22,7 +22,7 @@ http:
 runtime:
   scripts:
     - type: after-response
-      code: if (res.body.data) { bru.setVar('token', res.body.data.accessToken); }
+      code: bru.setVar('token', res.body.data.accessToken);
 
 settings:
   encodeUrl: true

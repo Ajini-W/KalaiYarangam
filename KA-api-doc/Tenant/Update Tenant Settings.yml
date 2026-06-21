@@ -1,7 +1,7 @@
 info:
   name: Update Tenant Settings
   type: http
-  seq: 10
+  seq: 9
 
 http:
   method: PATCH
@@ -14,7 +14,7 @@ http:
     data: |-
       {
         "timezone": "Asia/Kolkata",
-        "dateFormat": "DD/MM/YYYY",
+        "dateFormat": "12/12/2026",
         "currency": "INR",
         "language": "en",
         "timeFormat": "12h",

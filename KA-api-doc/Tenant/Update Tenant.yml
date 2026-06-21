@@ -13,11 +13,11 @@ http:
     type: json
     data: |-
       {
-        "name": "qwenzar Training academy",
-        "phone": "9876643210",
-        "email": "qwenzar123@demo.com",
-        "website": "https://demoacademy.com",
-        "logoUrl": "https://demoacademy.com/logo.png"
+        "name": "alpha Training academy",
+        "phone": "9876656214",
+        "email": "beta@gmail.com",
+        "website": "https://zyxcademy.com",
+        "logoUrl": "https://zyxacademy.com/logo.png"
       }
   auth: inherit
 
