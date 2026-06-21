@@ -113,8 +113,8 @@ export function AuthMobileNav() {
         <div className="absolute -left-2 top-[45%] -translate-y-1/2 w-24 h-24 bg-white/[0.10] rounded-xl rotate-3" />
         <div className="absolute right-4 top-4 w-10 h-10 bg-white/[0.06] rounded-lg rotate-12" />
 
-        {/* Theme toggle on mobile */}
-        <div className="absolute top-4 right-4 z-10">
+        {/* Theme toggle — top right of mobile header */}
+        <div className="absolute top-3 right-3 z-20">
           <ThemeToggle />
         </div>
 

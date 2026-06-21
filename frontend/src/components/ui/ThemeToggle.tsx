@@ -4,14 +4,9 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sun, Moon } from "lucide-react";
 
-/**
- * A premium animated theme toggle switch for dark/light mode.
- * Uses the `.dark` class on `<html>` (same pattern as Topbar).
- */
 export function ThemeToggle() {
   const [isDark, setIsDark] = useState(false);
 
-  /* Sync with current state on mount */
   useEffect(() => {
     setIsDark(document.documentElement.classList.contains("dark"));
   }, []);
@@ -27,87 +22,67 @@ export function ThemeToggle() {
       type="button"
       onClick={toggle}
       aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-      className="
-        relative flex items-center w-[56px] h-[28px] rounded-full p-[3px]
-        cursor-pointer transition-colors duration-500 ease-in-out
-        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2
-        border
-      "
+      className="relative flex items-center w-[52px] h-[26px] rounded-full p-[3px] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 transition-all duration-500"
       style={{
         background: isDark
-          ? "linear-gradient(135deg, #1e293b 0%, #334155 100%)"
-          : "linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%)",
-        borderColor: isDark ? "rgba(99, 102, 241, 0.3)" : "rgba(99, 102, 241, 0.2)",
+          ? "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)"
+          : "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)",
+        boxShadow: isDark
+          ? "inset 0 1px 3px rgba(0,0,0,0.5), 0 0 0 1px rgba(99,102,241,0.25)"
+          : "inset 0 1px 3px rgba(0,0,0,0.12), 0 0 0 1px rgba(203,213,225,0.8)",
       }}
     >
-      {/* Track decoration — tiny stars for dark, sun rays for light */}
-      <AnimatePresence mode="wait">
-        {isDark ? (
-          <motion.div
-            key="stars"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="absolute inset-0 pointer-events-none overflow-hidden rounded-full"
-          >
-            <span className="absolute top-[6px] left-[8px] w-[2px] h-[2px] bg-yellow-300/70 rounded-full" />
-            <span className="absolute top-[14px] left-[12px] w-[1.5px] h-[1.5px] bg-blue-200/60 rounded-full" />
-            <span className="absolute top-[8px] left-[18px] w-[1px] h-[1px] bg-white/50 rounded-full" />
-          </motion.div>
-        ) : (
-          <motion.div
-            key="rays"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="absolute inset-0 pointer-events-none overflow-hidden rounded-full"
-          >
-            <span className="absolute top-[7px] right-[10px] w-[3px] h-[3px] bg-amber-300/40 rounded-full blur-[1px]" />
-            <span className="absolute bottom-[8px] right-[14px] w-[2px] h-[2px] bg-amber-400/30 rounded-full" />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Knob */}
+      {/* Background glow behind knob */}
       <motion.div
-        layout
-        transition={{ type: "spring", stiffness: 500, damping: 30 }}
-        className="
-          relative z-10 flex items-center justify-center w-[22px] h-[22px] rounded-full
-          shadow-md
-        "
-        style={{
-          marginLeft: isDark ? "auto" : "0",
+        className="absolute inset-0 rounded-full pointer-events-none"
+        animate={{
           background: isDark
-            ? "linear-gradient(135deg, #312e81 0%, #4338ca 100%)"
+            ? "radial-gradient(ellipse at 80% 50%, rgba(99,102,241,0.18) 0%, transparent 70%)"
+            : "radial-gradient(ellipse at 20% 50%, rgba(251,191,36,0.18) 0%, transparent 70%)",
+        }}
+        transition={{ duration: 0.5 }}
+      />
+
+      {/* Rolling knob */}
+      <motion.div
+        className="relative z-10 flex items-center justify-center w-5 h-5 rounded-full"
+        animate={{
+          x: isDark ? 26 : 0,
+          rotate: isDark ? 180 : 0,
+          background: isDark
+            ? "linear-gradient(135deg, #6366f1 0%, #4338ca 100%)"
             : "linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)",
           boxShadow: isDark
-            ? "0 2px 8px rgba(99, 102, 241, 0.4), inset 0 1px 0 rgba(255,255,255,0.1)"
-            : "0 2px 8px rgba(245, 158, 11, 0.4), inset 0 1px 0 rgba(255,255,255,0.4)",
+            ? "0 1px 6px rgba(99,102,241,0.6), inset 0 1px 0 rgba(255,255,255,0.15)"
+            : "0 1px 6px rgba(245,158,11,0.5), inset 0 1px 0 rgba(255,255,255,0.5)",
+        }}
+        transition={{
+          x: { type: "spring", stiffness: 500, damping: 30 },
+          rotate: { type: "spring", stiffness: 300, damping: 20 },
+          background: { duration: 0.4 },
+          boxShadow: { duration: 0.4 },
         }}
       >
         <AnimatePresence mode="wait">
           {isDark ? (
             <motion.div
-              key="moon-icon"
-              initial={{ scale: 0, rotate: -90 }}
-              animate={{ scale: 1, rotate: 0 }}
-              exit={{ scale: 0, rotate: 90 }}
-              transition={{ duration: 0.2 }}
+              key="moon"
+              initial={{ opacity: 0, scale: 0.4 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.4 }}
+              transition={{ duration: 0.15 }}
             >
-              <Moon size={12} className="text-blue-200" strokeWidth={2.5} />
+              <Moon size={11} className="text-indigo-200" strokeWidth={2.5} />
             </motion.div>
           ) : (
             <motion.div
-              key="sun-icon"
-              initial={{ scale: 0, rotate: 90 }}
-              animate={{ scale: 1, rotate: 0 }}
-              exit={{ scale: 0, rotate: -90 }}
-              transition={{ duration: 0.2 }}
+              key="sun"
+              initial={{ opacity: 0, scale: 0.4 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.4 }}
+              transition={{ duration: 0.15 }}
             >
-              <Sun size={12} className="text-white" strokeWidth={2.5} />
+              <Sun size={11} className="text-white" strokeWidth={2.5} />
             </motion.div>
           )}
         </AnimatePresence>

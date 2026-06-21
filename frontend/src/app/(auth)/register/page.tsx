@@ -1,18 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { Mail, Lock, Eye, EyeOff, ArrowRight, UserPlus, Phone, Building2, Sparkles } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, ArrowRight, UserPlus, Phone, Building2, GraduationCap, Boxes, CalendarDays } from "lucide-react";
 import { AuthLeftPanel, AuthMobileNav } from "@/components/ui/AuthBackground";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { Select } from "@/components/ui/Select";
-import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { IndustrySelect } from "@/components/ui/IndustrySelect";
 
 /* ── Validation ────────────────────────────────────────────────────── */
 const schema = z.object({
@@ -26,9 +26,24 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 const industries = [
-  { value: "training", label: "Training / Coaching" },
-  { value: "rental", label: "Rental Business" },
-  { value: "events", label: "Event Management" },
+  {
+    value: "training",
+    label: "Training / Coaching",
+    icon: <GraduationCap size={16} />,
+    description: "Academies, tutors & skill courses",
+  },
+  {
+    value: "rental",
+    label: "Rental Business",
+    icon: <Boxes size={16} />,
+    description: "Equipment, vehicles & asset rentals",
+  },
+  {
+    value: "events",
+    label: "Event Management",
+    icon: <CalendarDays size={16} />,
+    description: "Conferences, weddings & live events",
+  },
 ];
 
 /* ── Social Icons ──────────────────────────────────────────────────── */
@@ -61,6 +76,7 @@ export default function RegisterPage() {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<FormData>({ resolver: zodResolver(schema) });
 
@@ -77,49 +93,27 @@ export default function RegisterPage() {
       <AuthLeftPanel />
 
       {/* ── Right Panel ────────────────────────────────────────── */}
-      <div className="relative flex flex-col bg-white/80 dark:bg-gray-900/90 backdrop-blur-sm rounded-3xl lg:rounded-r-3xl lg:rounded-l-none transition-colors duration-500">
-        {/* Theme toggle — top right corner */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.3, duration: 0.3 }}
-          className="absolute top-4 right-4 z-20"
-        >
-          <ThemeToggle />
-        </motion.div>
-
+      <div className="flex flex-col bg-white dark:bg-gray-900 rounded-3xl lg:rounded-r-3xl lg:rounded-l-none transition-colors duration-500">
         {/* Mobile header + tabs */}
         <AuthMobileNav />
 
         {/* Form area */}
-        <div className="flex flex-1 flex-col items-center justify-center px-6 py-6 sm:px-12 sm:py-10 bg-gradient-to-b from-white via-white to-gray-50/50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800/30 transition-colors duration-500">
+        <div className="relative flex flex-1 flex-col items-center justify-center px-6 py-6 sm:px-12 sm:py-10 bg-white dark:bg-gray-900 transition-colors duration-500 lg:rounded-br-3xl">
+          {/* Theme toggle — top right */}
+          <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20">
+            <ThemeToggle />
+          </div>
+
           <motion.div
             variants={containerVariants}
             initial="hidden"
             animate="visible"
             className="w-full max-w-[420px]"
           >
-            {/* User avatar */}
-            <motion.div variants={itemVariants} className="flex justify-center mb-5">
-              <div className="relative">
-                <div className="w-[68px] h-[68px] rounded-full bg-gradient-to-br from-brand-400 to-brand-700 flex items-center justify-center shadow-lg shadow-brand-500/30 ring-4 ring-brand-100 dark:ring-brand-900/50 ring-offset-2 ring-offset-white dark:ring-offset-gray-900 transition-colors duration-500">
-                  <UserPlus className="w-7 h-7 text-white" strokeWidth={1.8} />
-                </div>
-                {/* Sparkle accent */}
-                <motion.div
-                  animate={{ scale: [1, 1.3, 1], opacity: [0.7, 1, 0.7] }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                  className="absolute -top-1 -right-1"
-                >
-                  <Sparkles className="w-4 h-4 text-amber-400" />
-                </motion.div>
-              </div>
-            </motion.div>
-
             {/* Heading */}
             <motion.div variants={itemVariants} className="text-center mb-7">
-              <h1 className="text-2xl font-bold text-brand-700 dark:text-brand-400 uppercase tracking-[0.05em] transition-colors duration-500">Sign Up</h1>
-              <p className="text-sm text-gray-400 dark:text-gray-500 mt-1.5 font-medium transition-colors duration-500">Create your account to get started</p>
+              <h1 className="text-2xl font-bold text-brand-700 dark:text-brand-300 uppercase tracking-[0.05em] transition-colors duration-500">Sign Up</h1>
+              <p className="text-sm text-gray-400 dark:text-gray-400 mt-1.5 font-medium transition-colors duration-500">Create your account to get started</p>
             </motion.div>
 
             {/* Form */}
@@ -134,7 +128,7 @@ export default function RegisterPage() {
                   error={errors.name?.message}
                   leftAddon={<UserPlus size={16} />}
                   aria-label="Full name"
-                  className="dark:bg-gray-800/50 dark:border-gray-700 dark:text-gray-100 dark:placeholder:text-gray-500 h-10 rounded-xl"
+                  className="dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder:text-gray-500 h-10 rounded-xl"
                   {...register("name")}
                 />
                 <Input
@@ -145,7 +139,7 @@ export default function RegisterPage() {
                   error={errors.phone?.message}
                   leftAddon={<Phone size={16} />}
                   aria-label="Phone number"
-                  className="dark:bg-gray-800/50 dark:border-gray-700 dark:text-gray-100 dark:placeholder:text-gray-500 h-10 rounded-xl"
+                  className="dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder:text-gray-500 h-10 rounded-xl"
                   {...register("phone")}
                 />
               </motion.div>
@@ -160,7 +154,7 @@ export default function RegisterPage() {
                   error={errors.email?.message}
                   leftAddon={<Mail size={16} />}
                   aria-label="Email address"
-                  className="dark:bg-gray-800/50 dark:border-gray-700 dark:text-gray-100 dark:placeholder:text-gray-500 h-10 rounded-xl"
+                  className="dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder:text-gray-500 h-10 rounded-xl"
                   {...register("email")}
                 />
               </motion.div>
@@ -175,19 +169,26 @@ export default function RegisterPage() {
                   error={errors.businessName?.message}
                   leftAddon={<Building2 size={16} />}
                   aria-label="Business name"
-                  className="dark:bg-gray-800/50 dark:border-gray-700 dark:text-gray-100 dark:placeholder:text-gray-500 h-10 rounded-xl"
+                  className="dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder:text-gray-500 h-10 rounded-xl"
                   {...register("businessName")}
                 />
-                <Select
-                  label="Industry"
-                  placeholder="Select industry"
-                  options={industries}
-                  required
-                  error={errors.industry?.message}
-                  aria-label="Industry"
-                  className="dark:bg-gray-800/50 dark:border-gray-700 dark:text-gray-100 h-10 rounded-xl"
-                  {...register("industry")}
-                />
+                <div className="relative">
+                  <Controller
+                    name="industry"
+                    control={control}
+                    render={({ field }) => (
+                      <IndustrySelect
+                        label="Industry"
+                        placeholder="Select industry"
+                        options={industries}
+                        required
+                        error={errors.industry?.message}
+                        value={field.value}
+                        onChange={field.onChange}
+                      />
+                    )}
+                  />
+                </div>
               </motion.div>
 
               {/* Password */}
@@ -211,7 +212,7 @@ export default function RegisterPage() {
                     </button>
                   }
                   aria-label="Password"
-                  className="dark:bg-gray-800/50 dark:border-gray-700 dark:text-gray-100 dark:placeholder:text-gray-500 h-10 rounded-xl"
+                  className="dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder:text-gray-500 h-10 rounded-xl"
                   {...register("password")}
                 />
               </motion.div>
@@ -234,10 +235,10 @@ export default function RegisterPage() {
             {/* Divider */}
             <motion.div variants={itemVariants} className="relative my-5">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-100 dark:border-gray-700/50 transition-colors duration-500" />
+                <div className="w-full border-t border-gray-200 dark:border-gray-700 transition-colors duration-500" />
               </div>
               <div className="relative flex justify-center text-xs">
-                <span className="bg-gradient-to-b from-white to-gray-50/50 dark:from-gray-900 dark:to-gray-900 px-4 text-gray-400 dark:text-gray-500 font-medium transition-colors duration-500">
+                <span className="bg-white dark:bg-gray-900 px-4 text-gray-400 dark:text-gray-500 font-medium transition-colors duration-500">
                   Or continue with
                 </span>
               </div>

@@ -7,12 +7,12 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { AtSign, Lock, Eye, EyeOff, ArrowRight, User, Sparkles } from "lucide-react";
+import { AtSign, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { AuthLeftPanel, AuthMobileNav } from "@/components/ui/AuthBackground";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Checkbox } from "@/components/ui/Checkbox";
-import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 /* ── Validation ────────────────────────────────────────────────────── */
 const schema = z.object({
@@ -73,49 +73,27 @@ export default function LoginPage() {
       <AuthLeftPanel />
 
       {/* ── Right Panel ────────────────────────────────────────── */}
-      <div className="relative flex flex-col bg-white/80 dark:bg-gray-900/90 backdrop-blur-sm rounded-3xl lg:rounded-r-3xl lg:rounded-l-none transition-colors duration-500">
-        {/* Theme toggle — top right corner */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.3, duration: 0.3 }}
-          className="absolute top-4 right-4 z-20"
-        >
-          <ThemeToggle />
-        </motion.div>
-
+      <div className="flex flex-col bg-white dark:bg-gray-900 rounded-3xl lg:rounded-r-3xl lg:rounded-l-none transition-colors duration-500">
         {/* Mobile header + tabs */}
         <AuthMobileNav />
 
         {/* Form area */}
-        <div className="flex flex-1 flex-col items-center justify-center px-6 py-8 sm:px-12 sm:py-10 bg-gradient-to-b from-white via-white to-gray-50/50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800/30 transition-colors duration-500">
+        <div className="relative flex flex-1 flex-col items-center justify-center px-6 py-8 sm:px-12 sm:py-10 bg-white dark:bg-gray-900 transition-colors duration-500 lg:rounded-br-3xl">
+          {/* Theme toggle — top right */}
+          <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20">
+            <ThemeToggle />
+          </div>
+
           <motion.div
             variants={containerVariants}
             initial="hidden"
             animate="visible"
             className="w-full max-w-[380px]"
           >
-            {/* User avatar */}
-            <motion.div variants={itemVariants} className="flex justify-center mb-5">
-              <div className="relative">
-                <div className="w-[72px] h-[72px] rounded-full bg-gradient-to-br from-brand-400 to-brand-700 flex items-center justify-center shadow-lg shadow-brand-500/30 ring-4 ring-brand-100 dark:ring-brand-900/50 ring-offset-2 ring-offset-white dark:ring-offset-gray-900 transition-colors duration-500">
-                  <User className="w-8 h-8 text-white" strokeWidth={1.8} />
-                </div>
-                {/* Sparkle accent */}
-                <motion.div
-                  animate={{ scale: [1, 1.3, 1], opacity: [0.7, 1, 0.7] }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                  className="absolute -top-1 -right-1"
-                >
-                  <Sparkles className="w-4 h-4 text-amber-400" />
-                </motion.div>
-              </div>
-            </motion.div>
-
             {/* Heading */}
             <motion.div variants={itemVariants} className="text-center mb-8">
-              <h1 className="text-2xl font-bold text-brand-700 dark:text-brand-400 uppercase tracking-[0.05em] transition-colors duration-500">Login</h1>
-              <p className="text-sm text-gray-400 dark:text-gray-500 mt-1.5 font-medium transition-colors duration-500">Enter your credentials to continue</p>
+              <h1 className="text-2xl font-bold text-brand-700 dark:text-brand-300 uppercase tracking-[0.05em] transition-colors duration-500">Login</h1>
+              <p className="text-sm text-gray-400 dark:text-gray-400 mt-1.5 font-medium transition-colors duration-500">Enter your credentials to continue</p>
             </motion.div>
 
             {/* Form */}
@@ -129,7 +107,7 @@ export default function LoginPage() {
                   error={errors.identifier?.message}
                   leftAddon={<AtSign size={16} />}
                   aria-label="Email or phone number"
-                  className="dark:bg-gray-800/50 dark:border-gray-700 dark:text-gray-100 dark:placeholder:text-gray-500 h-10 rounded-xl"
+                  className="dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder:text-gray-500 h-10 rounded-xl"
                   {...register("identifier")}
                 />
               </motion.div>
@@ -154,7 +132,7 @@ export default function LoginPage() {
                     </button>
                   }
                   aria-label="Password"
-                  className="dark:bg-gray-800/50 dark:border-gray-700 dark:text-gray-100 dark:placeholder:text-gray-500 h-10 rounded-xl"
+                  className="dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder:text-gray-500 h-10 rounded-xl"
                   {...register("password")}
                 />
               </motion.div>
@@ -188,10 +166,10 @@ export default function LoginPage() {
             {/* Divider */}
             <motion.div variants={itemVariants} className="relative my-6">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-100 dark:border-gray-700/50 transition-colors duration-500" />
+                <div className="w-full border-t border-gray-200 dark:border-gray-700 transition-colors duration-500" />
               </div>
               <div className="relative flex justify-center text-xs">
-                <span className="bg-gradient-to-b from-white to-gray-50/50 dark:from-gray-900 dark:to-gray-900 px-4 text-gray-400 dark:text-gray-500 font-medium transition-colors duration-500">
+                <span className="bg-white dark:bg-gray-900 px-4 text-gray-400 dark:text-gray-500 font-medium transition-colors duration-500">
                   Or continue with
                 </span>
               </div>
