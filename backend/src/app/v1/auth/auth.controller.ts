@@ -1,6 +1,6 @@
-import { Body, Controller, Get, HttpCode, Post, Req, UseGuards } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
-import { Request } from 'express';
+import { Body, Controller, Get, HttpCode, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Request, Response } from 'express';
 import { Throttle } from '@nestjs/throttler';
 import { CurrentUser, Public } from '@/common/decorators';
 import { AuthThrottlerGuard, GoogleOAuthGuard } from '@/common/guards';
@@ -10,6 +10,7 @@ import {
   LoginDto,
   RegisterDto,
   RefreshTokenDto,
+  SendVerificationTokenDto,
   UpdateUserStatusDto,
   VerifyEmailDto,
 } from './dto/auth.dto';
@@ -32,6 +33,13 @@ export class AuthController {
   @HttpCode(200)
   verifyEmail(@Body() dto: VerifyEmailDto) {
     return this.authService.verifyEmail(dto);
+  }
+
+  @Public()
+  @Post('send-verification-token')
+  @HttpCode(200)
+  sendVerificationToken(@Body() dto: SendVerificationTokenDto) {
+    return this.authService.sendVerificationToken(dto);
   }
 
   @Public()

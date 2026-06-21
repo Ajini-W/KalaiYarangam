@@ -19,6 +19,7 @@ import {
   LoginDto,
   RegisterDto,
   RefreshTokenDto,
+  SendVerificationTokenDto,
   UpdateUserStatusDto,
   VerifyEmailDto,
 } from './dto/auth.dto';
@@ -40,22 +41,19 @@ export class AuthService {
   ) {}
 
   async register(dto: RegisterDto) {
-    const [existingEmail, existingPhone, existingBusiness] = await Promise.all([
+    const [existingEmailUser, existingPhoneUser] = await Promise.all([
       this.prisma.user.findUnique({ where: { email: dto.email } }),
-      dto.phone ? this.prisma.user.findUnique({ where: { phone: dto.phone } }) : null,
-      this.prisma.tenant.findUnique({ where: { name: dto.businessName } }),
+      dto.phone
+        ? this.prisma.user.findUnique({ where: { phone: dto.phone } })
+        : null,
     ]);
 
-    if (existingEmail) {
+    if (existingEmailUser) {
       throw new ConflictException('A user with this email already exists');
     }
 
-    if (existingPhone) {
+    if (existingPhoneUser) {
       throw new ConflictException('A user with this phone number already exists');
-    }
-
-    if (existingBusiness) {
-      throw new ConflictException('A business with this name already exists');
     }
 
     const slug = slugify(dto.businessName);
@@ -104,7 +102,7 @@ export class AuthService {
 
     return {
       message: 'Registration successful. Please check your email to verify your account.',
-      data: this.buildAuthResponse(user),
+      data: await this.buildAuthResponse(user),
     };
   }
 
@@ -141,18 +139,60 @@ export class AuthService {
     return { message: 'Email verified successfully', data: { emailVerified: true } };
   }
 
+  async sendVerificationToken(dto: SendVerificationTokenDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { email: dto.email },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found with this email');
+    }
+
+    if (user.status === UserStatus.ACTIVE) {
+      throw new BadRequestException('Email is already verified');
+    }
+
+    const verificationToken = randomBytes(32).toString('hex');
+    const verificationTokenExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { verificationToken, verificationTokenExpiresAt },
+    });
+
+    try {
+      await this.mailService.send({
+        to: dto.email,
+        template: 'verify-email',
+        variables: {
+          name: user.name,
+          email: dto.email,
+          verificationLink: `${env.APP_URL}/verify-email?token=${verificationToken}`,
+        },
+      });
+    } catch {
+      // Email failure should not block the response
+    }
+
+    return { message: 'Verification email sent. Please check your inbox.' };
+  }
+
   async login(dto: LoginDto, ipAddress?: string, userAgent?: string) {
     const user = await this.prisma.user.findFirst({
-      where: { email: dto.email, status: UserStatus.ACTIVE },
+      where: { email: dto.email },
     });
 
     if (!user) {
       throw new UnauthorizedException('User not found. Please check your email or register.');
     }
 
+    if (user.status !== UserStatus.ACTIVE) {
+      throw new UnauthorizedException('Account is not active. Please verify your email or contact support.');
+    }
+
     const valid = await bcrypt.compare(dto.password, user.passwordHash);
 
-    if (!user || !valid) {
+    if (!valid) {
       await this.prisma.userLoginLog.create({
         data: { userId: user.id, ipAddress, userAgent, success: false },
       });
@@ -180,9 +220,8 @@ export class AuthService {
     return {
       message: 'Login successful',
       data: {
-        ...this.toPayload(user),
+        user: this.toPayload(user),
         ...tokens,
-        emailVerified: user.status === UserStatus.ACTIVE,
       },
     };
   }
@@ -282,7 +321,7 @@ export class AuthService {
     email: string;
     name: string;
     role: AuthenticatedUser['role'];
-    emailVerifiedAt?: Date | null;
+    status?: string;
   }) {
     const payload = this.toPayload(user);
 
@@ -360,6 +399,7 @@ export class AuthService {
     email: string;
     name: string;
     role: AuthenticatedUser['role'];
+    status?: string;
   }) {
     return {
       id: user.id,
@@ -368,20 +408,22 @@ export class AuthService {
       email: user.email,
       name: user.name,
       role: user.role,
+      emailVerified: user.status === 'ACTIVE',
     };
   }
 
-  private buildAuthResponse(user: {
+  private async buildAuthResponse(user: {
     id: string;
     tenantId: string | null;
     email: string;
     name: string;
     role: AuthenticatedUser['role'];
+    status: string;
   }) {
-    const payload = this.toPayload(user);
+    const tokens = await this.generateTokens(user);
     return {
-      user: payload,
-      accessToken: this.jwtService.sign(payload),
+      user: this.toPayload(user),
+      ...tokens,
     };
   }
 }

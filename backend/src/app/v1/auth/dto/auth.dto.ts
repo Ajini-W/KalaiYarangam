@@ -56,3 +56,8 @@ export class UpdateUserStatusDto {
   accessToken!: string;
 }
 
+export class SendVerificationTokenDto {
+  @IsEmail()
+  email!: string;
+}
+

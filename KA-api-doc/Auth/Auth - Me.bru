@@ -1,0 +1,23 @@
+meta {
+  name: Auth - Me
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{base-url}}/auth/me
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+  Content-Type: application/json
+}
+
+script:post {
+  const data = res.body.data;
+  if (res.status === 200) {
+    bru.setVar('currentUser', JSON.stringify(data));
+  }
+}
