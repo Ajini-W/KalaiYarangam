@@ -42,7 +42,7 @@ function CallbackHandler() {
 
   return (
     <div className="flex flex-col items-center gap-4">
-      <Loader2 className="h-8 w-8 animate-spin text-brand-500" />
+      <Loader2 className="h-8 w-8 animate-spin text-primary" />
       <p className="text-sm font-medium text-text-secondary">Completing sign in…</p>
     </div>
   );
@@ -54,7 +54,7 @@ export default function AuthCallbackPage() {
       <Suspense
         fallback={
           <div className="flex flex-col items-center gap-4">
-            <Loader2 className="h-8 w-8 animate-spin text-brand-500" />
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
             <p className="text-sm font-medium text-text-secondary">Completing sign in…</p>
           </div>
         }

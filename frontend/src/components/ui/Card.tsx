@@ -65,7 +65,7 @@ export function StatCard({ title, value, delta, deltaType = "neutral", icon, cla
           )}
         </div>
         {icon && (
-          <div className="shrink-0 rounded-[var(--radius-md)] bg-brand-50 p-2.5 text-brand-500">
+          <div className="shrink-0 rounded-[var(--radius-md)] bg-[var(--primary)]/10 p-2.5 text-primary">
             {icon}
           </div>
         )}

@@ -56,7 +56,7 @@ export default function VerifyOtpPage() {
               value={digit}
               onChange={(e) => handleChange(i, e.target.value)}
               onKeyDown={(e) => handleKeyDown(i, e)}
-              className="h-12 w-11 rounded-[var(--radius-md)] border border-border bg-surface text-center text-lg font-semibold text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
+              className="h-12 w-11 rounded-[var(--radius-md)] border border-border bg-surface text-center text-lg font-semibold text-text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
               aria-label={`Digit ${i + 1}`}
             />
           ))}
@@ -69,9 +69,9 @@ export default function VerifyOtpPage() {
 
       <p className="mt-6 text-center text-sm text-text-secondary">
         Didn&apos;t receive it?{" "}
-        <button className="font-medium text-brand-600 hover:underline">Resend</button>
+        <button className="font-medium text-primary hover:underline">Resend</button>
         {" · "}
-        <Link href="/login" className="font-medium text-brand-600 hover:underline">Back to login</Link>
+        <Link href="/login" className="font-medium text-primary hover:underline">Back to login</Link>
       </p>
     </div>
   );

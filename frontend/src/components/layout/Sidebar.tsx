@@ -20,6 +20,9 @@ import {
   ShoppingBag,
   Sparkles,
   BarChart2,
+  Shield,
+  KeyRound,
+  Building2,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 
@@ -29,6 +32,21 @@ interface NavItem {
   icon: React.ElementType;
   children?: Omit<NavItem, "children">[];
 }
+
+const superAdminNav: NavItem[] = [
+  { label: "Dashboard", href: "/super-admin/dashboard", icon: LayoutDashboard },
+  {
+    label: "Administration",
+    icon: Shield,
+    children: [
+      { label: "Users", href: "/super-admin/users", icon: Users },
+      { label: "Roles", href: "/super-admin/roles", icon: KeyRound },
+      { label: "Permissions", href: "/super-admin/permissions", icon: Shield },
+    ],
+  },
+  { label: "Tenants", href: "/super-admin/tenants", icon: Building2 },
+  { label: "Settings", href: "/super-admin/platform-config", icon: Settings },
+];
 
 const nav: NavItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -118,7 +136,7 @@ function NavItemRow({ item, collapsed }: { item: NavItem; collapsed: boolean }) 
       className={cn(
         "flex items-center gap-3 rounded-[var(--radius-sm)] px-2.5 py-2 text-sm font-medium transition-colors",
         isActive
-          ? "bg-brand-100 text-brand-700"
+          ? "bg-primary text-primary-foreground"
           : "text-text-secondary hover:bg-surface-overlay hover:text-text-primary",
         collapsed && "justify-center"
       )}
@@ -158,7 +176,7 @@ export function Sidebar({ collapsed, onClose }: SidebarProps) {
         )}
       >
         {!collapsed && (
-          <span className="text-brand-600 truncate text-base font-bold">KalaiArangam</span>
+          <span className="text-primary truncate text-base font-bold">KalaiArangam</span>
         )}
         {onClose && (
           <button
@@ -169,12 +187,12 @@ export function Sidebar({ collapsed, onClose }: SidebarProps) {
             <X size={18} />
           </button>
         )}
-        {collapsed && <span className="text-brand-600 text-base font-bold">KY</span>}
+        {collapsed && <span className="text-primary text-base font-bold">KY</span>}
       </div>
 
       {/* Nav */}
       <nav className="flex-1 space-y-0.5 overflow-y-auto px-2 py-3" aria-label="Main navigation">
-        {nav.map((item) => (
+        {(user?.role === "SUPER_ADMIN" ? superAdminNav : nav).map((item) => (
           <NavItemRow key={item.label} item={item} collapsed={collapsed} />
         ))}
       </nav>

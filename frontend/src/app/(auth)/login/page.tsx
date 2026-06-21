@@ -108,7 +108,7 @@ export default function LoginPage() {
   if (checking) {
     return (
       <div className="flex h-screen w-screen items-center justify-center bg-white dark:bg-gray-900">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-600 border-t-transparent" />
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
       </div>
     );
   }
@@ -138,7 +138,7 @@ export default function LoginPage() {
           >
             {/* Heading */}
             <motion.div variants={itemVariants} className="text-center mb-8">
-              <h1 className="text-2xl font-bold text-brand-700 dark:text-brand-300 uppercase tracking-[0.05em] transition-colors duration-500">Login</h1>
+              <h1 className="text-2xl font-bold text-primary uppercase tracking-[0.05em] transition-colors duration-500">Login</h1>
               <p className="text-sm text-gray-400 dark:text-gray-400 mt-1.5 font-medium transition-colors duration-500">Enter your credentials to continue</p>
             </motion.div>
 
@@ -170,7 +170,7 @@ export default function LoginPage() {
                     <button
                       type="button"
                       onClick={() => setShowPassword((v) => !v)}
-                      className="text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors focus:outline-none"
+                      className="text-gray-400 hover:text-primary transition-colors focus:outline-none"
                       aria-label={showPassword ? "Hide password" : "Show password"}
                       tabIndex={-1}
                     >
@@ -185,10 +185,10 @@ export default function LoginPage() {
 
               {/* Remember me + Forgot password */}
               <motion.div variants={itemVariants} className="flex items-center justify-between">
-                <Checkbox label="Remember me" className="accent-brand-600" {...register("rememberMe")} />
+                <Checkbox label="Remember me" className="accent-primary" {...register("rememberMe")} />
                 <Link
                   href="/forgot-password"
-                  className="text-xs font-semibold text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 hover:underline transition-colors"
+                  className="text-xs font-semibold text-primary hover:opacity-70 hover:underline transition-colors"
                 >
                   Forgot Password?
                 </Link>
@@ -198,7 +198,7 @@ export default function LoginPage() {
               <motion.div variants={itemVariants}>
                 <Button
                   type="submit"
-                  className="w-full h-11 text-sm font-bold uppercase tracking-wider bg-gradient-to-r from-brand-500 to-brand-700 hover:from-brand-600 hover:to-brand-800 shadow-lg shadow-brand-500/25 dark:shadow-brand-500/15 hover:shadow-brand-600/35 transition-all duration-300 group rounded-xl"
+                  className="w-full h-11 text-sm font-bold uppercase tracking-wider"
                   loading={isSubmitting}
                 >
                   Login
@@ -226,7 +226,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={handleGoogleLogin}
-                className="flex items-center gap-3 px-6 h-11 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/60 hover:bg-gray-50 dark:hover:bg-gray-700/60 text-sm font-semibold text-gray-600 dark:text-gray-300 transition-all duration-200 hover:shadow-lg dark:hover:shadow-black/20 hover:border-gray-300 dark:hover:border-gray-600 hover:-translate-y-0.5 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                className="flex items-center gap-3 px-6 h-11 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/60 hover:bg-gray-50 dark:hover:bg-gray-700/60 text-sm font-semibold text-gray-600 dark:text-gray-300 transition-all duration-200 hover:shadow-lg dark:hover:shadow-black/20 hover:border-gray-300 dark:hover:border-gray-600 hover:-translate-y-0.5 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 aria-label="Sign in with Google"
               >
                 <GoogleIcon />
@@ -242,7 +242,7 @@ export default function LoginPage() {
               Don&apos;t have an account?{" "}
               <Link
                 href="/register"
-                className="font-bold text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 hover:underline transition-colors"
+                className="font-bold text-primary hover:opacity-70 hover:underline transition-colors"
               >
                 Sign Up
               </Link>

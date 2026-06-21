@@ -89,7 +89,7 @@ export default function ForgotPasswordPage() {
                 <p className="text-sm text-gray-400 dark:text-gray-400 font-medium mb-2">
                   We sent a password reset link to
                 </p>
-                <p className="text-sm font-semibold text-brand-600 dark:text-brand-400 mb-6">
+                <p className="text-sm font-semibold text-primary mb-6">
                   {submittedEmail}
                 </p>
                 <p className="text-xs text-gray-400 dark:text-gray-500 mb-6">
@@ -98,7 +98,7 @@ export default function ForgotPasswordPage() {
                 <div className="space-y-3">
                   <Button
                     onClick={() => router.push("/login")}
-                    className="w-full h-11 text-sm font-bold uppercase tracking-wider bg-gradient-to-r from-brand-500 to-brand-700 hover:from-brand-600 hover:to-brand-800 shadow-lg shadow-brand-500/25 dark:shadow-brand-500/15 hover:shadow-brand-600/35 transition-all duration-300 group rounded-xl"
+                    className="w-full h-11 text-sm font-bold uppercase tracking-wider bg-primary text-primary-foreground hover:opacity-80 transition-all duration-300 group rounded-xl"
                   >
                     Back to Login
                     <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -116,7 +116,7 @@ export default function ForgotPasswordPage() {
             ) : (
               <>
                 <motion.div variants={itemVariants} className="text-center mb-8">
-                  <h1 className="text-2xl font-bold text-brand-700 dark:text-brand-300 uppercase tracking-[0.05em] transition-colors duration-500">
+                  <h1 className="text-2xl font-bold text-primary uppercase tracking-[0.05em] transition-colors duration-500">
                     Forgot Password?
                   </h1>
                   <p className="text-sm text-gray-400 dark:text-gray-400 mt-1.5 font-medium transition-colors duration-500">
@@ -147,7 +147,7 @@ export default function ForgotPasswordPage() {
                   <motion.div variants={itemVariants}>
                     <Button
                       type="submit"
-                      className="w-full h-11 text-sm font-bold uppercase tracking-wider bg-gradient-to-r from-brand-500 to-brand-700 hover:from-brand-600 hover:to-brand-800 shadow-lg shadow-brand-500/25 dark:shadow-brand-500/15 hover:shadow-brand-600/35 transition-all duration-300 group rounded-xl"
+                      className="w-full h-11 text-sm font-bold uppercase tracking-wider bg-primary text-primary-foreground hover:opacity-80 transition-all duration-300 group rounded-xl"
                       loading={isSubmitting}
                     >
                       Send Reset Link
@@ -168,7 +168,7 @@ export default function ForgotPasswordPage() {
                 Remember password?{" "}
                 <Link
                   href="/login"
-                  className="font-bold text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 hover:underline transition-colors"
+                  className="font-bold text-primary hover:opacity-70 hover:underline transition-colors"
                 >
                   Sign In
                 </Link>

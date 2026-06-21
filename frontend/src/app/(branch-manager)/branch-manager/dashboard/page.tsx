@@ -1,8 +1,10 @@
 "use client";
 
-import { Users, BookOpen, CalendarCheck, CreditCard, BarChart2, Bell } from "lucide-react";
+import { Users, Calendar, CreditCard, BarChart3, ClipboardList, Bell, Settings } from "lucide-react";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { StatCard } from "@/components/ui/Card";
 import { Card, CardHeader, CardTitle, CardBody } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
 import { useAuthStore } from "@/store/auth.store";
 
 export default function BranchManagerDashboard() {
@@ -15,12 +17,19 @@ export default function BranchManagerDashboard() {
     <PageContainer>
       <div className="mb-8">
         <div className="flex items-center gap-4 mb-2">
-          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-100 text-lg font-bold text-brand-700">{initials}</span>
+          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground text-lg font-bold">{initials}</span>
           <div>
             <h1 className="text-2xl font-bold text-text-primary">Welcome, {user.name.split(" ")[0]}!</h1>
             <p className="text-sm text-text-secondary mt-0.5">Branch Manager &middot; Here&apos;s your branch overview.</p>
           </div>
         </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <StatCard title="Active Students" value="--" icon={<Users size={20} />} />
+        <StatCard title="Today&apos;s Classes" value="--" icon={<Calendar size={20} />} />
+        <StatCard title="Collections (MTD)" value="--" icon={<CreditCard size={20} />} />
+        <StatCard title="Pending Tasks" value="--" icon={<ClipboardList size={20} />} />
       </div>
 
       <Card>
@@ -29,20 +38,33 @@ export default function BranchManagerDashboard() {
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
             {[
               { label: "Students", icon: <Users size={18} />, href: "/branch-manager/students" },
-              { label: "Batches", icon: <BookOpen size={18} />, href: "/branch-manager/batches" },
-              { label: "Events", icon: <CalendarCheck size={18} />, href: "/branch-manager/events" },
-              { label: "Payments", icon: <CreditCard size={18} />, href: "/branch-manager/payments" },
-              { label: "Reports", icon: <BarChart2 size={18} />, href: "/branch-manager/reports" },
-              { label: "Notifications", icon: <Bell size={18} />, href: "/branch-manager/notifications" },
+              { label: "Schedule", icon: <Calendar size={18} />, href: "/branch-manager/schedule" },
+              { label: "Reports", icon: <BarChart3 size={18} />, href: "/branch-manager/reports" },
+              { label: "Settings", icon: <Settings size={18} />, href: "/branch-manager/settings" },
             ].map((a) => (
-              <button key={a.label} onClick={() => {}} className="flex items-center gap-2.5 rounded-[var(--radius-md)] border border-border p-3 text-sm font-medium text-text-primary hover:bg-surface-raised hover:border-brand-300 transition-colors text-left">
-                <span className="text-brand-600 shrink-0">{a.icon}</span>
+              <Button key={a.label} variant="outline" className="justify-start gap-2.5 h-auto py-3 px-3" onClick={() => {}}>
+                <span className="shrink-0">{a.icon}</span>
                 {a.label}
-              </button>
+              </Button>
             ))}
           </div>
         </CardBody>
       </Card>
+
+      <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader><CardTitle>Today&apos;s Schedule</CardTitle></CardHeader>
+          <CardBody>
+            <p className="text-sm text-text-secondary">No classes scheduled today.</p>
+          </CardBody>
+        </Card>
+        <Card>
+          <CardHeader><CardTitle>Recent Activities</CardTitle></CardHeader>
+          <CardBody>
+            <p className="text-sm text-text-secondary">No recent activities.</p>
+          </CardBody>
+        </Card>
+      </div>
     </PageContainer>
   );
 }

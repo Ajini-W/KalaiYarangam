@@ -22,7 +22,7 @@ export function ThemeToggle() {
       type="button"
       onClick={toggle}
       aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-      className="relative flex items-center w-[52px] h-[26px] rounded-full p-[3px] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 transition-all duration-500"
+      className="relative flex items-center w-[52px] h-[26px] rounded-full p-[3px] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-all duration-500"
       style={{
         background: isDark
           ? "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)"

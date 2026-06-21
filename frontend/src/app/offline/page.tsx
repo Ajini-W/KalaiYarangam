@@ -8,7 +8,7 @@ export default function OfflinePage() {
       </div>
       <button
         onClick={() => window.location.reload()}
-        className="mt-2 inline-flex h-9 items-center rounded-[var(--radius-md)] bg-brand-500 px-4 text-sm font-medium text-white hover:bg-brand-600 transition-colors"
+        className="mt-2 inline-flex h-9 items-center rounded-[var(--radius-md)] bg-primary px-4 text-sm font-medium text-primary-foreground hover:opacity-80 transition-colors"
       >
         Retry
       </button>

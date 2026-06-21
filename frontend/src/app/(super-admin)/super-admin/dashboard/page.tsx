@@ -1,8 +1,10 @@
 "use client";
 
-import { Users, Building2, CreditCard, BarChart2, Settings, Bell } from "lucide-react";
+import { Users, Building2, CreditCard, BarChart3, Settings, Bell, ShieldAlert } from "lucide-react";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { StatCard } from "@/components/ui/Card";
 import { Card, CardHeader, CardTitle, CardBody } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
 import { useAuthStore } from "@/store/auth.store";
 
 export default function SuperAdminDashboard() {
@@ -15,12 +17,19 @@ export default function SuperAdminDashboard() {
     <PageContainer>
       <div className="mb-8">
         <div className="flex items-center gap-4 mb-2">
-          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-100 text-lg font-bold text-brand-700">{initials}</span>
+          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground text-lg font-bold">{initials}</span>
           <div>
             <h1 className="text-2xl font-bold text-text-primary">Welcome, {user.name.split(" ")[0]}!</h1>
             <p className="text-sm text-text-secondary mt-0.5">Super Admin &middot; Here&apos;s your platform overview.</p>
           </div>
         </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <StatCard title="Total Users" value="--" icon={<Users size={20} />} />
+        <StatCard title="Active Branches" value="--" icon={<Building2 size={20} />} />
+        <StatCard title="Monthly Revenue" value="--" icon={<CreditCard size={20} />} />
+        <StatCard title="Pending Reviews" value="--" icon={<ShieldAlert size={20} />} />
       </div>
 
       <Card>
@@ -30,19 +39,32 @@ export default function SuperAdminDashboard() {
             {[
               { label: "Users", icon: <Users size={18} />, href: "/super-admin/users" },
               { label: "Branches", icon: <Building2 size={18} />, href: "/super-admin/branches" },
-              { label: "Revenue", icon: <CreditCard size={18} />, href: "/super-admin/revenue" },
-              { label: "Reports", icon: <BarChart2 size={18} />, href: "/super-admin/reports" },
+              { label: "Reports", icon: <BarChart3 size={18} />, href: "/super-admin/reports" },
               { label: "Settings", icon: <Settings size={18} />, href: "/super-admin/settings" },
-              { label: "Notifications", icon: <Bell size={18} />, href: "/super-admin/notifications" },
             ].map((a) => (
-              <button key={a.label} onClick={() => {}} className="flex items-center gap-2.5 rounded-[var(--radius-md)] border border-border p-3 text-sm font-medium text-text-primary hover:bg-surface-raised hover:border-brand-300 transition-colors text-left">
-                <span className="text-brand-600 shrink-0">{a.icon}</span>
+              <Button key={a.label} variant="outline" className="justify-start gap-2.5 h-auto py-3 px-3" onClick={() => {}}>
+                <span className="shrink-0">{a.icon}</span>
                 {a.label}
-              </button>
+              </Button>
             ))}
           </div>
         </CardBody>
       </Card>
+
+      <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader><CardTitle>Recent Activity</CardTitle></CardHeader>
+          <CardBody>
+            <p className="text-sm text-text-secondary">No recent activity to display.</p>
+          </CardBody>
+        </Card>
+        <Card>
+          <CardHeader><CardTitle>System Alerts</CardTitle></CardHeader>
+          <CardBody>
+            <p className="text-sm text-text-secondary">All systems operational.</p>
+          </CardBody>
+        </Card>
+      </div>
     </PageContainer>
   );
 }

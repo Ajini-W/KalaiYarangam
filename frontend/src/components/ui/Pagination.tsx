@@ -26,7 +26,7 @@ export function Pagination({ page, pageSize, total, onPageChange, className }: P
       disabled={disabled}
       className={cn(
         "flex h-8 min-w-8 items-center justify-center rounded-[var(--radius-sm)] px-2 text-sm transition-colors",
-        active ? "bg-brand-500 text-white" : "text-text-secondary hover:bg-surface-overlay disabled:opacity-40 disabled:cursor-not-allowed",
+        active ? "bg-primary text-primary-foreground" : "text-text-secondary hover:bg-surface-overlay disabled:opacity-40 disabled:cursor-not-allowed",
       )}
     >
       {label}

@@ -12,7 +12,7 @@ export default function NotFound() {
       </div>
       <Link
         href="/login"
-        className="bg-brand-500 hover:bg-brand-600 mt-2 inline-flex h-9 items-center rounded-[var(--radius-md)] px-4 text-sm font-medium text-white transition-colors"
+        className="bg-primary text-primary-foreground hover:opacity-80 mt-2 inline-flex h-9 items-center rounded-[var(--radius-md)] px-4 text-sm font-medium transition-colors"
       >
         Go to home page
       </Link>

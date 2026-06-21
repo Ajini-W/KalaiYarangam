@@ -1,8 +1,10 @@
 "use client";
 
-import { Users, Building2, CreditCard, BarChart2, Settings, Bell, CalendarCheck } from "lucide-react";
+import { Users, Building2, CreditCard, BarChart3, TrendingUp, Calendar, Settings, Bell } from "lucide-react";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { StatCard } from "@/components/ui/Card";
 import { Card, CardHeader, CardTitle, CardBody } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
 import { useAuthStore } from "@/store/auth.store";
 
 export default function OwnerDashboard() {
@@ -15,12 +17,19 @@ export default function OwnerDashboard() {
     <PageContainer>
       <div className="mb-8">
         <div className="flex items-center gap-4 mb-2">
-          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-100 text-lg font-bold text-brand-700">{initials}</span>
+          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground text-lg font-bold">{initials}</span>
           <div>
             <h1 className="text-2xl font-bold text-text-primary">Welcome, {user.name.split(" ")[0]}!</h1>
-            <p className="text-sm text-text-secondary mt-0.5">Owner &middot; Here&apos;s what&apos;s happening in your academy.</p>
+            <p className="text-sm text-text-secondary mt-0.5">Owner &middot; Here&apos;s your business overview.</p>
           </div>
         </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <StatCard title="Total Students" value="--" icon={<Users size={20} />} />
+        <StatCard title="Active Branches" value="--" icon={<Building2 size={20} />} />
+        <StatCard title="Revenue (MTD)" value="--" icon={<TrendingUp size={20} />} />
+        <StatCard title="Pending Payments" value="--" icon={<CreditCard size={20} />} />
       </div>
 
       <Card>
@@ -28,23 +37,34 @@ export default function OwnerDashboard() {
         <CardBody className="pt-0">
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
             {[
+              { label: "Students", icon: <Users size={18} />, href: "/owner/students" },
               { label: "Branches", icon: <Building2 size={18} />, href: "/owner/branches" },
-              { label: "Revenue", icon: <CreditCard size={18} />, href: "/owner/revenue" },
-              { label: "Leads", icon: <Users size={18} />, href: "/owner/leads" },
-              { label: "Reports", icon: <BarChart2 size={18} />, href: "/owner/reports" },
-              { label: "Events", icon: <CalendarCheck size={18} />, href: "/owner/events" },
+              { label: "Reports", icon: <BarChart3 size={18} />, href: "/owner/reports" },
               { label: "Settings", icon: <Settings size={18} />, href: "/owner/settings" },
-              { label: "Notifications", icon: <Bell size={18} />, href: "/owner/notifications" },
-              { label: "Collections", icon: <CreditCard size={18} />, href: "/owner/collections" },
             ].map((a) => (
-              <button key={a.label} onClick={() => {}} className="flex items-center gap-2.5 rounded-[var(--radius-md)] border border-border p-3 text-sm font-medium text-text-primary hover:bg-surface-raised hover:border-brand-300 transition-colors text-left">
-                <span className="text-brand-600 shrink-0">{a.icon}</span>
+              <Button key={a.label} variant="outline" className="justify-start gap-2.5 h-auto py-3 px-3" onClick={() => {}}>
+                <span className="shrink-0">{a.icon}</span>
                 {a.label}
-              </button>
+              </Button>
             ))}
           </div>
         </CardBody>
       </Card>
+
+      <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader><CardTitle>Upcoming Events</CardTitle></CardHeader>
+          <CardBody>
+            <p className="text-sm text-text-secondary">No upcoming events.</p>
+          </CardBody>
+        </Card>
+        <Card>
+          <CardHeader><CardTitle>Recent Enquiries</CardTitle></CardHeader>
+          <CardBody>
+            <p className="text-sm text-text-secondary">No recent enquiries.</p>
+          </CardBody>
+        </Card>
+      </div>
     </PageContainer>
   );
 }

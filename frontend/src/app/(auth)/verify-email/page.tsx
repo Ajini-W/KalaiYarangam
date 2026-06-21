@@ -108,10 +108,10 @@ export default function VerifyEmailPage() {
           >
             {state === "verifying" && (
               <motion.div variants={itemVariants} className="text-center">
-                <div className="mx-auto w-16 h-16 rounded-full bg-brand-50 dark:bg-brand-900/30 flex items-center justify-center mb-6">
-                  <RefreshCw className="w-8 h-8 text-brand-600 dark:text-brand-400 animate-spin" />
+                <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-6">
+                  <RefreshCw className="w-8 h-8 text-primary animate-spin" />
                 </div>
-                <h1 className="text-2xl font-bold text-brand-700 dark:text-brand-300 uppercase tracking-[0.05em] mb-2">
+                <h1 className="text-2xl font-bold text-primary uppercase tracking-[0.05em] mb-2">
                   Verifying Email
                 </h1>
                 <p className="text-sm text-gray-400 dark:text-gray-400 font-medium">
@@ -133,7 +133,7 @@ export default function VerifyEmailPage() {
                 </p>
                 <Button
                   onClick={() => router.push("/login")}
-                  className="w-full h-11 text-sm font-bold uppercase tracking-wider bg-gradient-to-r from-brand-500 to-brand-700 hover:from-brand-600 hover:to-brand-800 shadow-lg shadow-brand-500/25 dark:shadow-brand-500/15 hover:shadow-brand-600/35 transition-all duration-300 group rounded-xl"
+                  className="w-full h-11 text-sm font-bold uppercase tracking-wider bg-primary text-primary-foreground hover:opacity-80 transition-all duration-300 group rounded-xl"
                 >
                   Continue to Login
                   <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -159,7 +159,7 @@ export default function VerifyEmailPage() {
                 {errorMessage.toLowerCase().includes("already verified") ? (
                   <Button
                     onClick={() => router.push("/login")}
-                    className="w-full h-11 text-sm font-bold uppercase tracking-wider bg-gradient-to-r from-brand-500 to-brand-700 hover:from-brand-600 hover:to-brand-800 shadow-lg shadow-brand-500/25 dark:shadow-brand-500/15 hover:shadow-brand-600/35 transition-all duration-300 group rounded-xl"
+                    className="w-full h-11 text-sm font-bold uppercase tracking-wider bg-primary text-primary-foreground hover:opacity-80 transition-all duration-300 group rounded-xl"
                   >
                     Go to Login
                     <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -182,7 +182,7 @@ export default function VerifyEmailPage() {
                     />
                     <Button
                       type="submit"
-                      className="w-full h-11 text-sm font-bold uppercase tracking-wider bg-gradient-to-r from-brand-500 to-brand-700 hover:from-brand-600 hover:to-brand-800 shadow-lg shadow-brand-500/25 dark:shadow-brand-500/15 hover:shadow-brand-600/35 transition-all duration-300 group rounded-xl"
+                      className="w-full h-11 text-sm font-bold uppercase tracking-wider bg-primary text-primary-foreground hover:opacity-80 transition-all duration-300 group rounded-xl"
                       loading={resending}
                     >
                       Resend Verification Email
@@ -198,10 +198,10 @@ export default function VerifyEmailPage() {
             {state === "idle" && (
               <>
                 <motion.div variants={itemVariants} className="text-center mb-8">
-                  <div className="mx-auto w-16 h-16 rounded-full bg-brand-50 dark:bg-brand-900/30 flex items-center justify-center mb-6">
-                    <Mail className="w-8 h-8 text-brand-600 dark:text-brand-400" />
+                  <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-6">
+                    <Mail className="w-8 h-8 text-primary" />
                   </div>
-                  <h1 className="text-2xl font-bold text-brand-700 dark:text-brand-300 uppercase tracking-[0.05em] mb-2">
+                  <h1 className="text-2xl font-bold text-primary uppercase tracking-[0.05em] mb-2">
                     Verify Your Email
                   </h1>
                   <p className="text-sm text-gray-400 dark:text-gray-400 font-medium">
@@ -225,7 +225,7 @@ export default function VerifyEmailPage() {
                   <motion.div variants={itemVariants}>
                     <Button
                       type="submit"
-                      className="w-full h-11 text-sm font-bold uppercase tracking-wider bg-gradient-to-r from-brand-500 to-brand-700 hover:from-brand-600 hover:to-brand-800 shadow-lg shadow-brand-500/25 dark:shadow-brand-500/15 hover:shadow-brand-600/35 transition-all duration-300 group rounded-xl"
+                      className="w-full h-11 text-sm font-bold uppercase tracking-wider bg-primary text-primary-foreground hover:opacity-80 transition-all duration-300 group rounded-xl"
                       loading={resending}
                     >
                       Send Verification Email
@@ -246,7 +246,7 @@ export default function VerifyEmailPage() {
                 Go to{" "}
                 <Link
                   href="/login"
-                  className="font-bold text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 hover:underline transition-colors"
+                  className="font-bold text-primary hover:opacity-70 hover:underline transition-colors"
                 >
                   Sign In
                 </Link>
@@ -261,7 +261,7 @@ export default function VerifyEmailPage() {
                 Back to{" "}
                 <Link
                   href="/login"
-                  className="font-bold text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 hover:underline transition-colors"
+                  className="font-bold text-primary hover:opacity-70 hover:underline transition-colors"
                 >
                   Sign In
                 </Link>

@@ -16,7 +16,7 @@ export function Spinner({ size = "md", className, label = "Loading…" }: Spinne
       height={px}
       viewBox="0 0 24 24"
       fill="none"
-      className={cn("animate-spin text-brand-500", className)}
+      className={cn("animate-spin text-primary", className)}
       role="status"
       aria-label={label}
     >

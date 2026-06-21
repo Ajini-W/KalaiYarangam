@@ -1,8 +1,10 @@
 "use client";
 
-import { Users, BookOpen, CalendarCheck, Package, Clock, Bell } from "lucide-react";
+import { ClipboardList, Calendar, Users, Bell, Settings, HelpCircle } from "lucide-react";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { StatCard } from "@/components/ui/Card";
 import { Card, CardHeader, CardTitle, CardBody } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
 import { useAuthStore } from "@/store/auth.store";
 
 export default function StaffDashboard() {
@@ -15,12 +17,19 @@ export default function StaffDashboard() {
     <PageContainer>
       <div className="mb-8">
         <div className="flex items-center gap-4 mb-2">
-          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-100 text-lg font-bold text-brand-700">{initials}</span>
+          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground text-lg font-bold">{initials}</span>
           <div>
             <h1 className="text-2xl font-bold text-text-primary">Welcome, {user.name.split(" ")[0]}!</h1>
-            <p className="text-sm text-text-secondary mt-0.5">Staff &middot; Here&apos;s your daily overview.</p>
+            <p className="text-sm text-text-secondary mt-0.5">Staff &middot; Here&apos;s your task overview.</p>
           </div>
         </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <StatCard title="Pending Tasks" value="--" icon={<ClipboardList size={20} />} />
+        <StatCard title="Today&apos;s Events" value="--" icon={<Calendar size={20} />} />
+        <StatCard title="New Enquiries" value="--" icon={<Users size={20} />} />
+        <StatCard title="Notifications" value="--" icon={<Bell size={20} />} />
       </div>
 
       <Card>
@@ -28,21 +37,34 @@ export default function StaffDashboard() {
         <CardBody className="pt-0">
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
             {[
-              { label: "Students", icon: <Users size={18} />, href: "/staff/students" },
-              { label: "Batches", icon: <BookOpen size={18} />, href: "/staff/batches" },
-              { label: "Schedule", icon: <Clock size={18} />, href: "/staff/schedule" },
-              { label: "Rentals", icon: <Package size={18} />, href: "/staff/rentals" },
-              { label: "Events", icon: <CalendarCheck size={18} />, href: "/staff/events" },
-              { label: "Notifications", icon: <Bell size={18} />, href: "/staff/notifications" },
+              { label: "Tasks", icon: <ClipboardList size={18} />, href: "/staff/tasks" },
+              { label: "Schedule", icon: <Calendar size={18} />, href: "/staff/schedule" },
+              { label: "Help", icon: <HelpCircle size={18} />, href: "/staff/help" },
+              { label: "Settings", icon: <Settings size={18} />, href: "/staff/settings" },
             ].map((a) => (
-              <button key={a.label} onClick={() => {}} className="flex items-center gap-2.5 rounded-[var(--radius-md)] border border-border p-3 text-sm font-medium text-text-primary hover:bg-surface-raised hover:border-brand-300 transition-colors text-left">
-                <span className="text-brand-600 shrink-0">{a.icon}</span>
+              <Button key={a.label} variant="outline" className="justify-start gap-2.5 h-auto py-3 px-3" onClick={() => {}}>
+                <span className="shrink-0">{a.icon}</span>
                 {a.label}
-              </button>
+              </Button>
             ))}
           </div>
         </CardBody>
       </Card>
+
+      <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader><CardTitle>My Tasks</CardTitle></CardHeader>
+          <CardBody>
+            <p className="text-sm text-text-secondary">No pending tasks.</p>
+          </CardBody>
+        </Card>
+        <Card>
+          <CardHeader><CardTitle>Announcements</CardTitle></CardHeader>
+          <CardBody>
+            <p className="text-sm text-text-secondary">No announcements.</p>
+          </CardBody>
+        </Card>
+      </div>
     </PageContainer>
   );
 }

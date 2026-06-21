@@ -87,7 +87,7 @@ export function Topbar({ onMenuToggle, className }: TopbarProps) {
             onClick={() => setMenuOpen((o) => !o)}
             className="ml-1 flex items-center gap-2 rounded-[var(--radius-md)] px-2 py-1.5 hover:bg-surface-overlay transition-colors"
           >
-            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-100 text-xs font-semibold text-brand-700">
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-semibold">
               {initials}
             </span>
             <span className="hidden md:block text-sm font-medium text-text-primary">

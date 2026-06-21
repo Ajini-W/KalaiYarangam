@@ -16,7 +16,7 @@ const defaultIcons = {
   "no-data":    <Inbox size={48} className="text-text-disabled" />,
   "no-results": <SearchX size={48} className="text-text-disabled" />,
   "no-access":  <ShieldOff size={48} className="text-text-disabled" />,
-  "first-use":  <PlusCircle size={48} className="text-brand-400" />,
+  "first-use":  <PlusCircle size={48} className="text-primary" />,
 };
 
 export function EmptyState({ variant = "no-data", icon, title, description, action, className }: EmptyStateProps) {

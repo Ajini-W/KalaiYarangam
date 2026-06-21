@@ -28,7 +28,7 @@ export function MobileNav() {
             href={href}
             className={cn(
               "flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-xs transition-colors",
-              active ? "text-brand-600" : "text-text-secondary",
+              active ? "text-primary" : "text-text-secondary",
             )}
             aria-current={active ? "page" : undefined}
           >
