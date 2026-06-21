@@ -82,7 +82,7 @@ export class AuthController {
     const result = await this.authService.googleLogin(req as any, ip, req.headers['user-agent']);
 
     const { accessToken, refreshToken } = result.data;
-    const frontendUrl = env.APP_URL;
+    const frontendUrl = process.env.APP_URL;
     res.redirect(
       `${frontendUrl}/auth/callback?accessToken=${accessToken}&refreshToken=${refreshToken}`,
     );

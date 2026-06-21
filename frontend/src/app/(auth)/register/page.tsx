@@ -2,18 +2,17 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
-import { useState } from "react";
-import { Mail, Lock, Eye, EyeOff, ArrowRight, UserPlus, Phone, Building2, GraduationCap, Boxes, CalendarDays } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Mail, Lock, Eye, EyeOff, ArrowRight, UserPlus, Phone } from "lucide-react";
 import { AuthLeftPanel, AuthMobileNav } from "@/components/ui/AuthBackground";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { IndustrySelect } from "@/components/ui/IndustrySelect";
 import { useAuthStore } from "@/store/auth.store";
 
 /* ── Validation ────────────────────────────────────────────────────── */
@@ -21,32 +20,9 @@ const schema = z.object({
   name: z.string().min(2, "Name is required"),
   email: z.string().email("Enter a valid email address"),
   phone: z.string().min(10, "Enter a valid phone number"),
-  businessName: z.string().min(2, "Business name is required"),
-  industry: z.string().min(1, "Select an industry"),
   password: z.string().min(8, "Password must be at least 8 characters"),
 });
 type FormData = z.infer<typeof schema>;
-
-const industries = [
-  {
-    value: "training",
-    label: "Training / Coaching",
-    icon: <GraduationCap size={16} />,
-    description: "Academies, tutors & skill courses",
-  },
-  {
-    value: "rental",
-    label: "Rental Business",
-    icon: <Boxes size={16} />,
-    description: "Equipment, vehicles & asset rentals",
-  },
-  {
-    value: "events",
-    label: "Event Management",
-    icon: <CalendarDays size={16} />,
-    description: "Conferences, weddings & live events",
-  },
-];
 
 /* ── Social Icons ──────────────────────────────────────────────────── */
 const GoogleIcon = () => (
@@ -81,9 +57,24 @@ export default function RegisterPage() {
   const {
     register,
     handleSubmit,
-    control,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<FormData>({ resolver: zodResolver(schema) });
+
+  const passwordValue = watch("password");
+
+  const passwordStrength = useMemo(() => {
+    const val = passwordValue || "";
+    let score = 0;
+    if (val.length >= 8) score++;
+    if (val.length >= 12) score++;
+    if (/[a-z]/.test(val) && /[A-Z]/.test(val)) score++;
+    if (/\d/.test(val)) score++;
+    if (/[^a-zA-Z0-9]/.test(val)) score++;
+    const labels = ["", "Weak", "Fair", "Good", "Strong", "Very Strong"];
+    const colors = ["", "bg-red-500", "bg-orange-500", "bg-yellow-500", "bg-green-500", "bg-emerald-500"];
+    return { score, label: labels[score] || "", color: colors[score] || "" };
+  }, [passwordValue]);
 
   const onSubmit = async (data: FormData) => {
     try {
@@ -91,8 +82,6 @@ export default function RegisterPage() {
         name: data.name,
         email: data.email,
         phone: data.phone,
-        businessName: data.businessName,
-        industry: data.industry.toUpperCase(),
         password: data.password,
       });
       toast.success("Account created! Check your email to verify.");
@@ -178,38 +167,6 @@ export default function RegisterPage() {
                 />
               </motion.div>
 
-              {/* Row: Business + Industry */}
-              <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Input
-                  label="Business Name"
-                  type="text"
-                  placeholder="My Academy"
-                  required
-                  error={errors.businessName?.message}
-                  leftAddon={<Building2 size={16} />}
-                  aria-label="Business name"
-                  className="dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder:text-gray-500 h-10 rounded-xl"
-                  {...register("businessName")}
-                />
-                <div className="relative">
-                  <Controller
-                    name="industry"
-                    control={control}
-                    render={({ field }) => (
-                      <IndustrySelect
-                        label="Industry"
-                        placeholder="Select industry"
-                        options={industries}
-                        required
-                        error={errors.industry?.message}
-                        value={field.value}
-                        onChange={field.onChange}
-                      />
-                    )}
-                  />
-                </div>
-              </motion.div>
-
               {/* Password */}
               <motion.div variants={itemVariants}>
                 <Input
@@ -234,6 +191,34 @@ export default function RegisterPage() {
                   className="dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder:text-gray-500 h-10 rounded-xl"
                   {...register("password")}
                 />
+
+                {passwordValue && (
+                  <div className="mt-2 space-y-1">
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 4, 5].map((i) => (
+                        <div
+                          key={i}
+                          className={`h-1.5 flex-1 rounded-full transition-colors duration-300 ${
+                            i <= passwordStrength.score
+                              ? passwordStrength.color
+                              : "bg-gray-200 dark:bg-gray-700"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    <p
+                      className={`text-xs font-medium transition-colors duration-300 ${
+                        passwordStrength.score >= 4
+                          ? "text-green-600 dark:text-green-400"
+                          : passwordStrength.score >= 3
+                            ? "text-yellow-600 dark:text-yellow-400"
+                            : "text-red-600 dark:text-red-400"
+                      }`}
+                    >
+                      {passwordStrength.label}
+                    </p>
+                  </div>
+                )}
               </motion.div>
 
               {/* Submit */}

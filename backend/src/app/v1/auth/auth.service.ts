@@ -10,7 +10,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
-import { IndustryType, UserRole, UserStatus } from '@prisma/client';
+import { UserRole, UserStatus } from '@prisma/client';
 import { PrismaService } from '@/database';
 import { env } from '@/config';
 import { MailService } from '@/app/v1/mail/mail.service';
@@ -24,14 +24,6 @@ import {
   VerifyEmailDto,
 } from './dto/auth.dto';
 
-function slugify(value: string) {
-  return value
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '');
-}
-
 @Injectable()
 export class AuthService {
   constructor(
@@ -41,14 +33,11 @@ export class AuthService {
   ) {}
 
   async register(dto: RegisterDto) {
-    const slug = slugify(dto.businessName);
-
-    const [existingEmailUser, existingPhoneUser, existingTenant] = await Promise.all([
+    const [existingEmailUser, existingPhoneUser] = await Promise.all([
       this.prisma.user.findUnique({ where: { email: dto.email } }),
       dto.phone
         ? this.prisma.user.findUnique({ where: { phone: dto.phone } })
         : null,
-      this.prisma.tenant.findFirst({ where: { OR: [{ name: dto.businessName }, { slug }] } }),
     ]);
 
     if (existingEmailUser) {
@@ -59,37 +48,23 @@ export class AuthService {
       throw new ConflictException('A user with this phone number already exists');
     }
 
-    if (existingTenant) {
-      throw new ConflictException('A business with this name already exists');
-    }
-
     const passwordHash = await bcrypt.hash(dto.password, 10);
 
     const verificationToken = randomBytes(32).toString('hex');
     const verificationTokenExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-    const tenant = await this.prisma.tenant.create({
+    const user = await this.prisma.user.create({
       data: {
-        name: dto.businessName,
-        slug,
-        industry: dto.industry as IndustryType,
-        users: {
-          create: {
-            email: dto.email,
-            passwordHash,
-            name: dto.name,
-            phone: dto.phone,
-            role: UserRole.OWNER,
-            status: UserStatus.PENDING,
-            verificationToken,
-            verificationTokenExpiresAt,
-          },
-        },
+        email: dto.email,
+        passwordHash,
+        name: dto.name,
+        phone: dto.phone,
+        role: UserRole.STAFF,
+        status: UserStatus.PENDING,
+        verificationToken,
+        verificationTokenExpiresAt,
       },
-      include: { users: true },
     });
-
-    const user = (tenant as any).users[0];
 
     try {
       await this.mailService.send({
@@ -195,8 +170,8 @@ export class AuthService {
       throw new UnauthorizedException(`User not found with this ${field}. Please check or register.`);
     }
 
-    if (user.status !== UserStatus.ACTIVE) {
-      throw new UnauthorizedException('Account is not active. Please verify your email or contact support.');
+    if (user.status === UserStatus.INACTIVE || user.status === UserStatus.SUSPENDED) {
+      throw new UnauthorizedException('Account is inactive or suspended. Please contact support.');
     }
 
     const valid = await bcrypt.compare(dto.password, user.passwordHash);
