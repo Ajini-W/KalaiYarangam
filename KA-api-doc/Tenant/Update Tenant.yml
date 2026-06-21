@@ -1,7 +1,7 @@
 info:
   name: Update Tenant
   type: http
-  seq: 3
+  seq: 4
 
 http:
   method: PATCH
@@ -13,9 +13,9 @@ http:
     type: json
     data: |-
       {
-        "name": "Demo Academy Updated",
-        "phone": "9876543210",
-        "email": "owner@demo.com",
+        "name": "qwenzar Training academy",
+        "phone": "9876643210",
+        "email": "qwenzar123@demo.com",
         "website": "https://demoacademy.com",
         "logoUrl": "https://demoacademy.com/logo.png"
       }

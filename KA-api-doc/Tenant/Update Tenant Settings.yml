@@ -1,0 +1,90 @@
+info:
+  name: Update Tenant Settings
+  type: http
+  seq: 10
+
+http:
+  method: PATCH
+  url: "{{base-url}}/training/settings"
+  headers:
+    - name: Authorization
+      value: Bearer {{token}}
+  body:
+    type: json
+    data: |-
+      {
+        "timezone": "Asia/Kolkata",
+        "dateFormat": "DD/MM/YYYY",
+        "currency": "INR",
+        "language": "en",
+        "timeFormat": "12h",
+        "weekStartDay": "monday"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+examples:
+  - name: SUCCESS 200
+    request:
+      url: "{{base-url}}/training/settings"
+      method: PATCH
+      headers:
+        - name: Authorization
+          value: Bearer <access-token>
+      body:
+        type: json
+        data: |-
+          {
+            "timezone": "Asia/Kolkata",
+            "dateFormat": "DD/MM/YYYY",
+            "currency": "INR",
+            "language": "en",
+            "timeFormat": "12h",
+            "weekStartDay": "monday"
+          }
+    response:
+      status: 200
+      statusText: OK
+      body:
+        type: json
+        data: |-
+          {
+            "httpStatusCode": 200,
+            "message": "Settings updated successfully",
+            "data": {
+              "timezone": "Asia/Kolkata",
+              "dateFormat": "DD/MM/YYYY",
+              "currency": "INR",
+              "language": "en",
+              "timeFormat": "12h",
+              "weekStartDay": "monday"
+            },
+            "timestamp": ""
+          }
+  - name: UNAUTHORIZED 401
+    request:
+      url: "{{base-url}}/training/settings"
+      method: PATCH
+      body:
+        type: json
+        data: |-
+          {
+            "timezone": "Asia/Kolkata"
+          }
+    response:
+      status: 401
+      statusText: Unauthorized
+      body:
+        type: json
+        data: |-
+          {
+            "httpStatusCode": 401,
+            "message": "Unauthorized",
+            "data": null,
+            "timestamp": ""
+          }

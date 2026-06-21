@@ -10,20 +10,19 @@ http:
     type: json
     data: |-
       {
-        "name": "Demo Owner",
-        "email": "owner@demo.com",
-        "phone": "9876543210",
-        "businessName": "Demo Academy",
+        "name": "qwenzarw Training academy",
+        "email": "qwenzarw123@demo.com",
+        "phone": "9870513260",
+        "businessName": "Qwenzarw Academy",
         "industry": "TRAINING",
-        "password": "Password123!"
+        "password": "Demo@123"
       }
   auth: inherit
 
 runtime:
   scripts:
     - type: after-response
-      code: |-
-        if (res.body.data) { bru.setVar('token', res.body.data.accessToken); }
+      code: if (res.body.data) { bru.setVar('token', res.body.data.accessToken); }
 
 settings:
   encodeUrl: true

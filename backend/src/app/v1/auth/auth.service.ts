@@ -70,9 +70,6 @@ export class AuthService {
         name: dto.businessName,
         slug,
         industry: dto.industry as IndustryType,
-        branches: {
-          create: { name: 'Main Branch', isDefault: true },
-        },
         users: {
           create: {
             email: dto.email,

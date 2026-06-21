@@ -3,7 +3,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CurrentUser, Public } from '@/common/decorators';
 import { AuthenticatedUser } from '@/common/interfaces';
 import { TrainingService } from './training.service';
-import { CreateBatchDto, CreateBranchDto, CreateStudentDto, CreateTenantDto, QueryPaginationDto, UpdateBranchDto, UpdateBranchStatusDto, UpdateTenantDto } from './dto/training.dto';
+import { CreateBatchDto, CreateBranchDto, CreateStudentDto, CreateTenantDto, QueryPaginationDto, UpdateBranchDto, UpdateBranchStatusDto, UpdateTenantDto, UpdateTenantSettingsDto } from './dto/training.dto';
 
 @ApiTags('training')
 @ApiBearerAuth()
@@ -80,5 +80,20 @@ export class TrainingController {
     @Body() dto: UpdateBranchStatusDto,
   ) {
     return this.trainingService.updateBranchStatus(user, id, dto);
+  }
+
+  @Get('settings')
+  getTenantSettings(@CurrentUser() user: AuthenticatedUser) {
+    return this.trainingService.getTenantSettings(user);
+  }
+
+  @Post('settings')
+  createTenantSettings(@CurrentUser() user: AuthenticatedUser, @Body() dto: UpdateTenantSettingsDto) {
+    return this.trainingService.createTenantSettings(user, dto);
+  }
+
+  @Patch('settings')
+  updateTenantSettings(@CurrentUser() user: AuthenticatedUser, @Body() dto: UpdateTenantSettingsDto) {
+    return this.trainingService.updateTenantSettings(user, dto);
   }
 }

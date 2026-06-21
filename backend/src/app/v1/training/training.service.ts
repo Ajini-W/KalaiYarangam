@@ -4,7 +4,7 @@ import * as bcrypt from 'bcrypt';
 import { PrismaService } from '@/database';
 import { AuthenticatedUser } from '@/common/interfaces';
 import { paginate, paginationArgs } from '@/common/utils';
-import { CreateBatchDto, CreateBranchDto, CreateStudentDto, CreateTenantDto, QueryPaginationDto, UpdateBranchDto, UpdateBranchStatusDto, UpdateTenantDto } from './dto/training.dto';
+import { CreateBatchDto, CreateBranchDto, CreateStudentDto, CreateTenantDto, QueryPaginationDto, UpdateBranchDto, UpdateBranchStatusDto, UpdateTenantDto, UpdateTenantSettingsDto } from './dto/training.dto';
 
 function slugify(value: string) {
   return value
@@ -217,5 +217,76 @@ export class TrainingService {
     });
 
     return { message: `Branch ${dto.isActive ? 'activated' : 'deactivated'} successfully`, data };
+  }
+
+  async getTenantSettings(user: AuthenticatedUser) {
+    const settings = await this.prisma.tenantSetting.findMany({
+      where: { tenantId: user.tenantId },
+    });
+
+    const data = settings.reduce<Record<string, string>>((acc, s) => {
+      acc[s.key] = s.value;
+      return acc;
+    }, {});
+
+    return { message: 'Settings retrieved successfully', data };
+  }
+
+  async createTenantSettings(user: AuthenticatedUser, dto: UpdateTenantSettingsDto) {
+    const entries = Object.entries(dto).filter(
+      (entry): entry is [string, string] => entry[1] !== undefined,
+    );
+
+    await Promise.all(
+      entries.map(([key, value]) =>
+        this.prisma.tenantSetting.upsert({
+          where: {
+            tenantId_key: { tenantId: user.tenantId, key },
+          },
+          update: { value },
+          create: { tenantId: user.tenantId, key, value },
+        }),
+      ),
+    );
+
+    const settings = await this.prisma.tenantSetting.findMany({
+      where: { tenantId: user.tenantId },
+    });
+
+    const data = settings.reduce<Record<string, string>>((acc, s) => {
+      acc[s.key] = s.value;
+      return acc;
+    }, {});
+
+    return { message: 'Settings created successfully', data };
+  }
+
+  async updateTenantSettings(user: AuthenticatedUser, dto: UpdateTenantSettingsDto) {
+    const entries = Object.entries(dto).filter(
+      (entry): entry is [string, string] => entry[1] !== undefined,
+    );
+
+    await Promise.all(
+      entries.map(([key, value]) =>
+        this.prisma.tenantSetting.upsert({
+          where: {
+            tenantId_key: { tenantId: user.tenantId, key },
+          },
+          update: { value },
+          create: { tenantId: user.tenantId, key, value },
+        }),
+      ),
+    );
+
+    const settings = await this.prisma.tenantSetting.findMany({
+      where: { tenantId: user.tenantId },
+    });
+
+    const data = settings.reduce<Record<string, string>>((acc, s) => {
+      acc[s.key] = s.value;
+      return acc;
+    }, {});
+
+    return { message: 'Settings updated successfully', data };
   }
 }

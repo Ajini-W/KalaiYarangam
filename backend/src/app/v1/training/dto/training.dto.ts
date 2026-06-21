@@ -187,3 +187,35 @@ export class UpdateBranchStatusDto {
   @IsBoolean()
   isActive!: boolean;
 }
+
+export class UpdateTenantSettingsDto {
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  timezone?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  dateFormat?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(10)
+  currency?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(10)
+  language?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(10)
+  timeFormat?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  weekStartDay?: string;
+}
