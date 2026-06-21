@@ -1,12 +1,18 @@
-import { Body, Controller, Get, Post, Req, Res, UseGuards } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { Request, Response } from 'express';
+import { Body, Controller, Get, HttpCode, Post, Req, UseGuards } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
+import { Request } from 'express';
 import { Throttle } from '@nestjs/throttler';
 import { CurrentUser, Public } from '@/common/decorators';
 import { AuthThrottlerGuard, GoogleOAuthGuard } from '@/common/guards';
 import { AuthenticatedUser } from '@/common/interfaces';
 import { AuthService } from './auth.service';
-import { LoginDto, RegisterDto, RefreshTokenDto } from './dto/auth.dto';
+import {
+  LoginDto,
+  RegisterDto,
+  RefreshTokenDto,
+  UpdateUserStatusDto,
+  VerifyEmailDto,
+} from './dto/auth.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -19,6 +25,13 @@ export class AuthController {
   @Throttle({ default: { limit: 3, ttl: 3600000 } })
   register(@Body() dto: RegisterDto) {
     return this.authService.register(dto);
+  }
+
+  @Public()
+  @Post('verify-email')
+  @HttpCode(200)
+  verifyEmail(@Body() dto: VerifyEmailDto) {
+    return this.authService.verifyEmail(dto);
   }
 
   @Public()
@@ -69,4 +82,11 @@ export class AuthController {
   me(@CurrentUser() user: AuthenticatedUser) {
     return this.authService.me(user);
   }
+
+  @Public()
+  @Post('user-status')
+  updateUserStatus(@Body() dto: UpdateUserStatusDto) {
+    return this.authService.updateUserStatus(dto);
+  }
 }
+
