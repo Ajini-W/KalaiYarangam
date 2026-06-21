@@ -1,0 +1,244 @@
+meta {
+  name: Register
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{base-url}}/auth/register
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "name": "Demo",
+    "email": "sivabalanv2007@gmail.com",
+    "phone": "9876543210",
+    "businessName": "KalaiYarangam-3",
+    "industry": "TRAINING", //  TRAINING  RENTAL  EVENT
+    "password": "Demo@123"
+  }
+}
+
+vars:post-response {
+  accessToken: data.accessToken
+  refreshToken: data.refreshToken
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
+
+example {
+  name: 201
+  
+  request: {
+    url: {{base-url}}/auth/login
+    method: POST
+    mode: json
+    body:json: {
+      {
+        "email": "sivabalanv2005@gmail.com",
+        "password": "Demo@123"
+      }
+    }
+  }
+  
+  response: {
+    headers: {
+      content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+      cross-origin-opener-policy: same-origin
+      cross-origin-resource-policy: same-origin
+      origin-agent-cluster: ?1
+      referrer-policy: no-referrer
+      strict-transport-security: max-age=31536000; includeSubDomains
+      x-content-type-options: nosniff
+      x-dns-prefetch-control: off
+      x-download-options: noopen
+      x-frame-options: SAMEORIGIN
+      x-permitted-cross-domain-policies: none
+      x-xss-protection: 0
+      access-control-allow-origin: http://localhost:3000
+      vary: Origin, Accept-Encoding
+      access-control-allow-credentials: true
+      x-ratelimit-limit: 5
+      x-ratelimit-remaining: 0
+      x-ratelimit-reset: 2654
+      content-type: application/json; charset=utf-8
+      content-length: 916
+      etag: W/"394-z6LCZgQO/7kVCfRigUu+hEQlN10"
+      date: Sun, 21 Jun 2026 10:51:37 GMT
+      connection: keep-alive
+      keep-alive: timeout=5
+    }
+  
+    status: {
+      code: 201
+      text: Created
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "httpStatusCode": 201,
+          "message": "Login successful",
+          "data": {
+            "user": {
+              "id": "34fb7b15-3503-44f7-8af0-749f1b891faf",
+              "tenantId": "04e7aefc-c266-4613-9ac6-69a6e54fa9b2",
+              "branchId": null,
+              "email": "sivabalanv2005@gmail.com",
+              "name": "Demo",
+              "role": "OWNER",
+              "emailVerified": false
+            },
+            "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM0ZmI3YjE1LTM1MDMtNDRmNy04YWYwLTc0OWYxYjg5MWZhZiIsInRlbmFudElkIjoiMDRlN2FlZmMtYzI2Ni00NjEzLTlhYzYtNjlhNmU1NGZhOWIyIiwiYnJhbmNoSWQiOm51bGwsImVtYWlsIjoic2l2YWJhbGFudjIwMDVAZ21haWwuY29tIiwibmFtZSI6IkRlbW8iLCJyb2xlIjoiT1dORVIiLCJlbWFpbFZlcmlmaWVkIjpmYWxzZSwiaWF0IjoxNzgyMDM5MDk3LCJleHAiOjE3ODIwMzk5OTd9.LqVeVDSPeIr0lcnv0YqYRDvKnnjAtjHoJ9CYk6nAG-k",
+            "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzNGZiN2IxNS0zNTAzLTQ0ZjctOGFmMC03NDlmMWI4OTFmYWYiLCJpYXQiOjE3ODIwMzkwOTcsImV4cCI6MTc4MjY0Mzg5N30.2eaXHTQHVmSQ81u-PSNSScnNHuqbXshBuaRG-BrFcJI"
+          },
+          "timestamp": "2026-06-21T10:51:37.845Z"
+        }
+      '''
+    }
+  }
+}
+
+example {
+  name: 429
+  
+  request: {
+    url: {{base-url}}/auth/login
+    method: POST
+    mode: json
+    body:json: {
+      {
+        "email": "sivabalanv2005@gmail.com",
+        "password": "Demo@123"
+      }
+    }
+  }
+  
+  response: {
+    headers: {
+      content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+      cross-origin-opener-policy: same-origin
+      cross-origin-resource-policy: same-origin
+      origin-agent-cluster: ?1
+      referrer-policy: no-referrer
+      strict-transport-security: max-age=31536000; includeSubDomains
+      x-content-type-options: nosniff
+      x-dns-prefetch-control: off
+      x-download-options: noopen
+      x-frame-options: SAMEORIGIN
+      x-permitted-cross-domain-policies: none
+      x-xss-protection: 0
+      access-control-allow-origin: http://localhost:3000
+      vary: Origin, Accept-Encoding
+      access-control-allow-credentials: true
+      retry-after: 3600
+      content-type: application/json; charset=utf-8
+      content-length: 135
+      etag: W/"87-GE5S7lKBAD2eVfxj+DsBApVy4ps"
+      date: Sun, 21 Jun 2026 10:52:10 GMT
+      connection: keep-alive
+      keep-alive: timeout=5
+    }
+  
+    status: {
+      code: 429
+      text: Too Many Requests
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "httpStatusCode": 429,
+          "message": "Too many attempts. Please try again after 1 hour.",
+          "data": null,
+          "timestamp": "2026-06-21T10:52:10.816Z"
+        }
+      '''
+    }
+  }
+}
+
+example {
+  name: 201
+  
+  request: {
+    url: {{base-url}}/auth/register
+    method: POST
+    mode: json
+    body:json: {
+      {
+        "name": "Demo",
+        "email": "sivabalanv2006@gmail.com",
+        "phone": "9876543210",
+        "businessName": "KalaiYarangam-2",
+        "industry": "TRAINING", //  TRAINING  RENTAL  EVENT
+        "password": "Demo@123"
+      }
+    }
+  }
+  
+  response: {
+    headers: {
+      content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+      cross-origin-opener-policy: same-origin
+      cross-origin-resource-policy: same-origin
+      origin-agent-cluster: ?1
+      referrer-policy: no-referrer
+      strict-transport-security: max-age=31536000; includeSubDomains
+      x-content-type-options: nosniff
+      x-dns-prefetch-control: off
+      x-download-options: noopen
+      x-frame-options: SAMEORIGIN
+      x-permitted-cross-domain-policies: none
+      x-xss-protection: 0
+      access-control-allow-origin: http://localhost:3000
+      vary: Origin, Accept-Encoding
+      access-control-allow-credentials: true
+      x-ratelimit-limit: 3
+      x-ratelimit-remaining: 2
+      x-ratelimit-reset: 3600
+      content-type: application/json; charset=utf-8
+      content-length: 923
+      etag: W/"39b-qmCeHp0npdzyBskEI8XdRngNBhU"
+      date: Sun, 21 Jun 2026 10:56:07 GMT
+      connection: keep-alive
+      keep-alive: timeout=5
+    }
+  
+    status: {
+      code: 201
+      text: Created
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "httpStatusCode": 201,
+          "message": "Registration successful",
+          "data": {
+            "user": {
+              "id": "f0753a84-54ce-408d-8cee-5818b1e77d77",
+              "tenantId": "e889590e-1a2f-404f-95e6-67fda390f0ff",
+              "branchId": null,
+              "email": "sivabalanv2006@gmail.com",
+              "name": "Demo",
+              "role": "OWNER",
+              "emailVerified": false
+            },
+            "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImYwNzUzYTg0LTU0Y2UtNDA4ZC04Y2VlLTU4MThiMWU3N2Q3NyIsInRlbmFudElkIjoiZTg4OTU5MGUtMWEyZi00MDRmLTk1ZTYtNjdmZGEzOTBmMGZmIiwiYnJhbmNoSWQiOm51bGwsImVtYWlsIjoic2l2YWJhbGFudjIwMDZAZ21haWwuY29tIiwibmFtZSI6IkRlbW8iLCJyb2xlIjoiT1dORVIiLCJlbWFpbFZlcmlmaWVkIjpmYWxzZSwiaWF0IjoxNzgyMDM5MzY3LCJleHAiOjE3ODIwNDAyNjd9.bh0HsoqcvqHffl9enL_Ii9A5tdwDyiAjkmJkVe1yG8k",
+            "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmMDc1M2E4NC01NGNlLTQwOGQtOGNlZS01ODE4YjFlNzdkNzciLCJpYXQiOjE3ODIwMzkzNjcsImV4cCI6MTc4MjY0NDE2N30.XFW82a7AYMCzdRPQDicsk6F7eLqCcCie3SP7p1539vE"
+          },
+          "timestamp": "2026-06-21T10:56:07.287Z"
+        }
+      '''
+    }
+  }
+}

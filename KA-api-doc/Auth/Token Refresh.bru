@@ -1,0 +1,161 @@
+meta {
+  name: Token Refresh
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{base-url}}/auth/refresh
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "refreshToken": "{{refreshToken}}"
+  }
+}
+
+vars:post-response {
+  accessToken: res.body.data.accessToken
+  refreshToken: res.body.data.refreshToken
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
+
+example {
+  name: 401
+  
+  request: {
+    url: {{base-url}}/auth/refresh
+    method: POST
+    mode: json
+    body:json: {
+      {
+        "refreshToken": "{{refreshToken}}"
+      }
+    }
+  }
+  
+  response: {
+    headers: {
+      content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+      cross-origin-opener-policy: same-origin
+      cross-origin-resource-policy: same-origin
+      origin-agent-cluster: ?1
+      referrer-policy: no-referrer
+      strict-transport-security: max-age=31536000; includeSubDomains
+      x-content-type-options: nosniff
+      x-dns-prefetch-control: off
+      x-download-options: noopen
+      x-frame-options: SAMEORIGIN
+      x-permitted-cross-domain-policies: none
+      x-xss-protection: 0
+      access-control-allow-origin: http://localhost:3000
+      vary: Origin, Accept-Encoding
+      access-control-allow-credentials: true
+      x-ratelimit-limit: 10
+      x-ratelimit-remaining: 9
+      x-ratelimit-reset: 3600
+      content-type: application/json; charset=utf-8
+      content-length: 118
+      etag: W/"76-HeqV9yBCFwNuNoGzldZhEB2NqYI"
+      date: Sun, 21 Jun 2026 11:11:20 GMT
+      connection: keep-alive
+      keep-alive: timeout=5
+    }
+  
+    status: {
+      code: 401
+      text: Unauthorized
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "httpStatusCode": 401,
+          "message": "Invalid or expired refresh token",
+          "data": null,
+          "timestamp": "2026-06-21T11:11:20.036Z"
+        }
+      '''
+    }
+  }
+}
+
+example {
+  name: 201
+  
+  request: {
+    url: {{base-url}}/auth/refresh
+    method: POST
+    mode: json
+    body:json: {
+      {
+        "refreshToken": "{{refreshToken}}"
+      }
+    }
+  }
+  
+  response: {
+    headers: {
+      content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+      cross-origin-opener-policy: same-origin
+      cross-origin-resource-policy: same-origin
+      origin-agent-cluster: ?1
+      referrer-policy: no-referrer
+      strict-transport-security: max-age=31536000; includeSubDomains
+      x-content-type-options: nosniff
+      x-dns-prefetch-control: off
+      x-download-options: noopen
+      x-frame-options: SAMEORIGIN
+      x-permitted-cross-domain-policies: none
+      x-xss-protection: 0
+      access-control-allow-origin: http://localhost:3000
+      vary: Origin, Accept-Encoding
+      access-control-allow-credentials: true
+      x-ratelimit-limit: 10
+      x-ratelimit-remaining: 6
+      x-ratelimit-reset: 3366
+      content-type: application/json; charset=utf-8
+      content-length: 915
+      etag: W/"393-zo3b64JBFtHs0Us6l6ckAWwSzvo"
+      date: Sun, 21 Jun 2026 11:15:14 GMT
+      connection: keep-alive
+      keep-alive: timeout=5
+    }
+  
+    status: {
+      code: 201
+      text: Created
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "httpStatusCode": 201,
+          "message": "Token refreshed",
+          "data": {
+            "user": {
+              "id": "f0753a84-54ce-408d-8cee-5818b1e77d77",
+              "tenantId": "e889590e-1a2f-404f-95e6-67fda390f0ff",
+              "branchId": null,
+              "email": "sivabalanv2006@gmail.com",
+              "name": "Demo",
+              "role": "OWNER",
+              "emailVerified": false
+            },
+            "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImYwNzUzYTg0LTU0Y2UtNDA4ZC04Y2VlLTU4MThiMWU3N2Q3NyIsInRlbmFudElkIjoiZTg4OTU5MGUtMWEyZi00MDRmLTk1ZTYtNjdmZGEzOTBmMGZmIiwiYnJhbmNoSWQiOm51bGwsImVtYWlsIjoic2l2YWJhbGFudjIwMDZAZ21haWwuY29tIiwibmFtZSI6IkRlbW8iLCJyb2xlIjoiT1dORVIiLCJlbWFpbFZlcmlmaWVkIjpmYWxzZSwiaWF0IjoxNzgyMDQwNTE0LCJleHAiOjE3ODIwNDE0MTR9.cIGbxwcjgo__6e4sjNtqcJ2Y1ik_FxNBupVL-iWQ9m4",
+            "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmMDc1M2E4NC01NGNlLTQwOGQtOGNlZS01ODE4YjFlNzdkNzciLCJpYXQiOjE3ODIwNDA1MTQsImV4cCI6MTc4MjY0NTMxNH0.7tiTvhztn44BKqjOOT91H6M8qz0GsTX-CQ_5NRM803Q"
+          },
+          "timestamp": "2026-06-21T11:15:14.646Z"
+        }
+      '''
+    }
+  }
+}

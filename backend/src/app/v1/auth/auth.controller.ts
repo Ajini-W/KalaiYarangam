@@ -24,7 +24,7 @@ export class AuthController {
   @Public()
   @Post('login')
   @UseGuards(AuthThrottlerGuard)
-  @Throttle({ default: { limit: 5, ttl: 3600000 } })
+  @Throttle({ default: { limit: 15, ttl: 3600000 } })
   login(@Body() dto: LoginDto, @Req() req: Request) {
     const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0] ?? req.ip;
     return this.authService.login(dto, ip, req.headers['user-agent']);

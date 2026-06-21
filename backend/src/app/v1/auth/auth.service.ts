@@ -68,19 +68,17 @@ export class AuthService {
       where: { email: dto.email, status: UserStatus.ACTIVE },
     });
 
-    const valid = user ? await bcrypt.compare(dto.password, user.passwordHash) : false;
+    if (!user) {
+      throw new UnauthorizedException('User not found. Please check your email or register.');
+    }
 
-    if (!user || !valid) {
-      // Log failed attempt
+    const valid = await bcrypt.compare(dto.password, user.passwordHash);
+
+    if (!valid) {
       await this.prisma.userLoginLog.create({
-        data: {
-          userId: user?.id ?? '00000000-0000-0000-0000-000000000000',
-          ipAddress,
-          userAgent,
-          success: false,
-        },
+        data: { userId: user.id, ipAddress, userAgent, success: false },
       });
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('Invalid password');
     }
 
     await this.prisma.user.update({
@@ -163,6 +161,7 @@ export class AuthService {
     email: string;
     name: string;
     role: AuthenticatedUser['role'];
+    emailVerifiedAt?: Date | null;
   }) {
     const payload = this.toPayload(user);
 
@@ -240,6 +239,7 @@ export class AuthService {
     email: string;
     name: string;
     role: AuthenticatedUser['role'];
+    emailVerifiedAt?: Date | null;
   }): AuthenticatedUser {
     return {
       id: user.id,
@@ -248,6 +248,7 @@ export class AuthService {
       email: user.email,
       name: user.name,
       role: user.role,
+      emailVerified: !!user.emailVerifiedAt,
     };
   }
 }

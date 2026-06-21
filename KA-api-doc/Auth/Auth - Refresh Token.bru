@@ -1,0 +1,31 @@
+meta {
+  name: Auth - Refresh Token
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{base-url}}/auth/refresh
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "refreshToken": "{{refreshToken}}"
+  }
+}
+
+script:post {
+  const data = res.body.data;
+  if (res.status === 200 && data?.accessToken) {
+    bru.setVar('accessToken', data.accessToken);
+  }
+  if (res.status === 200 && data?.refreshToken) {
+    bru.setVar('refreshToken', data.refreshToken);
+  }
+}

@@ -223,9 +223,10 @@ model User {
   phone        String?    @db.VarChar(20)
   role         UserRole   @default(STAFF)
   status       UserStatus @default(PENDING)
-  avatarUrl    String?    @map("avatar_url") @db.VarChar(500)
-  lastLoginAt  DateTime?  @map("last_login_at")
-  createdAt    DateTime   @default(now()) @map("created_at")
+  avatarUrl       String?    @map("avatar_url") @db.VarChar(500)
+  emailVerifiedAt DateTime?  @map("email_verified_at")
+  lastLoginAt     DateTime?  @map("last_login_at")
+  createdAt       DateTime   @default(now()) @map("created_at")
   updatedAt    DateTime   @updatedAt @map("updated_at")
 
   tenant          Tenant?          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
