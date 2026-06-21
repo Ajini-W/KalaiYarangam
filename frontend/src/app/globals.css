@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @import "../styles/tokens.css";
 
+/* ─── Dark mode via .dark class ────────────────────────────────────────────── */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* ─── Tailwind v4 Theme ────────────────────────────────────────────────────── */
 @theme inline {
   /* Fonts */
