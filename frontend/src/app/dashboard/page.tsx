@@ -1,105 +1,117 @@
-import {
-  Users, BookOpen, Package, CalendarCheck,
-  CreditCard, TrendingUp,
-} from "lucide-react";
+"use client";
+
+import { useRouter } from "next/navigation";
+import { Users, BookOpen, Package, CalendarCheck, CreditCard, BarChart2, Settings, UserPlus, Mail, Bell } from "lucide-react";
 import { PageContainer } from "@/components/layout/PageContainer";
-import { StatCard } from "@/components/ui/Card";
 import { Card, CardHeader, CardTitle, CardBody } from "@/components/ui/Card";
-import { Badge } from "@/components/ui/Badge";
+import { useAuthStore } from "@/store/auth.store";
 
-const stats = [
-  { title: "Total Students",    value: "1,284", delta: "+12% this month", deltaType: "increase" as const, icon: <Users size={20} /> },
-  { title: "Active Batches",    value: "38",    delta: "+3 new",          deltaType: "increase" as const, icon: <BookOpen size={20} /> },
-  { title: "Rental Bookings",   value: "96",    delta: "+8% this week",   deltaType: "increase" as const, icon: <Package size={20} /> },
-  { title: "Events This Month", value: "14",    delta: "2 upcoming",      deltaType: "neutral"  as const, icon: <CalendarCheck size={20} /> },
-  { title: "Revenue (Month)",   value: "₹2.4L", delta: "+18% vs last",   deltaType: "increase" as const, icon: <CreditCard size={20} /> },
-  { title: "Pending Dues",      value: "₹42K",  delta: "23 students",     deltaType: "decrease" as const, icon: <TrendingUp size={20} /> },
-];
-
-const recentLeads = [
-  { name: "Priya Sharma",   course: "Bharatanatyam", status: "new",        time: "2m ago" },
-  { name: "Ravi Kumar",     course: "Karate",        status: "followup",   time: "1h ago" },
-  { name: "Meena Devi",     course: "Yoga",          status: "enrolled",   time: "3h ago" },
-  { name: "Arjun Raj",      course: "Robotics",      status: "new",        time: "5h ago" },
-  { name: "Sneha Pillai",   course: "Dance",         status: "converted",  time: "1d ago" },
-];
-
-const statusVariant: Record<string, "info" | "warning" | "success" | "brand"> = {
-  new: "info", followup: "warning", enrolled: "brand", converted: "success",
+const roleLabels: Record<string, string> = {
+  SUPER_ADMIN: "Super Admin",
+  OWNER: "Owner",
+  BRANCH_MANAGER: "Branch Manager",
+  TRAINER: "Trainer",
+  STAFF: "Staff",
+  STUDENT: "Student",
+  CLIENT: "Client",
 };
 
+const roleGreetings: Record<string, string> = {
+  SUPER_ADMIN: "Here's your platform overview.",
+  OWNER: "Here's what's happening in your academy.",
+  BRANCH_MANAGER: "Here's your branch overview.",
+  TRAINER: "Here's your schedule and classes.",
+  STAFF: "Here's your daily overview.",
+  STUDENT: "Here's your learning progress.",
+  CLIENT: "Here's your account overview.",
+};
+
+interface QuickAction {
+  label: string;
+  href: string;
+  icon: React.ReactNode;
+  roles: string[];
+}
+
+const quickActions: QuickAction[] = [
+  { label: "Add Lead", href: "/dashboard/leads", icon: <UserPlus size={18} />, roles: ["SUPER_ADMIN", "OWNER", "BRANCH_MANAGER", "STAFF"] },
+  { label: "View Batches", href: "/dashboard/training/batches", icon: <BookOpen size={18} />, roles: ["SUPER_ADMIN", "OWNER", "BRANCH_MANAGER", "TRAINER", "STAFF"] },
+  { label: "Students", href: "/dashboard/training/students", icon: <Users size={18} />, roles: ["SUPER_ADMIN", "OWNER", "BRANCH_MANAGER", "TRAINER", "STAFF"] },
+  { label: "Rental Bookings", href: "/dashboard/rental/bookings", icon: <Package size={18} />, roles: ["SUPER_ADMIN", "OWNER", "BRANCH_MANAGER", "STAFF"] },
+  { label: "Events", href: "/dashboard/events", icon: <CalendarCheck size={18} />, roles: ["SUPER_ADMIN", "OWNER", "BRANCH_MANAGER", "STAFF"] },
+  { label: "Payments", href: "/dashboard/payments", icon: <CreditCard size={18} />, roles: ["SUPER_ADMIN", "OWNER", "BRANCH_MANAGER", "STAFF"] },
+  { label: "Reports", href: "/dashboard/reports/revenue", icon: <BarChart2 size={18} />, roles: ["SUPER_ADMIN", "OWNER", "BRANCH_MANAGER"] },
+  { label: "Users", href: "/dashboard/users", icon: <Users size={18} />, roles: ["SUPER_ADMIN", "OWNER"] },
+  { label: "Settings", href: "/dashboard/settings/organisation", icon: <Settings size={18} />, roles: ["SUPER_ADMIN", "OWNER", "BRANCH_MANAGER"] },
+  { label: "Notifications", href: "/dashboard/notifications", icon: <Bell size={18} />, roles: ["SUPER_ADMIN", "OWNER", "BRANCH_MANAGER", "TRAINER", "STAFF", "STUDENT", "CLIENT"] },
+];
+
 export default function DashboardPage() {
+  const router = useRouter();
+  const user = useAuthStore((s) => s.user);
+
+  if (!user) return null;
+
+  const roleLabel = roleLabels[user.role] || user.role;
+  const greeting = roleGreetings[user.role] || "Welcome back!";
+  const actions = quickActions.filter((a) => a.roles.includes(user.role));
+
+  const initials = user.name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+
   return (
-    <PageContainer
-      title="Dashboard"
-      subtitle="Welcome back! Here's what's happening today."
-    >
-      {/* Stats */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {stats.map((s) => (
-          <StatCard key={s.title} {...s} />
-        ))}
+    <PageContainer>
+      <div className="mb-8">
+        <div className="flex items-center gap-4 mb-2">
+          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-100 text-lg font-bold text-brand-700">
+            {initials}
+          </span>
+          <div>
+            <h1 className="text-2xl font-bold text-text-primary">
+              Welcome back, {user.name.split(" ")[0]}!
+            </h1>
+            <p className="text-sm text-text-secondary mt-0.5">
+              {roleLabel} &middot; {greeting}
+            </p>
+          </div>
+        </div>
       </div>
 
-      {/* Recent activity */}
-      <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Recent Leads */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Leads</CardTitle>
-            <Badge variant="brand" size="sm">{recentLeads.length} total</Badge>
-          </CardHeader>
-          <CardBody className="pt-0">
-            <ul className="divide-y divide-border-subtle">
-              {recentLeads.map((lead) => (
-                <li key={lead.name} className="flex items-center justify-between gap-3 py-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-100 text-xs font-semibold text-brand-700">
-                      {lead.name[0]}
-                    </span>
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-text-primary">{lead.name}</p>
-                      <p className="text-xs text-text-secondary">{lead.course}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <Badge variant={statusVariant[lead.status]}>{lead.status}</Badge>
-                    <span className="text-xs text-text-disabled">{lead.time}</span>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </CardBody>
-        </Card>
-
-        {/* Quick Actions */}
+      {actions.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle>Quick Actions</CardTitle>
           </CardHeader>
           <CardBody className="pt-0">
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                { label: "Add Lead",       href: "/dashboard/leads",                    icon: "👤" },
-                { label: "New Batch",      href: "/dashboard/training/batches",         icon: "📚" },
-                { label: "New Booking",    href: "/dashboard/rental/bookings",          icon: "📦" },
-                { label: "Create Event",   href: "/dashboard/events",                   icon: "🎪" },
-                { label: "Collect Fee",    href: "/dashboard/payments",                 icon: "💳" },
-                { label: "View Reports",   href: "/dashboard/reports/revenue",          icon: "📊" },
-              ].map((action) => (
-                <a
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+              {actions.map((action) => (
+                <button
                   key={action.label}
-                  href={action.href}
-                  className="flex items-center gap-2.5 rounded-[var(--radius-md)] border border-border p-3 text-sm font-medium text-text-primary transition-colors hover:bg-surface-raised hover:border-brand-300"
+                  onClick={() => router.push(action.href)}
+                  className="flex items-center gap-2.5 rounded-[var(--radius-md)] border border-border p-3 text-sm font-medium text-text-primary transition-colors hover:bg-surface-raised hover:border-brand-300 text-left"
                 >
-                  <span className="text-lg">{action.icon}</span>
+                  <span className="text-brand-600 shrink-0">{action.icon}</span>
                   {action.label}
-                </a>
+                </button>
               ))}
             </div>
           </CardBody>
         </Card>
-      </div>
+      )}
+
+      {actions.length === 0 && (
+        <Card>
+          <CardBody>
+            <p className="text-sm text-text-secondary text-center py-8">
+              Welcome to KalaiArangam! Explore the sidebar to get started.
+            </p>
+          </CardBody>
+        </Card>
+      )}
     </PageContainer>
   );
 }

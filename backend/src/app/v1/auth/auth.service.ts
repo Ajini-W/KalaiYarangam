@@ -16,9 +16,12 @@ import { env } from '@/config';
 import { MailService } from '@/app/v1/mail/mail.service';
 import { AuthenticatedUser } from '@/common/interfaces';
 import {
+  ChangePasswordDto,
+  ForgotPasswordDto,
   LoginDto,
   RegisterDto,
   RefreshTokenDto,
+  ResetPasswordDto,
   SendVerificationTokenDto,
   UpdateUserStatusDto,
   VerifyEmailDto,
@@ -40,18 +43,49 @@ export class AuthService {
         : null,
     ]);
 
-    if (existingEmailUser) {
-      throw new ConflictException('A user with this email already exists');
-    }
-
-    if (existingPhoneUser) {
+    if (existingPhoneUser && existingPhoneUser.email !== dto.email) {
       throw new ConflictException('A user with this phone number already exists');
     }
 
     const passwordHash = await bcrypt.hash(dto.password, 10);
-
     const verificationToken = randomBytes(32).toString('hex');
     const verificationTokenExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    // If user already exists (e.g. from Google OAuth), link the account
+    if (existingEmailUser) {
+      const updated = await this.prisma.user.update({
+        where: { id: existingEmailUser.id },
+        data: {
+          passwordHash,
+          name: dto.name,
+          phone: dto.phone || existingEmailUser.phone,
+          verificationToken,
+          verificationTokenExpiresAt,
+          status: existingEmailUser.status === UserStatus.ACTIVE
+            ? UserStatus.ACTIVE
+            : UserStatus.PENDING,
+        },
+      });
+
+      try {
+        await this.mailService.send({
+          to: dto.email,
+          template: 'verify-email',
+          variables: {
+            name: dto.name,
+            email: dto.email,
+            verificationLink: `${env.APP_URL}/verify-email?token=${verificationToken}`,
+          },
+        });
+      } catch {
+        // Email failure should not block registration
+      }
+
+      return {
+        message: 'Registration successful. Please check your email to verify your account.',
+        data: await this.buildAuthResponse(updated),
+      };
+    }
 
     const user = await this.prisma.user.create({
       data: {
@@ -157,6 +191,95 @@ export class AuthService {
     return { message: 'Verification email sent. Please check your inbox.' };
   }
 
+  async forgotPassword(dto: ForgotPasswordDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { email: dto.email },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found with this email');
+    }
+
+    const resetToken = randomBytes(32).toString('hex');
+    const resetPasswordExpiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { resetPasswordToken: resetToken, resetPasswordExpiresAt },
+    });
+
+    try {
+      await this.mailService.send({
+        to: dto.email,
+        template: 'reset-password',
+        variables: {
+          name: user.name,
+          email: dto.email,
+          resetLink: `${env.APP_URL}/reset-password?token=${resetToken}`,
+        },
+      });
+    } catch {
+      // Email failure should not block the response
+    }
+
+    return { message: 'Password reset link sent to your email.' };
+  }
+
+  async resetPassword(dto: ResetPasswordDto) {
+    const user = await this.prisma.user.findFirst({
+      where: { resetPasswordToken: dto.token },
+    });
+
+    if (!user) {
+      throw new BadRequestException('Invalid reset token');
+    }
+
+    if (
+      user.resetPasswordExpiresAt &&
+      user.resetPasswordExpiresAt < new Date()
+    ) {
+      throw new GoneException('Reset token expired');
+    }
+
+    const passwordHash = await bcrypt.hash(dto.password, 10);
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordHash,
+        resetPasswordToken: null,
+        resetPasswordExpiresAt: null,
+      },
+    });
+
+    return { message: 'Password reset successfully.' };
+  }
+
+  async changePassword(dto: ChangePasswordDto, userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const valid = await bcrypt.compare(dto.currentPassword, user.passwordHash);
+
+    if (!valid) {
+      throw new UnauthorizedException('Current password is incorrect');
+    }
+
+    const passwordHash = await bcrypt.hash(dto.newPassword, 10);
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash },
+    });
+
+    return { message: 'Password changed successfully.' };
+  }
+
   async login(dto: LoginDto, ipAddress?: string, userAgent?: string) {
     const user = await this.prisma.user.findFirst({
       where:
@@ -172,6 +295,12 @@ export class AuthService {
 
     if (user.status === UserStatus.INACTIVE || user.status === UserStatus.SUSPENDED) {
       throw new UnauthorizedException('Account is inactive or suspended. Please contact support.');
+    }
+
+    if (user.status === UserStatus.PENDING) {
+      throw new UnauthorizedException(
+        'Please verify your email before logging in. Check your inbox for the verification link.',
+      );
     }
 
     const valid = await bcrypt.compare(dto.password, user.passwordHash);
@@ -351,8 +480,19 @@ export class AuthService {
           status: 'ACTIVE',
         },
       });
+    } else if (user.status === UserStatus.PENDING) {
+      // User registered via email but not verified — activate via Google OAuth
+      user = await this.prisma.user.update({
+        where: { id: user.id },
+        data: {
+          status: UserStatus.ACTIVE,
+          verifiedAt: new Date(),
+          verificationToken: null,
+          verificationTokenExpiresAt: null,
+        },
+      });
     } else if (user.status !== UserStatus.ACTIVE) {
-      throw new UnauthorizedException('Account is inactive');
+      throw new UnauthorizedException('Account is inactive or suspended');
     }
 
     await this.prisma.user.update({

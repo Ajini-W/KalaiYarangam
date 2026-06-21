@@ -36,6 +36,20 @@ export interface VerifyEmailResponse {
   emailVerified: boolean;
 }
 
+export interface ForgotPasswordPayload {
+  email: string;
+}
+
+export interface ResetPasswordPayload {
+  token: string;
+  password: string;
+}
+
+export interface ChangePasswordPayload {
+  currentPassword: string;
+  newPassword: string;
+}
+
 export const authService = {
   async login(payload: LoginPayload): Promise<AuthResponse> {
     const { data } = await http.post("/auth/login", payload);
@@ -59,5 +73,17 @@ export const authService = {
 
   async sendVerificationToken(email: string): Promise<void> {
     await http.post("/auth/send-verification-token", { email });
+  },
+
+  async forgotPassword(payload: ForgotPasswordPayload): Promise<void> {
+    await http.post("/auth/forgot-password", payload);
+  },
+
+  async resetPassword(payload: ResetPasswordPayload): Promise<void> {
+    await http.post("/auth/reset-password", payload);
+  },
+
+  async changePassword(payload: ChangePasswordPayload): Promise<void> {
+    await http.post("/auth/change-password", payload);
   },
 };

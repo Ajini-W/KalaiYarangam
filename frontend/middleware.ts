@@ -11,9 +11,22 @@ const CSP = [
   "frame-src https://accounts.google.com",
 ].join("; ");
 
+const protectedRoutes = ["/dashboard"];
+
 export function middleware(request: NextRequest) {
   const response = NextResponse.next();
   response.headers.set("Content-Security-Policy", CSP);
+
+  const { pathname } = request.nextUrl;
+  const isProtected = protectedRoutes.some((route) => pathname.startsWith(route));
+  const token = request.cookies.get("accessToken")?.value;
+
+  if (isProtected && !token) {
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("redirect", pathname);
+    return NextResponse.redirect(loginUrl);
+  }
+
   return response;
 }
 

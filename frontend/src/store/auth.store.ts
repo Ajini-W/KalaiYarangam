@@ -1,6 +1,14 @@
 import { create } from "zustand";
-import type { AuthUser, LoginPayload, RegisterPayload } from "@/services/auth.service";
+import type {
+  AuthUser,
+  LoginPayload,
+  RegisterPayload,
+  ForgotPasswordPayload,
+  ResetPasswordPayload,
+  ChangePasswordPayload,
+} from "@/services/auth.service";
 import { authService } from "@/services/auth.service";
+import { setTokenCookie, removeTokenCookie } from "@/lib/token-cookie";
 
 interface AuthState {
   user: AuthUser | null;
@@ -13,8 +21,12 @@ interface AuthState {
   register: (payload: RegisterPayload) => Promise<void>;
   logout: () => void;
   setUser: (user: AuthUser) => void;
+  initialize: () => Promise<void>;
   verifyEmail: (token: string) => Promise<void>;
   sendVerificationToken: (email: string) => Promise<void>;
+  forgotPassword: (payload: ForgotPasswordPayload) => Promise<void>;
+  resetPassword: (payload: ResetPasswordPayload) => Promise<void>;
+  changePassword: (payload: ChangePasswordPayload) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -29,6 +41,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       const res = await authService.login(payload);
       localStorage.setItem("accessToken", res.accessToken);
+      setTokenCookie(res.accessToken);
       if (res.refreshToken) {
         localStorage.setItem("refreshToken", res.refreshToken);
       }
@@ -50,6 +63,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       const res = await authService.register(payload);
       localStorage.setItem("accessToken", res.accessToken);
+      setTokenCookie(res.accessToken);
       if (res.refreshToken) {
         localStorage.setItem("refreshToken", res.refreshToken);
       }
@@ -69,10 +83,33 @@ export const useAuthStore = create<AuthState>((set) => ({
   logout: () => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
+    removeTokenCookie();
     set({ user: null, accessToken: null, refreshToken: null, isAuthenticated: false });
   },
 
   setUser: (user) => set({ user }),
+
+  initialize: async () => {
+    const accessToken = localStorage.getItem("accessToken");
+    if (!accessToken) return;
+    setTokenCookie(accessToken);
+    set({ isLoading: true });
+    try {
+      const user = await authService.me();
+      set({
+        user,
+        accessToken,
+        refreshToken: localStorage.getItem("refreshToken"),
+        isAuthenticated: true,
+        isLoading: false,
+      });
+    } catch {
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+      removeTokenCookie();
+      set({ isLoading: false });
+    }
+  },
 
   verifyEmail: async (token) => {
     set({ isLoading: true });
@@ -89,6 +126,39 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ isLoading: true });
     try {
       await authService.sendVerificationToken(email);
+      set({ isLoading: false });
+    } catch (error) {
+      set({ isLoading: false });
+      throw error;
+    }
+  },
+
+  forgotPassword: async (payload) => {
+    set({ isLoading: true });
+    try {
+      await authService.forgotPassword(payload);
+      set({ isLoading: false });
+    } catch (error) {
+      set({ isLoading: false });
+      throw error;
+    }
+  },
+
+  resetPassword: async (payload) => {
+    set({ isLoading: true });
+    try {
+      await authService.resetPassword(payload);
+      set({ isLoading: false });
+    } catch (error) {
+      set({ isLoading: false });
+      throw error;
+    }
+  },
+
+  changePassword: async (payload) => {
+    set({ isLoading: true });
+    try {
+      await authService.changePassword(payload);
       set({ isLoading: false });
     } catch (error) {
       set({ isLoading: false });

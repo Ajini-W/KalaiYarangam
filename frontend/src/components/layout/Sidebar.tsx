@@ -2,7 +2,8 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useAuthStore } from "@/store/auth.store";
 import {
   LayoutDashboard,
   Users,
@@ -129,6 +130,19 @@ function NavItemRow({ item, collapsed }: { item: NavItem; collapsed: boolean }) 
 }
 
 export function Sidebar({ collapsed, onClose }: SidebarProps) {
+  const router = useRouter();
+  const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
+
+  const handleSignOut = () => {
+    logout();
+    router.push("/login");
+  };
+
+  const initials = user?.name
+    ? user.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
+    : "?";
+
   return (
     <aside
       className={cn(
@@ -166,8 +180,15 @@ export function Sidebar({ collapsed, onClose }: SidebarProps) {
       </nav>
 
       {/* Footer */}
-      <div className={cn("border-border space-y-0.5 border-t px-2 py-3")}>
+      <div className="border-border space-y-0.5 border-t px-2 py-3">
+        {!collapsed && user && (
+          <div className="px-2.5 py-2 border-b border-border mb-1">
+            <p className="text-sm font-medium text-text-primary truncate">{user.name}</p>
+            <p className="text-xs text-text-secondary truncate">{user.email}</p>
+          </div>
+        )}
         <button
+          onClick={handleSignOut}
           className={cn(
             "text-danger hover:bg-danger-light flex w-full items-center gap-3 rounded-[var(--radius-sm)] px-2.5 py-2 text-sm font-medium transition-colors",
             collapsed && "justify-center"

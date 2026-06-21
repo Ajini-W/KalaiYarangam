@@ -7,9 +7,12 @@ import { AuthThrottlerGuard, GoogleOAuthGuard } from '@/common/guards';
 import { AuthenticatedUser } from '@/common/interfaces';
 import { AuthService } from './auth.service';
 import {
+  ChangePasswordDto,
+  ForgotPasswordDto,
   LoginDto,
   RegisterDto,
   RefreshTokenDto,
+  ResetPasswordDto,
   SendVerificationTokenDto,
   UpdateUserStatusDto,
   VerifyEmailDto,
@@ -40,6 +43,26 @@ export class AuthController {
   @HttpCode(200)
   sendVerificationToken(@Body() dto: SendVerificationTokenDto) {
     return this.authService.sendVerificationToken(dto);
+  }
+
+  @Public()
+  @Post('forgot-password')
+  @HttpCode(200)
+  forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(dto);
+  }
+
+  @Public()
+  @Post('reset-password')
+  @HttpCode(200)
+  resetPassword(@Body() dto: ResetPasswordDto) {
+    return this.authService.resetPassword(dto);
+  }
+
+  @Post('change-password')
+  @HttpCode(200)
+  changePassword(@Body() dto: ChangePasswordDto, @CurrentUser() user: AuthenticatedUser) {
+    return this.authService.changePassword(dto, user.id);
   }
 
   @Public()

@@ -5,12 +5,18 @@ import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
 import { MobileNav } from "./MobileNav";
 import { cn } from "@/lib/cn";
+import { useAuthStore } from "@/store/auth.store";
 
 interface AppShellProps { children: React.ReactNode; className?: string }
 
 export function AppShell({ children, className }: AppShellProps) {
+  const initialize = useAuthStore((s) => s.initialize);
   const [collapsed, setCollapsed] = React.useState(false);
   const [mobileOpen, setMobileOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    initialize();
+  }, [initialize]);
 
   const toggleMenu = () => {
     if (window.innerWidth < 768) {

@@ -40,7 +40,7 @@ export default function VerifyEmailPage() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
 
-  const [state, setState] = useState<VerifyState>("idle");
+  const [state, setState] = useState<VerifyState>(token ? "verifying" : "idle");
   const [errorMessage, setErrorMessage] = useState("");
   const [resending, setResending] = useState(false);
 
@@ -51,6 +51,7 @@ export default function VerifyEmailPage() {
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -79,7 +80,12 @@ export default function VerifyEmailPage() {
       await sendVerificationToken(data.email);
       toast.success("Verification email sent! Check your inbox.");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to resend verification email");
+      const msg = error instanceof Error ? error.message : "Failed to resend verification email";
+      if (msg.toLowerCase().includes("not found")) {
+        setError("email", { message: "No account found with this email address" });
+      } else {
+        toast.error(msg);
+      }
     } finally {
       setResending(false);
     }
@@ -98,7 +104,7 @@ export default function VerifyEmailPage() {
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="w-full max-w-[400px]"
+            className="w-full max-w-[380px]"
           >
             {state === "verifying" && (
               <motion.div variants={itemVariants} className="text-center">
@@ -147,54 +153,49 @@ export default function VerifyEmailPage() {
                 <h1 className="text-2xl font-bold text-red-700 dark:text-red-300 uppercase tracking-[0.05em] mb-2">
                   Verification Failed
                 </h1>
-                <p className="text-sm text-gray-400 dark:text-gray-400 font-medium mb-2">
+                <p className="text-sm text-gray-400 dark:text-gray-400 font-medium mb-6">
                   {errorMessage}
                 </p>
-                {!errorMessage.toLowerCase().includes("already verified") && (
-                  <>
-                    <p className="text-xs text-gray-400 dark:text-gray-500 mb-6">
+                {errorMessage.toLowerCase().includes("already verified") ? (
+                  <Button
+                    onClick={() => router.push("/login")}
+                    className="w-full h-11 text-sm font-bold uppercase tracking-wider bg-gradient-to-r from-brand-500 to-brand-700 hover:from-brand-600 hover:to-brand-800 shadow-lg shadow-brand-500/25 dark:shadow-brand-500/15 hover:shadow-brand-600/35 transition-all duration-300 group rounded-xl"
+                  >
+                    Go to Login
+                    <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                ) : (
+                  <form onSubmit={handleSubmit(onResend)} className="space-y-4 text-left mt-6">
+                    <p className="text-xs text-gray-400 dark:text-gray-500 text-center mb-2">
                       Request a new verification email below.
                     </p>
-                    <form onSubmit={handleSubmit(onResend)} className="space-y-4 text-left">
-                      <Input
-                        label="Email Address"
-                        type="email"
-                        placeholder="you@example.com"
-                        required
-                        error={errors.email?.message}
-                        leftAddon={<Mail size={16} />}
-                        aria-label="Email address"
-                        className="dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder:text-gray-500 h-10 rounded-xl"
-                        {...register("email")}
-                      />
-                      <Button
-                        type="submit"
-                        className="w-full h-11 text-sm font-bold uppercase tracking-wider bg-gradient-to-r from-brand-500 to-brand-700 hover:from-brand-600 hover:to-brand-800 shadow-lg shadow-brand-500/25 dark:shadow-brand-500/15 hover:shadow-brand-600/35 transition-all duration-300 group rounded-xl"
-                        loading={resending}
-                      >
-                        Resend Verification Email
-                        {!resending && (
-                          <RefreshCw className="ml-2 w-4 h-4 group-hover:rotate-180 transition-transform duration-500" />
-                        )}
-                      </Button>
-                    </form>
-                  </>
-                )}
-                {errorMessage.toLowerCase().includes("already verified") && (
-                  <motion.div variants={itemVariants} className="mt-6">
+                    <Input
+                      label="Email Address"
+                      type="email"
+                      placeholder="you@example.com"
+                      required
+                      error={errors.email?.message}
+                      leftAddon={<Mail size={16} />}
+                      aria-label="Email address"
+                      className="dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder:text-gray-500 h-10 rounded-xl"
+                      {...register("email")}
+                    />
                     <Button
-                      onClick={() => router.push("/login")}
+                      type="submit"
                       className="w-full h-11 text-sm font-bold uppercase tracking-wider bg-gradient-to-r from-brand-500 to-brand-700 hover:from-brand-600 hover:to-brand-800 shadow-lg shadow-brand-500/25 dark:shadow-brand-500/15 hover:shadow-brand-600/35 transition-all duration-300 group rounded-xl"
+                      loading={resending}
                     >
-                      Go to Login
-                      <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      Resend Verification Email
+                      {!resending && (
+                        <RefreshCw className="ml-2 w-4 h-4 group-hover:rotate-180 transition-transform duration-500" />
+                      )}
                     </Button>
-                  </motion.div>
+                  </form>
                 )}
               </motion.div>
             )}
 
-            {state === "idle" && !token && (
+            {state === "idle" && (
               <>
                 <motion.div variants={itemVariants} className="text-center mb-8">
                   <div className="mx-auto w-16 h-16 rounded-full bg-brand-50 dark:bg-brand-900/30 flex items-center justify-center mb-6">
@@ -252,7 +253,7 @@ export default function VerifyEmailPage() {
               </motion.p>
             )}
 
-            {(state === "error" || state === "idle") && (
+            {state !== "success" && (
               <motion.p
                 variants={itemVariants}
                 className="mt-6 text-center text-sm text-gray-500 dark:text-gray-400 lg:hidden"

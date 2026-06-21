@@ -226,6 +226,8 @@ model User {
   verificationToken           String?   @unique @map("verification_token") @db.VarChar(255)
   verificationTokenExpiresAt  DateTime? @map("verification_token_expires_at")
   verifiedAt                  DateTime? @map("verified_at")
+  resetPasswordToken          String?   @map("reset_password_token") @db.VarChar(255)
+  resetPasswordExpiresAt      DateTime? @map("reset_password_expires_at")
   avatarUrl         String?   @map("avatar_url") @db.VarChar(500)
   lastLoginAt       DateTime? @map("last_login_at")
   createdAt    DateTime   @default(now()) @map("created_at")
@@ -249,6 +251,7 @@ model User {
   @@index([phone])
   @@index([role])
   @@index([status])
+  @@index([resetPasswordToken])
   @@map("users")
 }
 
