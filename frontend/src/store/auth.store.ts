@@ -13,6 +13,8 @@ interface AuthState {
   register: (payload: RegisterPayload) => Promise<void>;
   logout: () => void;
   setUser: (user: AuthUser) => void;
+  verifyEmail: (token: string) => Promise<void>;
+  sendVerificationToken: (email: string) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -71,4 +73,26 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   setUser: (user) => set({ user }),
+
+  verifyEmail: async (token) => {
+    set({ isLoading: true });
+    try {
+      await authService.verifyEmail(token);
+      set({ isLoading: false });
+    } catch (error) {
+      set({ isLoading: false });
+      throw error;
+    }
+  },
+
+  sendVerificationToken: async (email) => {
+    set({ isLoading: true });
+    try {
+      await authService.sendVerificationToken(email);
+      set({ isLoading: false });
+    } catch (error) {
+      set({ isLoading: false });
+      throw error;
+    }
+  },
 }));

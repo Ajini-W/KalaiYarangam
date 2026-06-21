@@ -32,6 +32,10 @@ export interface AuthResponse {
   rememberMe?: boolean;
 }
 
+export interface VerifyEmailResponse {
+  emailVerified: boolean;
+}
+
 export const authService = {
   async login(payload: LoginPayload): Promise<AuthResponse> {
     const { data } = await http.post("/auth/login", payload);
@@ -46,5 +50,14 @@ export const authService = {
   async me(): Promise<AuthUser> {
     const { data } = await http.get("/auth/me");
     return data.data;
+  },
+
+  async verifyEmail(token: string): Promise<VerifyEmailResponse> {
+    const { data } = await http.post("/auth/verify-email", { token });
+    return data.data;
+  },
+
+  async sendVerificationToken(email: string): Promise<void> {
+    await http.post("/auth/send-verification-token", { email });
   },
 };
