@@ -116,4 +116,10 @@ export class TrainingController {
   updateModules(@CurrentUser() user: AuthenticatedUser, @Body() dto: UpdateModulesDto) {
     return this.trainingService.updateModules(user, dto);
   }
+
+  @Public()
+  @Post('onboarding')
+  completeOnboarding(@Body() dto: CreateTenantDto) {
+    return this.trainingService.completeOnboarding(dto);
+  }
 }

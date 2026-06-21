@@ -1,4 +1,5 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { IndustryType } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '@/database';
@@ -14,9 +15,16 @@ function slugify(value: string) {
     .replace(/^-|-$/g, '');
 }
 
+function toPayload(user: { id: string; tenantId: string | null; email: string; name: string; role: string }) {
+  return { id: user.id, tenantId: user.tenantId ?? '', branchId: null, email: user.email, name: user.name, role: user.role };
+}
+
 @Injectable()
 export class TrainingService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly jwtService: JwtService,
+  ) {}
 
   async findBatches(user: AuthenticatedUser, query: QueryPaginationDto) {
     const { skip, take, page, pageSize } = paginationArgs(query.page, query.pageSize);
@@ -123,6 +131,110 @@ export class TrainingService {
     });
 
     return { message: 'Tenant created successfully', data: { id: tenant.id, name: tenant.name, slug: tenant.slug } };
+  }
+
+  async completeOnboarding(dto: CreateTenantDto) {
+    const slug = slugify(dto.businessName);
+    const existing = await this.prisma.tenant.findUnique({ where: { slug } });
+
+    if (existing) {
+      throw new ConflictException('Business name is already registered');
+    }
+
+    const passwordHash = await bcrypt.hash(dto.password, 10);
+
+    const result = await this.prisma.$transaction(async (tx) => {
+      const t = await tx.tenant.create({
+        data: {
+          name: dto.businessName,
+          slug,
+          ...(dto.industry ? { industry: dto.industry as IndustryType } : {}),
+          branches: {
+            create: { name: 'Main Branch', isDefault: true },
+          },
+          users: {
+            create: {
+              email: dto.email,
+              passwordHash,
+              name: dto.name,
+              phone: dto.phone,
+              role: 'OWNER',
+              status: 'ACTIVE',
+            },
+          },
+        },
+        include: { users: true, branches: true },
+      });
+
+      const user = t.users[0];
+      const branch = t.branches[0];
+
+      await tx.userRoleMapping.create({
+        data: { userId: user.id, role: 'OWNER', tenantId: t.id },
+      });
+
+      await tx.userBranch.create({
+        data: { userId: user.id, branchId: branch.id, isPrimary: true },
+      });
+
+      const defaultSettings = [
+        { key: 'timezone', value: 'Asia/Kolkata' },
+        { key: 'dateFormat', value: 'DD/MM/YYYY' },
+        { key: 'currency', value: 'INR' },
+        { key: 'language', value: 'en' },
+        { key: 'timeFormat', value: '12h' },
+        { key: 'weekStartDay', value: 'monday' },
+      ];
+
+      await tx.tenantSetting.createMany({
+        data: defaultSettings.map((s) => ({ tenantId: t.id, ...s })),
+      });
+
+      const defaultModules = [
+        { key: 'module_trainingManagement', value: 'true' },
+        { key: 'module_rentalManagement', value: 'false' },
+        { key: 'module_eventManagement', value: 'false' },
+      ];
+
+      await tx.tenantSetting.createMany({
+        data: defaultModules.map((m) => ({ tenantId: t.id, ...m })),
+      });
+
+      return { tenant: t, user, branch };
+    });
+
+    const payload = toPayload(result.user);
+    const accessToken = this.jwtService.sign(payload);
+
+    const settings = await this.prisma.tenantSetting.findMany({
+      where: { tenantId: result.tenant.id, key: { in: ['timezone', 'dateFormat', 'currency', 'language', 'timeFormat', 'weekStartDay'] } },
+    });
+
+    const settingsData = settings.reduce<Record<string, string>>((acc, s) => {
+      acc[s.key] = s.value;
+      return acc;
+    }, {});
+
+    const moduleSettings = await this.prisma.tenantSetting.findMany({
+      where: { tenantId: result.tenant.id, key: { startsWith: 'module_' } },
+    });
+
+    const modulesData = { trainingManagement: false, rentalManagement: false, eventManagement: false };
+    for (const s of moduleSettings) {
+      const k = s.key.replace('module_', '') as keyof typeof modulesData;
+      if (k in modulesData) modulesData[k] = s.value === 'true';
+    }
+
+    return {
+      message: 'Onboarding completed successfully',
+      data: {
+        token: { accessToken, user: payload },
+        tenant: { id: result.tenant.id, name: result.tenant.name, slug: result.tenant.slug, industry: result.tenant.industry },
+        branch: { id: result.branch.id, name: result.branch.name, isDefault: result.branch.isDefault },
+        settings: settingsData,
+        modules: modulesData,
+      },
+    };
   }
 
   async getTenant(user: AuthenticatedUser) {
