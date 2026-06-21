@@ -1,4 +1,4 @@
-import { IsBoolean, IsEmail, IsInt, IsOptional, IsString, MaxLength, Min, MinLength } from 'class-validator';
+import { IsBoolean, IsEmail, IsInt, IsOptional, IsString, Matches, MaxLength, Min, MinLength } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateBatchDto {
@@ -218,4 +218,36 @@ export class UpdateTenantSettingsDto {
   @IsString()
   @MaxLength(20)
   weekStartDay?: string;
+}
+
+export class UpdateBrandingDto {
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  logoUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  faviconUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  @Matches(/^#[0-9A-Fa-f]{6}$/)
+  primaryColor?: string;
+
+  @IsOptional()
+  @IsString()
+  @Matches(/^#[0-9A-Fa-f]{6}$/)
+  secondaryColor?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  tagline?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  customDomain?: string;
 }

@@ -4,7 +4,7 @@ import * as bcrypt from 'bcrypt';
 import { PrismaService } from '@/database';
 import { AuthenticatedUser } from '@/common/interfaces';
 import { paginate, paginationArgs } from '@/common/utils';
-import { CreateBatchDto, CreateBranchDto, CreateStudentDto, CreateTenantDto, QueryPaginationDto, UpdateBranchDto, UpdateBranchStatusDto, UpdateTenantDto, UpdateTenantSettingsDto } from './dto/training.dto';
+import { CreateBatchDto, CreateBranchDto, CreateStudentDto, CreateTenantDto, QueryPaginationDto, UpdateBranchDto, UpdateBranchStatusDto, UpdateBrandingDto, UpdateTenantDto, UpdateTenantSettingsDto } from './dto/training.dto';
 
 function slugify(value: string) {
   return value
@@ -288,5 +288,73 @@ export class TrainingService {
     }, {});
 
     return { message: 'Settings updated successfully', data };
+  }
+
+  async getBranding(user: AuthenticatedUser) {
+    const [tenantBrand, tenant] = await Promise.all([
+      this.prisma.tenantBrand.findUnique({ where: { tenantId: user.tenantId } }),
+      this.prisma.tenant.findUnique({
+        where: { id: user.tenantId },
+        select: { logoUrl: true },
+      }),
+    ]);
+
+    const data = {
+      logoUrl: tenant?.logoUrl ?? null,
+      faviconUrl: tenantBrand?.faviconUrl ?? null,
+      primaryColor: tenantBrand?.primaryColor ?? null,
+      secondaryColor: tenantBrand?.secondaryColor ?? null,
+      tagline: tenantBrand?.tagline ?? null,
+      customDomain: tenantBrand?.customDomain ?? null,
+    };
+
+    return { message: 'Branding retrieved successfully', data };
+  }
+
+  async updateBranding(user: AuthenticatedUser, dto: UpdateBrandingDto) {
+    const { logoUrl, ...brandFields } = dto;
+
+    const entries = Object.entries(brandFields).filter(
+      (entry): entry is [string, string] => entry[1] !== undefined,
+    );
+
+    if (logoUrl !== undefined) {
+      await this.prisma.tenant.update({
+        where: { id: user.tenantId },
+        data: { logoUrl },
+      });
+    }
+
+    if (entries.length > 0) {
+      const brandData = entries.reduce<Record<string, string>>((acc, [key, value]) => {
+        acc[key] = value;
+        return acc;
+      }, {});
+
+      await this.prisma.tenantBrand.upsert({
+        where: { tenantId: user.tenantId },
+        update: brandData,
+        create: { tenantId: user.tenantId, ...brandData },
+      });
+    }
+
+    const [tenantBrand, tenant] = await Promise.all([
+      this.prisma.tenantBrand.findUnique({ where: { tenantId: user.tenantId } }),
+      this.prisma.tenant.findUnique({
+        where: { id: user.tenantId },
+        select: { logoUrl: true },
+      }),
+    ]);
+
+    const data = {
+      logoUrl: tenant?.logoUrl ?? null,
+      faviconUrl: tenantBrand?.faviconUrl ?? null,
+      primaryColor: tenantBrand?.primaryColor ?? null,
+      secondaryColor: tenantBrand?.secondaryColor ?? null,
+      tagline: tenantBrand?.tagline ?? null,
+      customDomain: tenantBrand?.customDomain ?? null,
+    };
+
+    return { message: 'Branding updated successfully', data };
   }
 }
