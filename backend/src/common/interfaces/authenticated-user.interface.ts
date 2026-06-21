@@ -7,4 +7,5 @@ export interface AuthenticatedUser {
   email: string;
   name: string;
   role: UserRole;
+  emailVerified: boolean;
 }

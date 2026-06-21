@@ -235,6 +235,7 @@ model User {
   profile         UserProfile?
   userBranches    UserBranch[]
   loginLogs       UserLoginLog[]
+  refreshTokens   RefreshToken[]
   userRoles       UserRoleMapping[]
   leadFollowups   LeadFollowup[]
   batchTrainers   BatchTrainer[]
@@ -287,18 +288,35 @@ model UserBranch {
 }
 
 model UserLoginLog {
-  id        String   @id @default(uuid()) @db.Uuid
-  userId    String   @map("user_id") @db.Uuid
-  ipAddress String?  @map("ip_address") @db.VarChar(45)
-  userAgent String?  @map("user_agent") @db.VarChar(500)
-  loginAt   DateTime @default(now()) @map("login_at")
-  success   Boolean  @default(true)
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  ipAddress    String?  @map("ip_address") @db.VarChar(45)
+  userAgent    String?  @map("user_agent") @db.VarChar(500)
+  accessToken  String?  @map("access_token") @db.Text
+  refreshToken String?  @map("refresh_token") @db.Text
+  loginAt      DateTime @default(now()) @map("login_at")
+  success      Boolean  @default(true)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([loginAt])
+  @@index([ipAddress])
   @@map("user_login_log")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  token     String   @unique @db.VarChar(500)
+  expiresAt DateTime @map("expires_at")
+  revokedAt DateTime? @map("revoked_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
 }
 
 model Permission {

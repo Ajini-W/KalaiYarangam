@@ -6,3 +6,7 @@ dist
 coverage
 .turbo
 code-docs
+
+# Bruno: developer-specific environment files (share via Example.bru)
+docs/bruno/**/Environments/*.bru
+!docs/bruno/**/Environments/Example.bru

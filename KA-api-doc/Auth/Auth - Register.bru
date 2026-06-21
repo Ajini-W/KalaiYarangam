@@ -1,0 +1,36 @@
+meta {
+  name: Auth - Register
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{base-url}}/auth/register
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "Demo",
+    "email": "sivabalanv2005@gmail.com",
+    "phone": "9876543210",
+    "businessName": "KalaiYarangam",
+    "industry": "TRAINING",
+    "password": "Demo@123"
+  }
+}
+
+script:post {
+  const data = res.body.data;
+  if (data?.accessToken) {
+    bru.setVar('accessToken', data.accessToken);
+  }
+  if (data?.refreshToken) {
+    bru.setVar('refreshToken', data.refreshToken);
+  }
+}
