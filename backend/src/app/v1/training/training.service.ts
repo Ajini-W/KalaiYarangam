@@ -4,7 +4,7 @@ import * as bcrypt from 'bcrypt';
 import { PrismaService } from '@/database';
 import { AuthenticatedUser } from '@/common/interfaces';
 import { paginate, paginationArgs } from '@/common/utils';
-import { CreateBatchDto, CreateBranchDto, CreateStudentDto, CreateTenantDto, QueryPaginationDto, UpdateBranchDto, UpdateBranchStatusDto, UpdateBrandingDto, UpdateTenantDto, UpdateTenantSettingsDto } from './dto/training.dto';
+import { CreateBatchDto, CreateBranchDto, CreateStudentDto, CreateTenantDto, QueryPaginationDto, UpdateBranchDto, UpdateBranchStatusDto, UpdateBrandingDto, UpdateModulesDto, UpdateTenantDto, UpdateTenantSettingsDto } from './dto/training.dto';
 
 function slugify(value: string) {
   return value
@@ -356,5 +356,63 @@ export class TrainingService {
     };
 
     return { message: 'Branding updated successfully', data };
+  }
+
+  async getModules(user: AuthenticatedUser) {
+    const settings = await this.prisma.tenantSetting.findMany({
+      where: { tenantId: user.tenantId, key: { startsWith: 'module_' } },
+    });
+
+    const data = {
+      trainingManagement: false,
+      rentalManagement: false,
+      eventManagement: false,
+    };
+
+    for (const s of settings) {
+      const moduleKey = s.key.replace('module_', '') as keyof typeof data;
+      if (moduleKey in data) {
+        data[moduleKey] = s.value === 'true';
+      }
+    }
+
+    return { message: 'Modules retrieved successfully', data };
+  }
+
+  async updateModules(user: AuthenticatedUser, dto: UpdateModulesDto) {
+    const entries = Object.entries(dto).filter(
+      (entry): entry is [string, boolean] => entry[1] !== undefined,
+    );
+
+    await Promise.all(
+      entries.map(([key, value]) =>
+        this.prisma.tenantSetting.upsert({
+          where: {
+            tenantId_key: { tenantId: user.tenantId, key: `module_${key}` },
+          },
+          update: { value: String(value) },
+          create: { tenantId: user.tenantId, key: `module_${key}`, value: String(value) },
+        }),
+      ),
+    );
+
+    const settings = await this.prisma.tenantSetting.findMany({
+      where: { tenantId: user.tenantId, key: { startsWith: 'module_' } },
+    });
+
+    const data = {
+      trainingManagement: false,
+      rentalManagement: false,
+      eventManagement: false,
+    };
+
+    for (const s of settings) {
+      const moduleKey = s.key.replace('module_', '') as keyof typeof data;
+      if (moduleKey in data) {
+        data[moduleKey] = s.value === 'true';
+      }
+    }
+
+    return { message: 'Modules updated successfully', data };
   }
 }

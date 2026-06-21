@@ -3,7 +3,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CurrentUser, Public } from '@/common/decorators';
 import { AuthenticatedUser } from '@/common/interfaces';
 import { TrainingService } from './training.service';
-import { CreateBatchDto, CreateBranchDto, CreateStudentDto, CreateTenantDto, QueryPaginationDto, UpdateBranchDto, UpdateBranchStatusDto, UpdateBrandingDto, UpdateTenantDto, UpdateTenantSettingsDto } from './dto/training.dto';
+import { CreateBatchDto, CreateBranchDto, CreateStudentDto, CreateTenantDto, QueryPaginationDto, UpdateBranchDto, UpdateBranchStatusDto, UpdateBrandingDto, UpdateModulesDto, UpdateTenantDto, UpdateTenantSettingsDto } from './dto/training.dto';
 
 @ApiTags('training')
 @ApiBearerAuth()
@@ -105,5 +105,15 @@ export class TrainingController {
   @Patch('branding')
   updateBranding(@CurrentUser() user: AuthenticatedUser, @Body() dto: UpdateBrandingDto) {
     return this.trainingService.updateBranding(user, dto);
+  }
+
+  @Get('modules')
+  getModules(@CurrentUser() user: AuthenticatedUser) {
+    return this.trainingService.getModules(user);
+  }
+
+  @Patch('modules')
+  updateModules(@CurrentUser() user: AuthenticatedUser, @Body() dto: UpdateModulesDto) {
+    return this.trainingService.updateModules(user, dto);
   }
 }

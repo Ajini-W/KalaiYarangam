@@ -251,3 +251,17 @@ export class UpdateBrandingDto {
   @MaxLength(255)
   customDomain?: string;
 }
+
+export class UpdateModulesDto {
+  @IsOptional()
+  @IsBoolean()
+  trainingManagement?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  rentalManagement?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  eventManagement?: boolean;
+}
