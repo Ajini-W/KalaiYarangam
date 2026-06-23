@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { UserRole, UserStatus } from '@prisma/client';
 import { PrismaService } from '@/database';
+import { AuditService } from '@/app/v1/security/audit.service';
 import {
   CreatePermissionDto,
   UpdatePermissionDto,
@@ -12,7 +13,10 @@ import {
 
 @Injectable()
 export class RbacService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly audit: AuditService,
+  ) {}
 
   // ── Permissions ──────────────────────────────────────────────
 
@@ -210,12 +214,24 @@ export class RbacService {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) throw new NotFoundException('User not found');
 
+    const oldStatus = user.status;
     const raw = await this.prisma.user.update({
       where: { id },
       data: { status: dto.status },
       select: { id: true, name: true, email: true, role: true, status: true, verifiedAt: true, updatedAt: true },
     });
     const updated = { ...raw, emailVerified: raw.verifiedAt !== null };
+
+    await this.audit.log({
+      userId: id,
+      tenantId: user.tenantId ?? undefined,
+      action: 'STATUS_CHANGE',
+      entity: 'User',
+      entityId: id,
+      oldValues: { status: oldStatus },
+      newValues: { status: dto.status },
+    });
+
     return { message: `User status updated to ${dto.status}`, data: updated };
   }
 
@@ -223,12 +239,24 @@ export class RbacService {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) throw new NotFoundException('User not found');
 
+    const oldRole = user.role;
     const raw = await this.prisma.user.update({
       where: { id },
       data: { role: dto.role },
       select: { id: true, name: true, email: true, role: true, status: true, verifiedAt: true, updatedAt: true },
     });
     const data = { ...raw, emailVerified: raw.verifiedAt !== null };
+
+    await this.audit.log({
+      userId: id,
+      tenantId: user.tenantId ?? undefined,
+      action: 'ROLE_CHANGE',
+      entity: 'User',
+      entityId: id,
+      oldValues: { role: oldRole },
+      newValues: { role: dto.role },
+    });
+
     return { message: `User role updated to ${dto.role}`, data };
   }
 }

@@ -224,6 +224,14 @@ enum AuditAction {
   LOGOUT
   EXPORT
   IMPORT
+  SESSION_REVOKE
+  PASSWORD_CHANGE
+  ROLE_CHANGE
+  STATUS_CHANGE
+  PERMISSION_CHANGE
+  SECURITY_EVENT
+  TWO_FACTOR_ENABLE
+  TWO_FACTOR_DISABLE
 }
 
 enum HealthStatus {
@@ -280,6 +288,8 @@ model User {
   batchTrainers     BatchTrainer[]
   studentProgress   StudentProgress[]
   notifications     Notification[]
+  sessions          Session[]
+  securityEvents    SecurityEvent[]
   auditLogs         AuditLog[]
   activityLogs      ActivityLog[]
 
@@ -547,6 +557,7 @@ model Tenant {
   notifications     Notification[]
   accessRequests    TenantAccessRequest[]
   staffMappings     StaffBranchMapping[]
+  securityEvents    SecurityEvent[]
 
   @@index([slug])
   @@index([status])
@@ -1388,6 +1399,51 @@ model NotificationLog {
 // ═══════════════════════════════════════════════════════════════
 // SUPER ADMIN — 2. AUDIT & SECURITY
 // ═══════════════════════════════════════════════════════════════
+
+model Session {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  token        String   @unique @db.Text
+  refreshToken String?  @map("refresh_token") @db.Text
+  ipAddress    String?  @map("ip_address") @db.VarChar(45)
+  userAgent    String?  @map("user_agent") @db.VarChar(500)
+  deviceInfo   String?  @map("device_info") @db.VarChar(500)
+  isActive     Boolean  @default(true) @map("is_active")
+  lastActivity DateTime @default(now()) @map("last_activity")
+  expiresAt    DateTime @map("expires_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+  revokedAt    DateTime? @map("revoked_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@index([isActive])
+  @@map("sessions")
+}
+
+model SecurityEvent {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String?  @map("user_id") @db.Uuid
+  tenantId  String?  @map("tenant_id") @db.Uuid
+  eventType String   @map("event_type") @db.VarChar(100)
+  severity  String   @default("INFO") @db.VarChar(20)
+  message   String   @db.Text
+  ipAddress String?  @map("ip_address") @db.VarChar(45)
+  userAgent String?  @map("user_agent") @db.VarChar(500)
+  metadata  Json?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tenantId])
+  @@index([eventType])
+  @@index([severity])
+  @@index([createdAt])
+  @@map("security_events")
+}
 
 model AuditLog {
   id         String      @id @default(uuid()) @db.Uuid

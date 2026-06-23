@@ -6,8 +6,9 @@ import { TrainingModule } from './training/training.module';
 import { RbacModule } from './rbac/rbac.module';
 import { OnboardingModule } from './onboarding/onboarding.module';
 import { BrunoModule } from './bruno/bruno.module';
+import { SecurityModule } from './security/security.module';
 
 @Module({
-  imports: [AuthModule, MailModule, NotificationModule, TrainingModule, RbacModule, OnboardingModule, BrunoModule],
+  imports: [AuthModule, MailModule, NotificationModule, TrainingModule, RbacModule, OnboardingModule, BrunoModule, SecurityModule],
 })
 export class V1Module {}

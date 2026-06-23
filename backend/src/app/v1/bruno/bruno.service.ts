@@ -173,12 +173,34 @@ export class BrunoService {
     }
   }
 
+  async syncSecurityCollection() {
+    const dir = path.join(this.collectionsDir, 'Security');
+    this.ensureDir(dir);
+
+    const endpoints: BruEndpoint[] = [
+      { method: 'get', path: '/security/stats', name: 'Security - Stats' },
+      { method: 'get', path: '/security/sessions', name: 'Security - List Sessions' },
+      { method: 'delete', path: '/security/sessions/:id', name: 'Security - Revoke Session' },
+      { method: 'delete', path: '/security/sessions/user/:userId', name: 'Security - Revoke All User Sessions' },
+      { method: 'get', path: '/security/login-history', name: 'Security - Login History' },
+      { method: 'get', path: '/security/audit-logs', name: 'Security - Audit Logs' },
+      { method: 'get', path: '/security/activity-logs', name: 'Security - Activity Logs' },
+      { method: 'get', path: '/security/security-events', name: 'Security - Security Events' },
+    ];
+
+    for (const ep of endpoints) {
+      const fileName = `${ep.name.replace(/\s+/g, ' ')}.bru`;
+      fs.writeFileSync(path.join(dir, fileName), this.generateBruFile(ep));
+    }
+  }
+
   async syncAll() {
     await Promise.all([
       this.syncAuthCollection(),
       this.syncOnboardingCollection(),
       this.syncTenantCollection(),
       this.syncSubscriptionCollection(),
+      this.syncSecurityCollection(),
     ]);
   }
 

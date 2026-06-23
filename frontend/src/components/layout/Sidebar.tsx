@@ -21,9 +21,15 @@ import {
   Sparkles,
   BarChart2,
   Shield,
+  ShieldAlert,
   KeyRound,
   Building2,
   IdCard,
+  Fingerprint,
+  History,
+  ScrollText,
+  Activity,
+  AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 
@@ -46,6 +52,17 @@ const superAdminNav: NavItem[] = [
     ],
   },
   { label: "Tenants", href: "/super-admin/tenants", icon: Building2 },
+  {
+    label: "Security",
+    icon: ShieldAlert,
+    children: [
+      { label: "Sessions", href: "/super-admin/sessions", icon: Fingerprint },
+      { label: "Login History", href: "/super-admin/login-history", icon: History },
+      { label: "Audit Logs", href: "/super-admin/audit-logs", icon: ScrollText },
+      { label: "Activity Logs", href: "/super-admin/activity-logs", icon: Activity },
+      { label: "Security Events", href: "/super-admin/security-events", icon: AlertTriangle },
+    ],
+  },
   { label: "Settings", href: "/super-admin/platform-config", icon: Settings },
 ];
 
