@@ -62,6 +62,7 @@ export interface UserProfileData {
   avatarUrl: string | null;
   lastLoginAt: string | null;
   createdAt: string;
+  preferences: Record<string, unknown> | null;
   profile: {
     dateOfBirth: string | null;
     gender: string | null;
@@ -149,6 +150,16 @@ export const authService = {
 
   async logout(refreshToken: string): Promise<void> {
     await http.post("/auth/logout", { refreshToken });
+  },
+
+  async getPreferences(): Promise<Record<string, unknown>> {
+    const { data } = await http.get("/auth/preferences");
+    return data.data;
+  },
+
+  async updatePreferences(preferences: Record<string, unknown>): Promise<Record<string, unknown>> {
+    const { data } = await http.put("/auth/preferences", { preferences });
+    return data.data;
   },
 
   async logAuthError(payload: AuthErrorLogPayload): Promise<void> {

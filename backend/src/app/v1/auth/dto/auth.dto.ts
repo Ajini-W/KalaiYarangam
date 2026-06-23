@@ -144,6 +144,12 @@ export class UpdateProfileDto {
   bio?: string;
 }
 
+export class UpdatePreferencesDto {
+  @IsOptional()
+  @IsObject()
+  preferences?: Record<string, unknown>;
+}
+
 export class AuthErrorLogDto {
   @IsString()
   errorCode!: string;

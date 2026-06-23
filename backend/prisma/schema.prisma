@@ -270,6 +270,7 @@ model User {
   resetPasswordExpiresAt      DateTime? @map("reset_password_expires_at")
   avatarUrl         String?   @map("avatar_url") @db.VarChar(500)
   lastLoginAt       DateTime? @map("last_login_at")
+  preferences       Json?     @default("{}")
   createdAt    DateTime   @default(now()) @map("created_at")
   updatedAt    DateTime   @updatedAt @map("updated_at")
 
@@ -288,6 +289,7 @@ model User {
   batchTrainers     BatchTrainer[]
   studentProgress   StudentProgress[]
   notifications     Notification[]
+  devices           UserDevice[]
   sessions          Session[]
   securityEvents    SecurityEvent[]
   auditLogs         AuditLog[]
@@ -1394,6 +1396,22 @@ model NotificationLog {
   @@index([sentAt])
   @@index([channel])
   @@map("notification_logs")
+}
+
+model UserDevice {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  token     String   @db.Text
+  platform  String?  @db.VarChar(20)
+  userAgent String?  @map("user_agent") @db.VarChar(500)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, token])
+  @@index([userId])
+  @@map("user_devices")
 }
 
 // ═══════════════════════════════════════════════════════════════

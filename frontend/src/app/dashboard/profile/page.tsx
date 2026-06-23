@@ -5,14 +5,16 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Loader2, Camera } from "lucide-react";
+import { Loader2, Camera, Moon, Sun, Bell, BellOff } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardBody } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
+import { Switch } from "@/components/ui/Switch";
 import { authService } from "@/services/auth.service";
+import { notificationService } from "@/services/notification.service";
 import type { UserProfileData, UpdateProfilePayload } from "@/services/auth.service";
 
 const profileSchema = z.object({
@@ -36,15 +38,25 @@ export default function ProfilePage() {
   const [profile, setProfile] = React.useState<UserProfileData | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
+  const [theme, setTheme] = React.useState("system");
+  const [notifEnabled, setNotifEnabled] = React.useState(true);
+  const [pushEnabled, setPushEnabled] = React.useState(false);
 
   const form = useForm<ProfileForm>({
     resolver: zodResolver(profileSchema),
   });
 
   React.useEffect(() => {
-    authService.getProfile()
-      .then((data) => {
+    (async () => {
+      try {
+        const data = await authService.getProfile();
         setProfile(data);
+        const prefs = data.preferences as Record<string, unknown> | null;
+        if (prefs) {
+          setTheme((prefs.theme as string) || "system");
+          setNotifEnabled(prefs.notificationsEnabled !== false);
+          setPushEnabled(prefs.pushNotifications === true);
+        }
         form.reset({
           name: data.name,
           phone: data.phone ?? "",
@@ -59,9 +71,12 @@ export default function ProfilePage() {
           emergencyPhone: data.profile?.emergencyPhone ?? "",
           bio: data.profile?.bio ?? "",
         });
-      })
-      .catch(() => toast.error("Failed to load profile"))
-      .finally(() => setLoading(false));
+      } catch {
+        toast.error("Failed to load profile");
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, [form]);
 
   const handleSubmit = async (values: ProfileForm) => {
@@ -88,6 +103,43 @@ export default function ProfilePage() {
       toast.error("Failed to update profile");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleThemeChange = async (newTheme: string) => {
+    setTheme(newTheme);
+    try {
+      await authService.updatePreferences({ theme: newTheme, notificationsEnabled: notifEnabled, pushNotifications: pushEnabled });
+      document.documentElement.classList.toggle("dark", newTheme === "dark");
+    } catch {
+      toast.error("Failed to save theme preference");
+    }
+  };
+
+  const handleNotifToggle = async (enabled: boolean) => {
+    setNotifEnabled(enabled);
+    try {
+      await authService.updatePreferences({ theme, notificationsEnabled: enabled, pushNotifications: pushEnabled });
+    } catch {
+      toast.error("Failed to save notification preference");
+    }
+  };
+
+  const handlePushToggle = async (enabled: boolean) => {
+    setPushEnabled(enabled);
+    try {
+      await authService.updatePreferences({ theme, notificationsEnabled: notifEnabled, pushNotifications: enabled });
+      if (enabled && "Notification" in window) {
+        const permission = await Notification.requestPermission();
+        if (permission === "granted") {
+          toast.success("Push notifications enabled");
+        } else {
+          setPushEnabled(false);
+          toast.error("Permission denied. Enable from browser settings.");
+        }
+      }
+    } catch {
+      toast.error("Failed to save push preference");
     }
   };
 
@@ -194,6 +246,57 @@ export default function ProfilePage() {
           <CardHeader><CardTitle>Bio</CardTitle></CardHeader>
           <CardBody className="space-y-4 pt-0">
             <Textarea label="About" rows={4} {...form.register("bio")} />
+          </CardBody>
+        </Card>
+
+        {/* Preferences */}
+        <Card>
+          <CardHeader><CardTitle>Preferences</CardTitle></CardHeader>
+          <CardBody className="space-y-4 pt-0">
+            <div>
+              <label className="mb-2 block text-sm font-medium text-text-primary">Theme</label>
+              <div className="flex gap-2">
+                {[
+                  { value: "light", label: "Light", icon: Sun },
+                  { value: "dark", label: "Dark", icon: Moon },
+                  { value: "system", label: "System", icon: Sun },
+                ].map(({ value, label, icon: Icon }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => handleThemeChange(value)}
+                    className={`flex items-center gap-2 rounded-[var(--radius-md)] px-4 py-2 text-sm font-medium transition-colors ${
+                      theme === value
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-surface-raised text-text-secondary hover:bg-surface-overlay"
+                    }`}
+                  >
+                    <Icon size={16} />
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="flex items-center justify-between rounded-[var(--radius-md)] bg-surface-raised px-4 py-3">
+              <div className="flex items-center gap-3">
+                <Bell size={18} className="text-text-secondary" />
+                <div>
+                  <p className="text-sm font-medium text-text-primary">In-App Notifications</p>
+                  <p className="text-xs text-text-secondary">Receive notifications within the app</p>
+                </div>
+              </div>
+              <Switch checked={notifEnabled} onCheckedChange={handleNotifToggle} />
+            </div>
+            <div className="flex items-center justify-between rounded-[var(--radius-md)] bg-surface-raised px-4 py-3">
+              <div className="flex items-center gap-3">
+                <BellOff size={18} className="text-text-secondary" />
+                <div>
+                  <p className="text-sm font-medium text-text-primary">Push Notifications</p>
+                  <p className="text-xs text-text-secondary">Receive push notifications on your device</p>
+                </div>
+              </div>
+              <Switch checked={pushEnabled} onCheckedChange={handlePushToggle} />
+            </div>
           </CardBody>
         </Card>
 

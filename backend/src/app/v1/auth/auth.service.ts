@@ -454,6 +454,34 @@ export class AuthService {
     return { message: 'User profile retrieved', data: user };
   }
 
+  async getPreferences(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { preferences: true },
+    });
+    if (!user) throw new NotFoundException('User not found');
+    return {
+      message: 'Preferences retrieved',
+      data: (user.preferences as Record<string, unknown>) ?? {},
+    };
+  }
+
+  async updatePreferences(userId: string, preferences: Record<string, unknown>) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { preferences: true },
+    });
+    if (!user) throw new NotFoundException('User not found');
+
+    const merged = { ...((user.preferences as Record<string, unknown>) ?? {}), ...preferences };
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { preferences: merged as any },
+    });
+
+    return { message: 'Preferences updated', data: merged };
+  }
+
   async getProfile(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -477,6 +505,7 @@ export class AuthService {
         avatarUrl: user.avatarUrl,
         lastLoginAt: user.lastLoginAt,
         createdAt: user.createdAt,
+        preferences: user.preferences as Record<string, unknown> | null,
         profile: user.profile
           ? {
               dateOfBirth: user.profile.dateOfBirth?.toISOString().split('T')[0],

@@ -59,8 +59,11 @@ export default function LoginPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [checking, setChecking] = useState(true);
+  const [emailWarning, setEmailWarning] = useState<string | null>(null);
+  const [resending, setResending] = useState(false);
   const login = useAuthStore((s) => s.login);
   const initialize = useAuthStore((s) => s.initialize);
+  const sendVerificationToken = useAuthStore((s) => s.sendVerificationToken);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const user = useAuthStore((s) => s.user);
 
@@ -74,9 +77,26 @@ export default function LoginPage() {
   useEffect(() => {
     if (checking) return;
     if (isAuthenticated && user) {
-      router.replace(getDashboardRoute(user.role));
+      if (!user.emailVerified) {
+        setEmailWarning(user.email);
+      } else {
+        router.replace(getDashboardRoute(user.role));
+      }
     }
   }, [isAuthenticated, user, checking, router]);
+
+  const handleResend = async () => {
+    if (!emailWarning) return;
+    setResending(true);
+    try {
+      await sendVerificationToken(emailWarning);
+      toast.success("Verification email sent! Check your inbox.");
+    } catch {
+      toast.error("Failed to send verification email");
+    } finally {
+      setResending(false);
+    }
+  };
 
   const {
     register,
@@ -93,12 +113,16 @@ export default function LoginPage() {
         password: data.password,
         rememberMe: data.rememberMe,
       });
-      toast.success("Logged in successfully!");
-      if (result?.isFirstLogin) {
-        router.push("/onboarding");
+      const updatedUser = useAuthStore.getState().user;
+      if (updatedUser && !updatedUser.emailVerified) {
+        setEmailWarning(updatedUser.email);
       } else {
-        const updatedUser = useAuthStore.getState().user;
-        router.push(updatedUser ? getDashboardRoute(updatedUser.role) : "/login");
+        toast.success("Logged in successfully!");
+        if (result?.isFirstLogin) {
+          router.push("/onboarding");
+        } else {
+          router.push(updatedUser ? getDashboardRoute(updatedUser.role) : "/login");
+        }
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Login failed");
@@ -145,6 +169,37 @@ export default function LoginPage() {
               <h1 className="text-2xl font-bold text-primary uppercase tracking-[0.05em] transition-colors duration-500">Login</h1>
               <p className="text-sm text-gray-400 dark:text-gray-400 mt-1.5 font-medium transition-colors duration-500">Enter your credentials to continue</p>
             </motion.div>
+
+            {/* Email Verification Warning */}
+            {emailWarning && (
+              <motion.div variants={itemVariants} className="rounded-xl border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-900/30 p-4 text-sm">
+                <div className="flex items-start gap-3">
+                  <span className="mt-0.5 shrink-0 text-amber-500 font-bold">!</span>
+                  <div className="flex-1">
+                    <p className="font-semibold text-amber-800 dark:text-amber-200">Email not verified</p>
+                    <p className="mt-0.5 text-amber-700 dark:text-amber-300">
+                      Please verify your email ({emailWarning}) to access all features.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleResend}
+                      disabled={resending}
+                      className="mt-2 text-xs font-semibold text-amber-700 dark:text-amber-300 underline hover:no-underline disabled:opacity-50"
+                    >
+                      {resending ? "Sending..." : "Resend verification email"}
+                    </button>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => { setEmailWarning(null); useAuthStore.getState().logout(); }}
+                    className="text-amber-500 hover:text-amber-700"
+                    aria-label="Dismiss"
+                  >
+                    &times;
+                  </button>
+                </div>
+              </motion.div>
+            )}
 
             {/* Form */}
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>

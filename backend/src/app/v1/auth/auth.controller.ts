@@ -15,6 +15,7 @@ import {
   RefreshTokenDto,
   ResetPasswordDto,
   SendVerificationTokenDto,
+  UpdatePreferencesDto,
   UpdateProfileDto,
   UpdateUserStatusDto,
   VerifyEmailDto,
@@ -126,6 +127,16 @@ export class AuthController {
   @Put('profile')
   updateProfile(@Body() dto: UpdateProfileDto, @CurrentUser() user: AuthenticatedUser) {
     return this.authService.updateProfile(user.id, dto);
+  }
+
+  @Get('preferences')
+  getPreferences(@CurrentUser() user: AuthenticatedUser) {
+    return this.authService.getPreferences(user.id);
+  }
+
+  @Put('preferences')
+  updatePreferences(@Body() dto: UpdatePreferencesDto, @CurrentUser() user: AuthenticatedUser) {
+    return this.authService.updatePreferences(user.id, dto.preferences ?? {});
   }
 
   @Public()

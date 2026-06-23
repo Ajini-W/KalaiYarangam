@@ -8,7 +8,6 @@ import {
   LayoutDashboard,
   Users,
   BookOpen,
-  Package,
   CalendarCheck,
   CreditCard,
   Bell,
@@ -17,7 +16,6 @@ import {
   LogOut,
   X,
   GraduationCap,
-  ShoppingBag,
   Sparkles,
   BarChart2,
   Shield,
@@ -30,6 +28,16 @@ import {
   ScrollText,
   Activity,
   AlertTriangle,
+  ClipboardCheck,
+  ClipboardList,
+  Calendar,
+  TrendingUp,
+  Award,
+  HelpCircle,
+  FileText,
+  CalendarDays,
+  ShoppingBag,
+
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 
@@ -63,53 +71,78 @@ const superAdminNav: NavItem[] = [
       { label: "Security Events", href: "/super-admin/security-events", icon: AlertTriangle },
     ],
   },
+  { label: "Notifications", href: "/super-admin/notifications", icon: Bell },
   { label: "Settings", href: "/super-admin/platform-config", icon: Settings },
 ];
 
-const nav: NavItem[] = [
-  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Leads / CRM", href: "/dashboard/leads", icon: Users },
-  {
-    label: "Training",
-    icon: GraduationCap,
-    children: [
-      { label: "Batches", href: "/dashboard/training/batches", icon: BookOpen },
-      { label: "Students", href: "/dashboard/training/students", icon: Users },
-      { label: "Attendance", href: "/dashboard/training/attendance", icon: CalendarCheck },
-      { label: "Fees", href: "/dashboard/training/fees", icon: CreditCard },
-      { label: "Certificates", href: "/dashboard/training/certificates", icon: Sparkles },
-    ],
-  },
-  {
-    label: "Rental",
-    icon: ShoppingBag,
-    children: [
-      { label: "Inventory", href: "/dashboard/rental/inventory", icon: Package },
-      { label: "Bookings", href: "/dashboard/rental/bookings", icon: BookOpen },
-      { label: "Quotes", href: "/dashboard/rental/quotes", icon: CreditCard },
-    ],
-  },
-  {
-    label: "Events",
-    icon: CalendarCheck,
-    children: [{ label: "All Events", href: "/dashboard/events", icon: CalendarCheck }],
-  },
-  { label: "Payments", href: "/dashboard/payments", icon: CreditCard },
-  { label: "Reports", href: "/dashboard/reports/revenue", icon: BarChart2 },
-  { label: "Notifications", href: "/dashboard/notifications", icon: Bell },
-  { label: "Users", href: "/dashboard/users", icon: Users },
-  { label: "Profile", href: "/dashboard/profile", icon: IdCard },
-  {
-    label: "Settings",
-    icon: Settings,
-    children: [
-      { label: "Organisation", href: "/dashboard/settings/organisation", icon: Settings },
-      { label: "Branches", href: "/dashboard/settings/branches", icon: Settings },
-      { label: "Branding", href: "/dashboard/settings/branding", icon: Settings },
-      { label: "Modules", href: "/dashboard/settings/modules", icon: Settings },
-    ],
-  },
+const ownerNav: NavItem[] = [
+  { label: "Dashboard", href: "/owner/dashboard", icon: LayoutDashboard },
+  { label: "Analytics", href: "/owner/analytics", icon: BarChart2 },
+  { label: "Users", href: "/owner/users", icon: Users },
+  { label: "Reports", href: "/owner/reports", icon: BarChart2 },
+  { label: "Organisation", href: "/owner/organisation", icon: Building2 },
+  { label: "Integrations", href: "/owner/integrations", icon: Sparkles },
+  { label: "Subscription", href: "/owner/subscription", icon: CreditCard },
+  { label: "Audit Logs", href: "/owner/audit-logs", icon: ScrollText },
 ];
+
+const branchManagerNav: NavItem[] = [
+  { label: "Dashboard", href: "/branch-manager/dashboard", icon: LayoutDashboard },
+  { label: "Leads", href: "/branch-manager/leads", icon: Users },
+  { label: "Operations", href: "/branch-manager/operations", icon: ClipboardCheck },
+  { label: "Reports", href: "/branch-manager/reports", icon: BarChart2 },
+  { label: "Users", href: "/branch-manager/users", icon: Users },
+  { label: "Notifications", href: "/branch-manager/notifications", icon: Bell },
+];
+
+const staffNav: NavItem[] = [
+  { label: "Dashboard", href: "/staff/dashboard", icon: LayoutDashboard },
+  { label: "Assigned Classes", href: "/staff/assigned-classes", icon: BookOpen },
+  { label: "Assigned Events", href: "/staff/assigned-events", icon: CalendarDays },
+  { label: "Assigned Rentals", href: "/staff/assigned-rentals", icon: ShoppingBag },
+  { label: "Attendance", href: "/staff/attendance", icon: ClipboardCheck },
+  { label: "Calendar", href: "/staff/calendar", icon: Calendar },
+  { label: "Tasks", href: "/staff/tasks", icon: ClipboardList },
+  { label: "Student Progress", href: "/staff/student-progress", icon: TrendingUp },
+  { label: "Notifications", href: "/staff/notifications", icon: Bell },
+];
+
+const studentNav: NavItem[] = [
+  { label: "Dashboard", href: "/student/dashboard", icon: LayoutDashboard },
+  { label: "My Courses", href: "/student/my-courses", icon: BookOpen },
+  { label: "Attendance", href: "/student/attendance", icon: CalendarCheck },
+  { label: "Fees", href: "/student/fees", icon: CreditCard },
+  { label: "Progress", href: "/student/progress", icon: TrendingUp },
+  { label: "Certificates", href: "/student/certificates", icon: Award },
+  { label: "Notifications", href: "/student/notifications", icon: Bell },
+  { label: "Profile", href: "/student/profile", icon: IdCard },
+  { label: "Support", href: "/student/support", icon: HelpCircle },
+];
+
+const clientNav: NavItem[] = [
+  { label: "Dashboard", href: "/client/dashboard", icon: LayoutDashboard },
+  { label: "Bookings", href: "/client/bookings", icon: Calendar },
+  { label: "Contracts", href: "/client/contracts", icon: FileText },
+  { label: "Documents", href: "/client/documents", icon: FileText },
+  { label: "Events", href: "/client/events", icon: CalendarDays },
+  { label: "Invoices", href: "/client/invoices", icon: FileText },
+  { label: "Payments", href: "/client/payments", icon: CreditCard },
+  { label: "Quotations", href: "/client/quotations", icon: FileText },
+  { label: "Notifications", href: "/client/notifications", icon: Bell },
+  { label: "Profile", href: "/client/profile", icon: IdCard },
+];
+
+function getNav(role: string): NavItem[] {
+  switch (role) {
+    case "OWNER": return ownerNav;
+    case "BRANCH_MANAGER": return branchManagerNav;
+    case "TRAINER":
+    case "STAFF": return staffNav;
+    case "STUDENT": return studentNav;
+    case "CLIENT": return clientNav;
+    default: return ownerNav;
+  }
+}
 
 interface SidebarProps {
   collapsed: boolean;
@@ -186,7 +219,12 @@ export function Sidebar({ collapsed, onClose }: SidebarProps) {
   };
 
   const initials = user?.name
-    ? user.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
+    ? user.name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
     : "?";
 
   return (
@@ -220,7 +258,7 @@ export function Sidebar({ collapsed, onClose }: SidebarProps) {
 
       {/* Nav */}
       <nav className="flex-1 space-y-0.5 overflow-y-auto px-2 py-3" aria-label="Main navigation">
-        {(user?.role === "SUPER_ADMIN" ? superAdminNav : nav).map((item) => (
+        {(user?.role === "SUPER_ADMIN" ? superAdminNav : getNav(user?.role ?? "")).map((item) => (
           <NavItemRow key={item.label} item={item} collapsed={collapsed} />
         ))}
       </nav>
@@ -228,9 +266,9 @@ export function Sidebar({ collapsed, onClose }: SidebarProps) {
       {/* Footer */}
       <div className="border-border space-y-0.5 border-t px-2 py-3">
         {!collapsed && user && (
-          <div className="px-2.5 py-2 border-b border-border mb-1">
-            <p className="text-sm font-medium text-text-primary truncate">{user.name}</p>
-            <p className="text-xs text-text-secondary truncate">{user.email}</p>
+          <div className="border-border mb-1 border-b px-2.5 py-2">
+            <p className="text-text-primary truncate text-sm font-medium">{user.name}</p>
+            <p className="text-text-secondary truncate text-xs">{user.email}</p>
           </div>
         )}
         <button
