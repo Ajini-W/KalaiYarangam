@@ -259,4 +259,77 @@ export class RbacService {
 
     return { message: `User role updated to ${dto.role}`, data };
   }
+
+  // ── Tenant Management (Super Admin) ──────────────────────────
+
+  async listTenants(page = 1, pageSize = 10) {
+    const skip = (page - 1) * pageSize;
+    const [tenants, total] = await Promise.all([
+      this.prisma.tenant.findMany({
+        skip,
+        take: pageSize,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          _count: { select: { users: true, branches: true } },
+          subscriptions: {
+            where: { status: { in: ['TRIAL', 'ACTIVE'] } },
+            orderBy: { createdAt: 'desc' },
+            take: 1,
+            include: { plan: { select: { name: true, slug: true } } },
+          },
+        },
+      }),
+      this.prisma.tenant.count(),
+    ]);
+
+    const data = tenants.map((t) => ({
+      id: t.id,
+      name: t.name,
+      slug: t.slug,
+      industry: t.industry,
+      status: t.status,
+      logoUrl: t.logoUrl,
+      createdAt: t.createdAt,
+      userCount: t._count.users,
+      branchCount: t._count.branches,
+      subscription: t.subscriptions[0] ?? null,
+    }));
+
+    return {
+      message: 'Tenants fetched successfully',
+      data: { data, meta: { page, pageSize, total, totalPages: Math.ceil(total / pageSize) } },
+    };
+  }
+
+  async getTenant(id: string) {
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { id },
+      include: {
+        brand: true,
+        _count: { select: { users: true, branches: true, accessRequests: true } },
+        subscriptions: {
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+          include: {
+            plan: { select: { name: true, slug: true, price: true, interval: true, trialDays: true } },
+            invoices: { orderBy: { createdAt: 'desc' }, take: 5 },
+          },
+        },
+      },
+    });
+
+    if (!tenant) throw new NotFoundException('Tenant not found');
+
+    return {
+      message: 'Tenant fetched successfully',
+      data: {
+        ...tenant,
+        userCount: tenant._count.users,
+        branchCount: tenant._count.branches,
+        accessRequestCount: tenant._count.accessRequests,
+        subscription: tenant.subscriptions[0] ?? null,
+        brand: tenant.brand,
+      },
+    };
+  }
 }

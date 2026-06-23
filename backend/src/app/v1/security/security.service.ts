@@ -308,16 +308,44 @@ export class SecurityService {
   // ── Dashboard Stats (for super admin) ────────────────────────
 
   async getDashboardStats() {
-    const [activeSessions, failedLogins, criticalEvents, totalAuditLogs] = await Promise.all([
+    const [
+      activeSessions, failedLogins, criticalEvents, totalAuditLogs,
+      totalUsers, totalTenants, tenantsByStatus, pendingAccessRequests,
+    ] = await Promise.all([
       this.prisma.session.count({ where: { isActive: true } }),
       this.prisma.userLoginLog.count({ where: { success: false, loginAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) } } }),
       this.prisma.securityEvent.count({ where: { severity: 'CRITICAL', createdAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) } } }),
       this.prisma.auditLog.count(),
+      this.prisma.user.count(),
+      this.prisma.tenant.count(),
+      this.prisma.tenant.groupBy({ by: ['status'], _count: true }),
+      this.prisma.tenantAccessRequest.count({ where: { status: 'PENDING' } }),
+    ]);
+
+    const statusBreakdown: Record<string, number> = {};
+    for (const row of tenantsByStatus) {
+      statusBreakdown[row.status] = row._count;
+    }
+
+    const [activeSubscriptions, trialSubscriptions] = await Promise.all([
+      this.prisma.subscription.count({ where: { status: 'ACTIVE' } }),
+      this.prisma.subscription.count({ where: { status: 'TRIAL' } }),
     ]);
 
     return {
-      message: 'Security dashboard stats',
-      data: { activeSessions, failedLoginsLast24h: failedLogins, criticalEventsLast7d: criticalEvents, totalAuditLogs },
+      message: 'Platform dashboard stats',
+      data: {
+        activeSessions,
+        failedLoginsLast24h: failedLogins,
+        criticalEventsLast7d: criticalEvents,
+        totalAuditLogs,
+        totalUsers,
+        totalTenants,
+        tenantsByStatus: statusBreakdown,
+        activeSubscriptions,
+        trialSubscriptions,
+        pendingAccessRequests,
+      },
     };
   }
 }

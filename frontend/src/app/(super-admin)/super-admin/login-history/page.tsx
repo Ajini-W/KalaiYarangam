@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { Pagination } from "@/components/ui/Pagination";
 import { SearchBar } from "@/components/ui/SearchBar";
 import { Select } from "@/components/ui/Select";
+import { toast } from "sonner";
 import { securityService, type LoginLogItem } from "@/services/security.service";
 
 export default function LoginHistoryPage() {
@@ -31,15 +32,15 @@ export default function LoginHistoryPage() {
       });
       setLogs(res.data);
       setTotal(res.meta.total);
-    } catch { /* ignore */ }
+    } catch { toast.error("Failed to load login history"); }
     finally { setLoading(false); }
   }, [page, pageSize, search, successFilter]);
 
   React.useEffect(() => { fetch(); }, [fetch]);
 
   const columns: Column<LoginLogItem>[] = [
-    { key: "user", header: "User", render: (r) => <span className="font-medium">{r.user.name}</span> },
-    { key: "user", header: "Email", render: (r) => <span className="text-text-secondary text-sm">{r.user.email}</span> },
+    { key: "userName", header: "User", render: (r) => <span className="font-medium">{r.user.name}</span> },
+    { key: "email", header: "Email", render: (r) => <span className="text-text-secondary text-sm">{r.user.email}</span> },
     { key: "ipAddress", header: "IP Address", render: (r) => r.ipAddress || "—" },
     {
       key: "success",

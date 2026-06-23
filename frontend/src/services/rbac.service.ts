@@ -36,6 +36,49 @@ export interface UserListItem {
   lastLoginAt: string | null;
 }
 
+export interface TenantListItem {
+  id: string;
+  name: string;
+  slug: string;
+  industry: string;
+  status: string;
+  logoUrl: string | null;
+  createdAt: string;
+  userCount: number;
+  branchCount: number;
+  subscription: {
+    id: string;
+    status: string;
+    startDate: string;
+    endDate: string;
+    trialEndsAt: string | null;
+    plan: { name: string; slug: string } | null;
+  } | null;
+}
+
+export interface TenantDetail extends TenantListItem {
+  website: string | null;
+  phone: string | null;
+  email: string | null;
+  updatedAt: string;
+  accessRequestCount: number;
+  brand: {
+    id: string;
+    primaryColor: string | null;
+    secondaryColor: string | null;
+    tagline: string | null;
+  } | null;
+  subscription: TenantListItem['subscription'] & {
+    invoices: {
+      id: string;
+      invoiceNumber: string;
+      totalAmount: number;
+      currency: string;
+      createdAt: string;
+    }[];
+  } | null;
+}
+
 export interface UserDetail extends UserListItem {
   avatarUrl: string | null;
   updatedAt: string;
@@ -108,6 +151,18 @@ export const rbacService = {
 
   async updateUserRole(id: string, role: string): Promise<UserListItem> {
     const { data } = await http.put(`/rbac/users/${id}/role`, { role });
+    return data.data;
+  },
+
+  // ── Tenant Management ─────────────────────────────────────────
+
+  async listTenants(page = 1, pageSize = 10): Promise<PaginatedResponse<TenantListItem>> {
+    const { data } = await http.get("/rbac/tenants", { params: { page, pageSize } });
+    return data.data;
+  },
+
+  async getTenant(id: string): Promise<TenantDetail> {
+    const { data } = await http.get(`/rbac/tenants/${id}`);
     return data.data;
   },
 };

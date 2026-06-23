@@ -76,6 +76,12 @@ export interface SecurityStats {
   failedLoginsLast24h: number;
   criticalEventsLast7d: number;
   totalAuditLogs: number;
+  totalUsers: number;
+  totalTenants: number;
+  tenantsByStatus: Record<string, number>;
+  activeSubscriptions: number;
+  trialSubscriptions: number;
+  pendingAccessRequests: number;
 }
 
 export const securityService = {

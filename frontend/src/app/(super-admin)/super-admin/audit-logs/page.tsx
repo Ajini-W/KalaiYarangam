@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Search } from "lucide-react";
+import { Search, AlertCircle } from "lucide-react";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Card, CardBody } from "@/components/ui/Card";
 import { Table, type Column } from "@/components/ui/Table";
@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Pagination } from "@/components/ui/Pagination";
 import { SearchBar } from "@/components/ui/SearchBar";
 import { Select } from "@/components/ui/Select";
+import { toast } from "sonner";
 import { securityService, type AuditLogItem } from "@/services/security.service";
 
 const ACTION_COLORS: Record<string, "info" | "success" | "danger" | "warning" | "default"> = {
@@ -56,7 +57,7 @@ export default function AuditLogsPage() {
       });
       setLogs(res.data);
       setTotal(res.meta.total);
-    } catch { /* ignore */ }
+    } catch { toast.error("Failed to load audit logs"); }
     finally { setLoading(false); }
   }, [page, pageSize, search, actionFilter]);
 

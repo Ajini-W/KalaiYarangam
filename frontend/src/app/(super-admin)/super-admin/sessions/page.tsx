@@ -30,7 +30,7 @@ export default function SessionsPage() {
       setTotal(res.meta.total);
       const s = await securityService.getStats();
       setStats(s);
-    } catch { /* ignore */ }
+    } catch { toast.error("Failed to load sessions"); }
     finally { setLoading(false); }
   }, [page, pageSize, search]);
 
@@ -45,8 +45,8 @@ export default function SessionsPage() {
   };
 
   const columns: Column<SessionItem>[] = [
-    { key: "user", header: "User", render: (r) => <span className="font-medium">{r.user.name}</span> },
-    { key: "user", header: "Email", render: (r) => <span className="text-text-secondary text-sm">{r.user.email}</span> },
+    { key: "userName", header: "User", render: (r) => <span className="font-medium">{r.user.name}</span> },
+    { key: "email", header: "Email", render: (r) => <span className="text-text-secondary text-sm">{r.user.email}</span> },
     { key: "ipAddress", header: "IP Address", render: (r) => r.ipAddress || "—" },
     { key: "deviceInfo", header: "Device", render: (r) => r.deviceInfo || "—" },
     {

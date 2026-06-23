@@ -7,6 +7,7 @@ import { Card, CardBody } from "@/components/ui/Card";
 import { Table, type Column } from "@/components/ui/Table";
 import { Pagination } from "@/components/ui/Pagination";
 import { SearchBar } from "@/components/ui/SearchBar";
+import { toast } from "sonner";
 import { securityService, type ActivityLogItem } from "@/services/security.service";
 
 export default function ActivityLogsPage() {
@@ -23,7 +24,7 @@ export default function ActivityLogsPage() {
       const res = await securityService.listActivityLogs({ page, pageSize, search: search || undefined });
       setLogs(res.data);
       setTotal(res.meta.total);
-    } catch { /* ignore */ }
+    } catch { toast.error("Failed to load activity logs"); }
     finally { setLoading(false); }
   }, [page, pageSize, search]);
 

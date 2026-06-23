@@ -1,6 +1,8 @@
-import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post, Put, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
+import { Roles } from '@/common/decorators';
+import { RolesGuard } from '@/common/guards';
 import { CurrentUser } from '@/common/decorators';
 import { AuthenticatedUser } from '@/common/interfaces';
 import { RbacService } from './rbac.service';
@@ -91,5 +93,21 @@ export class RbacController {
   @Put('users/:id/role')
   updateUserRole(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateUserRoleDto) {
     return this.rbacService.updateUserRole(id, dto);
+  }
+
+  // ── Tenant Management (Super Admin only) ────────────────────
+
+  @Get('tenants')
+  @Roles(UserRole.SUPER_ADMIN)
+  @UseGuards(RolesGuard)
+  listTenants(@Query() query: QueryPaginationDto) {
+    return this.rbacService.listTenants(query.page, query.pageSize);
+  }
+
+  @Get('tenants/:id')
+  @Roles(UserRole.SUPER_ADMIN)
+  @UseGuards(RolesGuard)
+  getTenant(@Param('id', ParseUUIDPipe) id: string) {
+    return this.rbacService.getTenant(id);
   }
 }

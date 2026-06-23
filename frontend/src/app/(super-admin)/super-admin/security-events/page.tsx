@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Pagination } from "@/components/ui/Pagination";
 import { SearchBar } from "@/components/ui/SearchBar";
 import { Select } from "@/components/ui/Select";
+import { toast } from "sonner";
 import { securityService, type SecurityEventItem } from "@/services/security.service";
 
 const SEVERITY_CONFIG: Record<string, { label: string; variant: "success" | "warning" | "danger" | "info"; icon: React.ElementType }> = {
@@ -43,7 +44,7 @@ export default function SecurityEventsPage() {
       });
       setEvents(res.data);
       setTotal(res.meta.total);
-    } catch { /* ignore */ }
+    } catch { toast.error("Failed to load security events"); }
     finally { setLoading(false); }
   }, [page, pageSize, search, severityFilter]);
 
