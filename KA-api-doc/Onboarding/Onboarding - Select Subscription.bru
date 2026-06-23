@@ -1,0 +1,35 @@
+meta {
+  name: Onboarding - Select Subscription
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{base-url}}/onboarding/subscription
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+body:json {
+  {
+    "plan": "trial"
+  }
+}
+
+vars:post-response {
+  redirectTo: data.redirectTo
+}
+
+script:post-response {
+  const body = res.getBody();
+  bru.setVar("redirectTo", body.data.redirectTo);
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

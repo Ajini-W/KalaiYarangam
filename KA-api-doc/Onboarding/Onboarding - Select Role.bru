@@ -1,0 +1,26 @@
+meta {
+  name: Onboarding - Select Role
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{base-url}}/onboarding/role
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+body:json {
+  {
+    "role": "OWNER"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

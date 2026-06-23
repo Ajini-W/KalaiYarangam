@@ -1,0 +1,28 @@
+meta {
+  name: Auth - Error Log
+  type: http
+  seq: 15
+}
+
+post {
+  url: {{base-url}}/auth/error-log
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "errorCode": "DUPLICATE_ACCOUNT",
+    "errorMessage": "Email already registered.",
+    "provider": "google",
+    "userId": null,
+    "metadata": {
+      "email": "user@example.com"
+    }
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

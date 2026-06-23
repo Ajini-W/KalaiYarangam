@@ -1,0 +1,29 @@
+meta {
+  name: Tenant - Update Branding
+  type: http
+  seq: 12
+}
+
+patch {
+  url: {{base-url}}/training/branding
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "logoUrl": "https://storage.example.com/logo.png",
+    "primaryColor": "#4F46E5",
+    "secondaryColor": "#7C3AED",
+    "tagline": "Empowering Education"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

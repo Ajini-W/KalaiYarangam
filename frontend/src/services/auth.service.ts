@@ -30,6 +30,7 @@ export interface AuthResponse {
   accessToken: string;
   refreshToken: string;
   rememberMe?: boolean;
+  isFirstLogin?: boolean;
 }
 
 export interface VerifyEmailResponse {
@@ -48,6 +49,14 @@ export interface ResetPasswordPayload {
 export interface ChangePasswordPayload {
   currentPassword: string;
   newPassword: string;
+}
+
+export interface AuthErrorLogPayload {
+  errorCode: string;
+  errorMessage: string;
+  provider?: string;
+  userId?: string;
+  metadata?: Record<string, unknown>;
 }
 
 export const authService = {
@@ -86,4 +95,18 @@ export const authService = {
   async changePassword(payload: ChangePasswordPayload): Promise<void> {
     await http.post("/auth/change-password", payload);
   },
+
+  async logAuthError(payload: AuthErrorLogPayload): Promise<void> {
+    await http.post("/auth/error-log", payload);
+  },
 };
+
+export function getOnboardingRedirect(role: string, status: string): string | null {
+  if (status === "NEW_USER" || status === "REGISTERED" || status === "PROFILE_COMPLETED") {
+    return "/onboarding";
+  }
+  if (status === "ACCESS_REQUESTED" || status === "PENDING_APPROVAL") {
+    return "/dashboard";
+  }
+  return null;
+}

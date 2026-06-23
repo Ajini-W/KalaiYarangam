@@ -1,0 +1,33 @@
+meta {
+  name: Onboarding - Setup Profile
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{base-url}}/onboarding/profile
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+body:json {
+  {
+    "fullName": "John Doe",
+    "mobileNumber": "9876543210",
+    "profilePhoto": "https://storage.example.com/photo.jpg",
+    "address": "123 Main Street, Chennai",
+    "timeZone": "Asia/Kolkata",
+    "preferredLanguage": "en",
+    "dateOfBirth": "1990-01-15",
+    "gender": "MALE"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

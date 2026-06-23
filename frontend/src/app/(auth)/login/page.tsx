@@ -87,15 +87,19 @@ export default function LoginPage() {
   const onSubmit = async (data: FormData) => {
     const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.identifier);
     try {
-      await login({
+      const result = await login({
         type: isEmail ? "email" : "phone",
         ...(isEmail ? { email: data.identifier } : { phone: data.identifier }),
         password: data.password,
         rememberMe: data.rememberMe,
       });
       toast.success("Logged in successfully!");
-      const updatedUser = useAuthStore.getState().user;
-      router.push(updatedUser ? getDashboardRoute(updatedUser.role) : "/login");
+      if (result?.isFirstLogin) {
+        router.push("/onboarding");
+      } else {
+        const updatedUser = useAuthStore.getState().user;
+        router.push(updatedUser ? getDashboardRoute(updatedUser.role) : "/login");
+      }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Login failed");
     }

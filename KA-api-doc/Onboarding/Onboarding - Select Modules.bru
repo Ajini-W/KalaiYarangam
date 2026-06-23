@@ -1,0 +1,28 @@
+meta {
+  name: Onboarding - Select Modules
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{base-url}}/onboarding/modules
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+body:json {
+  {
+    "training": true,
+    "rental": false,
+    "event": false
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

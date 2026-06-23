@@ -1,0 +1,33 @@
+meta {
+  name: Onboarding - Setup Tenant
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{base-url}}/onboarding/tenant
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+body:json {
+  {
+    "businessName": "Kalai Academy",
+    "businessType": "TRAINING",
+    "registrationNumber": "ABC12345",
+    "gstNumber": "33ABCDE1234F1Z5",
+    "logo": "https://storage.example.com/logo.png",
+    "primaryColor": "#4F46E5",
+    "secondaryColor": "#7C3AED",
+    "address": "456 Business Park, Chennai"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

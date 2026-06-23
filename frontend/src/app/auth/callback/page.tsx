@@ -33,7 +33,7 @@ function CallbackHandler() {
       .me()
       .then((user) => {
         setUser(user);
-        router.replace("/dashboard");
+        router.replace("/login?success=true");
       })
       .catch(() => {
         router.replace("/login?error=session_expired");

@@ -22,6 +22,7 @@ body:json {
 vars:post-response {
   accessToken: data.accessToken
   refreshToken: data.refreshToken
+  isFirstLogin: data.isFirstLogin
 }
 
 script:post-response {
@@ -29,6 +30,7 @@ script:post-response {
   
   bru.setVar("accessToken", body.data.accessToken);
   bru.setVar("refreshToken", body.data.refreshToken);
+  bru.setVar("isFirstLogin", String(body.data.isFirstLogin));
 }
 
 settings {

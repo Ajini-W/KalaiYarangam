@@ -16,9 +16,10 @@ interface AuthState {
   refreshToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isFirstLogin: boolean;
 
-  login: (payload: LoginPayload) => Promise<void>;
-  register: (payload: RegisterPayload) => Promise<void>;
+  login: (payload: LoginPayload) => Promise<{ isFirstLogin?: boolean }>;
+  register: (payload: RegisterPayload) => Promise<{ isFirstLogin?: boolean }>;
   logout: () => void;
   setUser: (user: AuthUser) => void;
   initialize: () => Promise<void>;
@@ -35,6 +36,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   refreshToken: null,
   isAuthenticated: false,
   isLoading: false,
+  isFirstLogin: false,
 
   login: async (payload) => {
     set({ isLoading: true });
@@ -45,13 +47,16 @@ export const useAuthStore = create<AuthState>((set) => ({
       if (res.refreshToken) {
         localStorage.setItem("refreshToken", res.refreshToken);
       }
+      const isFirstLogin = res.isFirstLogin ?? false;
       set({
         user: res.user,
         accessToken: res.accessToken,
         refreshToken: res.refreshToken,
         isAuthenticated: true,
+        isFirstLogin,
         isLoading: false,
       });
+      return { isFirstLogin };
     } catch (error) {
       set({ isLoading: false });
       throw error;
@@ -72,8 +77,10 @@ export const useAuthStore = create<AuthState>((set) => ({
         accessToken: res.accessToken,
         refreshToken: res.refreshToken,
         isAuthenticated: true,
+        isFirstLogin: true,
         isLoading: false,
       });
+      return { isFirstLogin: true };
     } catch (error) {
       set({ isLoading: false });
       throw error;
@@ -84,7 +91,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
     removeTokenCookie();
-    set({ user: null, accessToken: null, refreshToken: null, isAuthenticated: false });
+    set({ user: null, accessToken: null, refreshToken: null, isAuthenticated: false, isFirstLogin: false });
   },
 
   setUser: (user) => set({ user }),

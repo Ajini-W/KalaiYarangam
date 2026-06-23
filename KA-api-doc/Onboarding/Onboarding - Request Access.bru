@@ -1,0 +1,30 @@
+meta {
+  name: Onboarding - Request Access
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{base-url}}/onboarding/request-access
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+body:json {
+  {
+    "tenantId": "{{tenantId}}",
+    "preferredBranchId": "{{branchId}}",
+    "notes": "I would like to join as a Branch Manager",
+    "skills": ["Management", "Operations"],
+    "specialization": "Branch Operations"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

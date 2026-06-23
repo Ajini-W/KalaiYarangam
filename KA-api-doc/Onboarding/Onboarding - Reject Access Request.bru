@@ -1,0 +1,27 @@
+meta {
+  name: Onboarding - Reject Access Request
+  type: http
+  seq: 13
+}
+
+post {
+  url: {{base-url}}/onboarding/access-requests/reject
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+body:json {
+  {
+    "requestId": "{{requestId}}",
+    "reason": "We are not accepting new staff at this time"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
