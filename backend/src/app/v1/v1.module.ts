@@ -4,8 +4,10 @@ import { MailModule } from './mail/mail.module';
 import { NotificationModule } from './notification/notification.module';
 import { TrainingModule } from './training/training.module';
 import { RbacModule } from './rbac/rbac.module';
+import { OnboardingModule } from './onboarding/onboarding.module';
+import { BrunoModule } from './bruno/bruno.module';
 
 @Module({
-  imports: [AuthModule, MailModule, NotificationModule, TrainingModule, RbacModule],
+  imports: [AuthModule, MailModule, NotificationModule, TrainingModule, RbacModule, OnboardingModule, BrunoModule],
 })
 export class V1Module {}

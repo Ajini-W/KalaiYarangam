@@ -10,7 +10,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
-import { UserRole, UserStatus } from '@prisma/client';
+import { AuthProviderType, UserRole, UserStatus } from '@prisma/client';
 import { PrismaService } from '@/database';
 import { env } from '@/config';
 import { MailService } from '@/app/v1/mail/mail.service';
@@ -53,6 +53,17 @@ export class AuthService {
 
     // If user already exists (e.g. from Google OAuth), link the account
     if (existingEmailUser) {
+      // Check if email/password provider already linked
+      const existingProvider = await this.prisma.authProvider.findUnique({
+        where: { userId_provider: { userId: existingEmailUser.id, provider: AuthProviderType.EMAIL } },
+      });
+
+      if (!existingProvider) {
+        await this.prisma.authProvider.create({
+          data: { userId: existingEmailUser.id, provider: AuthProviderType.EMAIL, email: dto.email },
+        });
+      }
+
       const updated = await this.prisma.user.update({
         where: { id: existingEmailUser.id },
         data: {
@@ -63,7 +74,7 @@ export class AuthService {
           verificationTokenExpiresAt,
           status: existingEmailUser.status === UserStatus.ACTIVE
             ? UserStatus.ACTIVE
-            : UserStatus.PENDING,
+            : UserStatus.NEW_USER,
         },
       });
 
@@ -87,17 +98,29 @@ export class AuthService {
       };
     }
 
-    const user = await this.prisma.user.create({
-      data: {
-        email: dto.email,
-        passwordHash,
-        name: dto.name,
-        phone: dto.phone,
-        role: UserRole.STAFF,
-        status: UserStatus.PENDING,
-        verificationToken,
-        verificationTokenExpiresAt,
-      },
+    const user = await this.prisma.$transaction(async (tx) => {
+      const u = await tx.user.create({
+        data: {
+          email: dto.email,
+          passwordHash,
+          name: dto.name,
+          phone: dto.phone,
+          role: UserRole.STAFF,
+          status: UserStatus.NEW_USER,
+          verificationToken,
+          verificationTokenExpiresAt,
+        },
+      });
+
+      await tx.authProvider.create({
+        data: { userId: u.id, provider: AuthProviderType.EMAIL, email: dto.email },
+      });
+
+      await tx.onboardingProgress.create({
+        data: { userId: u.id },
+      });
+
+      return u;
     });
 
     try {
@@ -143,7 +166,7 @@ export class AuthService {
     await this.prisma.user.update({
       where: { id: user.id },
       data: {
-        status: UserStatus.ACTIVE,
+        status: UserStatus.REGISTERED,
         verificationToken: null,
         verificationTokenExpiresAt: null,
         verifiedAt: new Date(),
@@ -297,7 +320,7 @@ export class AuthService {
       throw new UnauthorizedException('Account is inactive or suspended. Please contact support.');
     }
 
-    if (user.status === UserStatus.PENDING) {
+    if (user.status === UserStatus.NEW_USER || user.status === UserStatus.PENDING) {
       throw new UnauthorizedException(
         'Please verify your email before logging in. Check your inbox for the verification link.',
       );
@@ -336,6 +359,7 @@ export class AuthService {
         user: this.toPayload(user),
         ...tokens,
         rememberMe: dto.rememberMe ?? false,
+        isFirstLogin: user.lastLoginAt === null,
       },
     };
   }
@@ -464,40 +488,101 @@ export class AuthService {
 
     const googleUser = req.user;
 
-    // Check if user exists
+    // Try to find user by Google provider ID first (linking support)
     let user = await this.prisma.user.findFirst({
-      where: { email: googleUser.email },
+      where: {
+        authProviders: {
+          some: {
+            provider: AuthProviderType.GOOGLE,
+            providerId: googleUser.id,
+          },
+        },
+      },
     });
 
+    // If no user found by provider ID, try by email
     if (!user) {
-      // Create user if not exists (Without a tenant by default)
-      user = await this.prisma.user.create({
-        data: {
-          email: googleUser.email,
-          passwordHash: await bcrypt.hash(Math.random().toString(36).slice(-8), 10), // Random password
-          name: googleUser.firstName ? `${googleUser.firstName} ${googleUser.lastName || ''}`.trim() : googleUser.email,
-          role: 'STAFF', // Defaulting to staff or could be specific role
-          status: 'ACTIVE',
-        },
+      user = await this.prisma.user.findFirst({
+        where: { email: googleUser.email },
       });
-    } else if (user.status === UserStatus.PENDING) {
-      // User registered via email but not verified — activate via Google OAuth
-      user = await this.prisma.user.update({
-        where: { id: user.id },
-        data: {
-          status: UserStatus.ACTIVE,
-          verifiedAt: new Date(),
-          verificationToken: null,
-          verificationTokenExpiresAt: null,
-        },
+    }
+
+    const now = new Date();
+
+    if (!user) {
+      // Create new user from Google OAuth
+      user = await this.prisma.$transaction(async (tx) => {
+        const u = await tx.user.create({
+          data: {
+            email: googleUser.email,
+            passwordHash: await bcrypt.hash(Math.random().toString(36).slice(-8), 10),
+            name: googleUser.firstName
+              ? `${googleUser.firstName} ${googleUser.lastName || ''}`.trim()
+              : googleUser.email,
+            role: 'STAFF',
+            status: UserStatus.REGISTERED,
+            verifiedAt: now,
+          },
+        });
+
+        await tx.authProvider.create({
+          data: {
+            userId: u.id,
+            provider: AuthProviderType.GOOGLE,
+            providerId: googleUser.id,
+            email: googleUser.email,
+          },
+        });
+
+        await tx.onboardingProgress.create({
+          data: { userId: u.id },
+        });
+
+        return u;
       });
-    } else if (user.status !== UserStatus.ACTIVE) {
-      throw new UnauthorizedException('Account is inactive or suspended');
+    } else {
+      // Existing user — link Google provider if not already linked
+      const existingGoogleProvider = await this.prisma.authProvider.findUnique({
+        where: { userId_provider: { userId: user.id, provider: AuthProviderType.GOOGLE } },
+      });
+
+      if (!existingGoogleProvider) {
+        await this.prisma.authProvider.create({
+          data: {
+            userId: user.id,
+            provider: AuthProviderType.GOOGLE,
+            providerId: googleUser.id,
+            email: googleUser.email,
+          },
+        });
+      }
+
+      // If user registered via email but not verified, mark verified
+      if (user.status === UserStatus.NEW_USER || user.status === UserStatus.PENDING) {
+        user = await this.prisma.user.update({
+          where: { id: user.id },
+          data: {
+            status: user.status === UserStatus.NEW_USER ? UserStatus.NEW_USER : UserStatus.REGISTERED,
+            verifiedAt: user.verifiedAt ?? now,
+            verificationToken: null,
+            verificationTokenExpiresAt: null,
+          },
+        });
+      } else if (
+        user.status !== UserStatus.ACTIVE &&
+        user.status !== UserStatus.REGISTERED &&
+        user.status !== UserStatus.PROFILE_COMPLETED &&
+        user.status !== UserStatus.ACCESS_REQUESTED &&
+        user.status !== UserStatus.PENDING_APPROVAL &&
+        user.status !== UserStatus.APPROVED
+      ) {
+        throw new UnauthorizedException('Account is inactive or suspended');
+      }
     }
 
     await this.prisma.user.update({
       where: { id: user.id },
-      data: { lastLoginAt: new Date() },
+      data: { lastLoginAt: now },
     });
 
     const tokens = await this.generateTokens({
@@ -536,6 +621,18 @@ export class AuthService {
       role: user.role,
       emailVerified: user.status === 'ACTIVE',
     };
+  }
+
+  async logAuthError(errorCode: string, errorMessage: string, provider?: string, userId?: string, metadata: Record<string, unknown> = {}) {
+    await this.prisma.authErrorLog.create({
+      data: {
+        errorCode,
+        errorMessage,
+        provider,
+        userId,
+        metadata: metadata as any,
+      },
+    });
   }
 
   private async buildAuthResponse(user: {

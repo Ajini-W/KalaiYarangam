@@ -7,6 +7,7 @@ import { AuthThrottlerGuard, GoogleOAuthGuard } from '@/common/guards';
 import { AuthenticatedUser } from '@/common/interfaces';
 import { AuthService } from './auth.service';
 import {
+  AuthErrorLogDto,
   ChangePasswordDto,
   ForgotPasswordDto,
   LoginDto,
@@ -120,6 +121,18 @@ export class AuthController {
   @Post('user-status')
   updateUserStatus(@Body() dto: UpdateUserStatusDto) {
     return this.authService.updateUserStatus(dto);
+  }
+
+  @Public()
+  @Post('error-log')
+  logAuthError(@Body() dto: AuthErrorLogDto) {
+    return this.authService.logAuthError(
+      dto.errorCode,
+      dto.errorMessage,
+      dto.provider,
+      dto.userId,
+      dto.metadata,
+    );
   }
 }
 

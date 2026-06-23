@@ -1,4 +1,4 @@
-import { IsOptional, IsString, IsEmail, IsBoolean, MinLength, IsIn } from 'class-validator';
+import { IsObject, IsOptional, IsString, IsEmail, IsBoolean, MinLength, IsIn } from 'class-validator';
 
 export class RegisterDto {
   @IsString()
@@ -88,5 +88,25 @@ export class ChangePasswordDto {
   @IsString()
   @MinLength(8)
   newPassword!: string;
+}
+
+export class AuthErrorLogDto {
+  @IsString()
+  errorCode!: string;
+
+  @IsString()
+  errorMessage!: string;
+
+  @IsOptional()
+  @IsString()
+  provider?: string;
+
+  @IsOptional()
+  @IsString()
+  userId?: string;
+
+  @IsOptional()
+  @IsObject()
+  metadata?: Record<string, unknown>;
 }
 

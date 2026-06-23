@@ -27,10 +27,42 @@ enum UserRole {
 }
 
 enum UserStatus {
+  NEW_USER
+  REGISTERED
+  PROFILE_COMPLETED
+  ACCESS_REQUESTED
+  PENDING_APPROVAL
+  APPROVED
   ACTIVE
   INACTIVE
   SUSPENDED
   PENDING
+}
+
+enum AuthProviderType {
+  EMAIL
+  GOOGLE
+}
+
+enum AccessRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  BLOCKED
+}
+
+enum OnboardingStep {
+  ROLE_SELECTION
+  PROFILE_SETUP
+  TENANT_SETUP
+  BRANCH_SETUP
+  MODULE_SELECTION
+  SUBSCRIPTION
+  SEARCH_TENANT
+  SELECT_BRANCH
+  SKILLS_SETUP
+  COURSE_SELECTION
+  COMPLETED
 }
 
 enum Gender {
@@ -233,18 +265,23 @@ model User {
   createdAt    DateTime   @default(now()) @map("created_at")
   updatedAt    DateTime   @updatedAt @map("updated_at")
 
-  tenant          Tenant?          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  profile         UserProfile?
-  userBranches    UserBranch[]
-  loginLogs       UserLoginLog[]
-  refreshTokens   RefreshToken[]
-  userRoles       UserRoleMapping[]
-  leadFollowups   LeadFollowup[]
-  batchTrainers   BatchTrainer[]
-  studentProgress StudentProgress[]
-  notifications   Notification[]
-  auditLogs       AuditLog[]
-  activityLogs    ActivityLog[]
+  tenant            Tenant?          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  profile           UserProfile?
+  userBranches      UserBranch[]
+  loginLogs         UserLoginLog[]
+  refreshTokens     RefreshToken[]
+  authProviders     AuthProvider[]
+  userRoles         UserRoleMapping[]
+  accessRequests    TenantAccessRequest[]
+  reviewedRequests  TenantAccessRequest[] @relation("reviewer")
+  staffMappings     StaffBranchMapping[]
+  onboarding        OnboardingProgress?
+  leadFollowups     LeadFollowup[]
+  batchTrainers     BatchTrainer[]
+  studentProgress   StudentProgress[]
+  notifications     Notification[]
+  auditLogs         AuditLog[]
+  activityLogs      ActivityLog[]
 
   @@index([tenantId])
   @@index([email])
@@ -322,6 +359,109 @@ model RefreshToken {
   @@map("refresh_tokens")
 }
 
+model AuthProvider {
+  id             String          @id @default(uuid()) @db.Uuid
+  userId         String          @map("user_id") @db.Uuid
+  provider       AuthProviderType
+  providerId     String?         @map("provider_id") @db.VarChar(255)
+  email          String?         @db.VarChar(255)
+  linkedAt       DateTime        @default(now()) @map("linked_at")
+  createdAt      DateTime        @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, provider])
+  @@index([provider, providerId])
+  @@map("auth_providers")
+}
+
+model AuthErrorLog {
+  id          String   @id @default(uuid()) @db.Uuid
+  errorCode   String   @map("error_code") @db.VarChar(100)
+  errorMessage String  @map("error_message") @db.Text
+  provider    String?  @db.VarChar(50)
+  userId      String?  @map("user_id") @db.Uuid
+  timestamp   DateTime @default(now())
+  metadata    Json?
+
+  @@map("auth_error_logs")
+}
+
+model TenantModule {
+  id        String   @id @default(uuid()) @db.Uuid
+  tenantId  String   @map("tenant_id") @db.Uuid
+  module    IndustryType
+  isEnabled Boolean  @default(false) @map("is_enabled")
+  enabledAt DateTime? @map("enabled_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, module])
+  @@map("tenant_modules")
+}
+
+model TenantAccessRequest {
+  id             String             @id @default(uuid()) @db.Uuid
+  tenantId       String?            @map("tenant_id") @db.Uuid
+  branchId       String?            @map("branch_id") @db.Uuid
+  userId         String             @map("user_id") @db.Uuid
+  role           UserRole
+  status         AccessRequestStatus @default(PENDING)
+  notes          String?            @db.Text
+  preferredBranchId String?         @map("preferred_branch_id") @db.Uuid
+  skills         String[]           @db.VarChar(100)
+  specialization String?            @map("specialization") @db.VarChar(200)
+  courseId       String?            @map("course_id") @db.Uuid
+  reviewedBy     String?            @map("reviewed_by") @db.Uuid
+  reviewedAt     DateTime?          @map("reviewed_at")
+  rejectionReason String?           @map("rejection_reason") @db.Text
+  createdAt      DateTime           @default(now()) @map("created_at")
+  updatedAt      DateTime           @updatedAt @map("updated_at")
+
+  tenant   Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  branch   Branch?  @relation(fields: [branchId], references: [id])
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviewer User?    @relation("reviewer", fields: [reviewedBy], references: [id])
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([status])
+  @@map("tenant_access_requests")
+}
+
+model StaffBranchMapping {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  branchId  String?  @map("branch_id") @db.Uuid
+  tenantId  String?  @map("tenant_id") @db.Uuid
+  isPrimary Boolean  @default(false) @map("is_primary")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  branch Branch? @relation(fields: [branchId], references: [id])
+  tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, branchId])
+  @@map("staff_branch_mappings")
+}
+
+model OnboardingProgress {
+  id              String         @id @default(uuid()) @db.Uuid
+  userId          String         @unique @map("user_id") @db.Uuid
+  selectedRole    UserRole?
+  currentStep     OnboardingStep @default(ROLE_SELECTION)
+  isCompleted     Boolean        @default(false) @map("is_completed")
+  completedAt     DateTime?      @map("completed_at")
+  metadata        Json?
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("onboarding_progress")
+}
+
 model Permission {
   id          String   @id @default(uuid()) @db.Uuid
   module      String   @db.VarChar(100)
@@ -384,6 +524,7 @@ model Tenant {
   brand             TenantBrand?
   invitations       TenantInvitation[]
   settings          TenantSetting[]
+  tenantModules     TenantModule[]
   branches          Branch[]
   subscriptions     Subscription[]
   subscriptionUsage SubscriptionUsage[]
@@ -404,6 +545,8 @@ model Tenant {
   dashboardWidgets  DashboardWidget[]
   analyticsSnapshots AnalyticsSnapshot[]
   notifications     Notification[]
+  accessRequests    TenantAccessRequest[]
+  staffMappings     StaffBranchMapping[]
 
   @@index([slug])
   @@index([status])
@@ -474,12 +617,14 @@ model Branch {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  tenant           Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  userBranches     UserBranch[]
-  leads            Lead[]
-  batches          Batch[]
-  attendanceSessions AttendanceSession[]
-  invoices         Invoice[]
+  tenant              Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userBranches        UserBranch[]
+  accessRequests      TenantAccessRequest[]
+  staffMappings       StaffBranchMapping[]
+  leads               Lead[]
+  batches             Batch[]
+  attendanceSessions  AttendanceSession[]
+  invoices            Invoice[]
 
   @@unique([tenantId, code])
   @@index([tenantId])
