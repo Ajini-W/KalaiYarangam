@@ -37,7 +37,7 @@ export function SearchBar({ value, onChange, placeholder = "Search…", debounce
         placeholder={placeholder}
         className={cn(
           "h-9 w-full rounded-[var(--radius-sm)] border border-border bg-surface pl-9 pr-8 text-sm text-text-primary placeholder:text-text-placeholder",
-          "focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors",
+          "focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors",
         )}
       />
       {local && (

@@ -5,14 +5,26 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const compression = require('compression');
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const session = require('express-session');
+import { json } from 'express';
 import { AppModule } from '@/app.module';
 import { env } from '@/config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  app.use(json({ limit: '5mb' }));
   app.use(helmet());
   app.use(compression());
+  app.use(
+    session({
+      secret: env.JWT_SECRET,
+      resave: false,
+      saveUninitialized: false,
+      cookie: { secure: env.NODE_ENV === 'production', httpOnly: true, sameSite: 'lax', maxAge: 600000 },
+    }),
+  );
   app.enableCors({ origin: env.APP_URL, credentials: true });
   app.setGlobalPrefix(env.API_PREFIX);
   app.useGlobalPipes(

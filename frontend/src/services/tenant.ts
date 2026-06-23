@@ -15,25 +15,35 @@ export interface Tenant {
   updatedAt: string;
 }
 
-export interface CreateTenantRequest {
-  name: string;
-  email: string;
-  phone: string;
+export interface ClaimTenantRequest {
   businessName: string;
-  industry: string;
-  password: string;
+  industry?: string;
+  phone?: string;
+  email?: string;
 }
 
-export interface CreateTenantResponse {
-  user: {
-    id: string;
-    tenantId: string;
-    branchId: string | null;
-    email: string;
-    name: string;
-    role: string;
+export interface ClaimTenantResponse {
+  token: {
+    accessToken: string;
+    user: {
+      id: string;
+      tenantId: string;
+      email: string;
+      name: string;
+      role: string;
+    };
   };
-  accessToken: string;
+  tenant: {
+    id: string;
+    name: string;
+    slug: string;
+    industry: string;
+  };
+  branch: {
+    id: string;
+    name: string;
+    isDefault: boolean;
+  };
 }
 
 export interface UpdateTenantRequest {
@@ -45,11 +55,11 @@ export interface UpdateTenantRequest {
   industry?: string;
 }
 
-export async function createTenant(
-  data: CreateTenantRequest,
-): Promise<ApiResponse<CreateTenantResponse>> {
-  const response = await apiClient.post<ApiResponse<CreateTenantResponse>>(
-    "/auth/register",
+export async function claimTenant(
+  data: ClaimTenantRequest,
+): Promise<ApiResponse<ClaimTenantResponse>> {
+  const response = await apiClient.post<ApiResponse<ClaimTenantResponse>>(
+    "/training/onboarding/claim",
     data,
   );
   return response.data;

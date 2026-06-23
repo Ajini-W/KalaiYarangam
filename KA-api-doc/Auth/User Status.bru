@@ -1,0 +1,160 @@
+meta {
+  name: User Status
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{base-url}}/auth/user-status
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "accessToken": "{{accessToken}}",
+    "status": "ACTIVE" // ACTIVE , INACTIVE
+  }
+}
+
+example {
+  name: 201
+  
+  request: {
+    url: {{base-url}}/auth/user-status
+    method: POST
+    mode: json
+    headers: {
+      Content-Type: application/json
+    }
+  
+    body:json: {
+      {
+        "accessToken": "{{accessToken}}",
+        "status": "ACTIVE"
+      }
+    }
+  }
+  
+  response: {
+    headers: {
+      content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+      cross-origin-opener-policy: same-origin
+      cross-origin-resource-policy: same-origin
+      origin-agent-cluster: ?1
+      referrer-policy: no-referrer
+      strict-transport-security: max-age=31536000; includeSubDomains
+      x-content-type-options: nosniff
+      x-dns-prefetch-control: off
+      x-download-options: noopen
+      x-frame-options: SAMEORIGIN
+      x-permitted-cross-domain-policies: none
+      x-xss-protection: 0
+      access-control-allow-origin: http://localhost:3000
+      vary: Origin, Accept-Encoding
+      access-control-allow-credentials: true
+      content-type: application/json; charset=utf-8
+      content-length: 235
+      etag: W/"eb-mTH6YJ5XsKFsWu0lQTdzS57atZA"
+      date: Sun, 21 Jun 2026 12:38:23 GMT
+      connection: keep-alive
+      keep-alive: timeout=5
+    }
+  
+    status: {
+      code: 201
+      text: Created
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "httpStatusCode": 201,
+          "message": "User status updated to ACTIVE",
+          "data": {
+            "id": "09b26b1b-7349-4340-9ed4-4bd8db72ccd9",
+            "email": "@gmail.com",
+            "name": "Demo",
+            "role": "OWNER",
+            "status": "ACTIVE"
+          },
+          "timestamp": "2026-06-21T12:38:23.462Z"
+        }
+      '''
+    }
+  }
+}
+
+example {
+  name: 201 - INACTIVE
+  
+  request: {
+    url: {{base-url}}/auth/user-status
+    method: POST
+    mode: json
+    headers: {
+      Content-Type: application/json
+    }
+  
+    body:json: {
+      {
+        "accessToken": "{{accessToken}}",
+        "status": "ACTIVE" // ACTIVE , INACTIVE
+      }
+    }
+  }
+  
+  response: {
+    headers: {
+      content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+      cross-origin-opener-policy: same-origin
+      cross-origin-resource-policy: same-origin
+      origin-agent-cluster: ?1
+      referrer-policy: no-referrer
+      strict-transport-security: max-age=31536000; includeSubDomains
+      x-content-type-options: nosniff
+      x-dns-prefetch-control: off
+      x-download-options: noopen
+      x-frame-options: SAMEORIGIN
+      x-permitted-cross-domain-policies: none
+      x-xss-protection: 0
+      access-control-allow-origin: http://localhost:3000
+      vary: Origin, Accept-Encoding
+      access-control-allow-credentials: true
+      content-type: application/json; charset=utf-8
+      content-length: 239
+      etag: W/"ef-5deOM1sc7ZMMOdl1t783pBdA0ww"
+      date: Sun, 21 Jun 2026 12:40:04 GMT
+      connection: keep-alive
+      keep-alive: timeout=5
+    }
+  
+    status: {
+      code: 201
+      text: Created
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "httpStatusCode": 201,
+          "message": "User status updated to INACTIVE",
+          "data": {
+            "id": "09b26b1b-7349-4340-9ed4-4bd8db72ccd9",
+            "email": "@gmail.com",
+            "name": "Demo",
+            "role": "OWNER",
+            "status": "INACTIVE"
+          },
+          "timestamp": "2026-06-21T12:40:04.656Z"
+        }
+      '''
+    }
+  }
+}

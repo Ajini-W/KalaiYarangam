@@ -16,8 +16,8 @@ export const Radio = React.forwardRef<HTMLInputElement, RadioProps>(
           id={inputId}
           type="radio"
           className={cn(
-            "mt-0.5 h-4 w-4 shrink-0 border border-border bg-surface accent-brand-500",
-            "focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2",
+            "mt-0.5 h-4 w-4 shrink-0 border border-border bg-surface accent-primary",
+            "focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
             "disabled:cursor-not-allowed disabled:opacity-50",
             className,
           )}

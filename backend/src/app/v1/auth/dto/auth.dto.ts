@@ -1,5 +1,4 @@
-import { IsEnum, IsOptional, IsString, IsEmail, MinLength } from 'class-validator';
-import { IndustryType } from '@prisma/client';
+import { IsOptional, IsString, IsEmail, IsBoolean, MinLength, IsIn } from 'class-validator';
 
 export class RegisterDto {
   @IsString()
@@ -14,24 +13,30 @@ export class RegisterDto {
   phone!: string;
 
   @IsString()
-  @MinLength(2)
-  businessName!: string;
-
-  @IsEnum(IndustryType)
-  industry!: string;
-
-  @IsString()
   @MinLength(8)
   password!: string;
 }
 
 export class LoginDto {
+  @IsOptional()
   @IsEmail()
-  email!: string;
+  email?: string;
+
+  @IsOptional()
+  @IsString()
+  phone?: string;
 
   @IsString()
   @MinLength(6)
   password!: string;
+
+  @IsString()
+  @IsIn(['email', 'phone'])
+  type!: 'email' | 'phone';
+
+  @IsOptional()
+  @IsBoolean()
+  rememberMe?: boolean;
 }
 
 export class RefreshTokenDto {
@@ -54,5 +59,34 @@ export class UpdateUserStatusDto {
 
   @IsString()
   accessToken!: string;
+}
+
+export class SendVerificationTokenDto {
+  @IsEmail()
+  email!: string;
+}
+
+export class ForgotPasswordDto {
+  @IsEmail()
+  email!: string;
+}
+
+export class ResetPasswordDto {
+  @IsString()
+  token!: string;
+
+  @IsString()
+  @MinLength(8)
+  password!: string;
+}
+
+export class ChangePasswordDto {
+  @IsString()
+  @MinLength(6)
+  currentPassword!: string;
+
+  @IsString()
+  @MinLength(8)
+  newPassword!: string;
 }
 

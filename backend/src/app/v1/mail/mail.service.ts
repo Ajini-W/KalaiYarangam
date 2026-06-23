@@ -1,11 +1,12 @@
 import { BadGatewayException, Injectable, NotFoundException } from '@nestjs/common';
 import { env } from '@/config';
 import { SendMailDto } from './dto/mail.dto';
-import { welcomeTemplate, verifyEmailTemplate } from './templates';
+import { welcomeTemplate, verifyEmailTemplate, resetPasswordTemplate } from './templates';
 
 const templates: Record<string, (vars: Record<string, unknown>) => { subject: string; html: string }> = {
   welcome: welcomeTemplate,
   'verify-email': verifyEmailTemplate,
+  'reset-password': resetPasswordTemplate,
 };
 
 @Injectable()

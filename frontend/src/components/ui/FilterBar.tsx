@@ -32,8 +32,8 @@ export function FilterBar({ filters, active, onChange, onClear, className }: Fil
           onChange={(e) => onChange(f.key, e.target.value)}
           className={cn(
             "h-8 rounded-[var(--radius-sm)] border border-border bg-surface px-2.5 text-xs text-text-primary",
-            "focus:outline-none focus:ring-2 focus:ring-brand-500 transition-colors",
-            active[f.key] && "border-brand-500 text-brand-700",
+            "focus:outline-none focus:ring-2 focus:ring-primary transition-colors",
+            active[f.key] && "border-primary text-primary",
           )}
           aria-label={f.label}
         >

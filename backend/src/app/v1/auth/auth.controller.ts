@@ -1,15 +1,19 @@
-import { Body, Controller, Get, HttpCode, Post, Req, UseGuards } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
-import { Request } from 'express';
+import { Body, Controller, Get, HttpCode, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Request, Response } from 'express';
 import { Throttle } from '@nestjs/throttler';
 import { CurrentUser, Public } from '@/common/decorators';
-import { AuthThrottlerGuard } from '@/common/guards';
+import { AuthThrottlerGuard, GoogleOAuthGuard } from '@/common/guards';
 import { AuthenticatedUser } from '@/common/interfaces';
 import { AuthService } from './auth.service';
 import {
+  ChangePasswordDto,
+  ForgotPasswordDto,
   LoginDto,
   RegisterDto,
   RefreshTokenDto,
+  ResetPasswordDto,
+  SendVerificationTokenDto,
   UpdateUserStatusDto,
   VerifyEmailDto,
 } from './dto/auth.dto';
@@ -35,9 +39,36 @@ export class AuthController {
   }
 
   @Public()
+  @Post('send-verification-token')
+  @HttpCode(200)
+  sendVerificationToken(@Body() dto: SendVerificationTokenDto) {
+    return this.authService.sendVerificationToken(dto);
+  }
+
+  @Public()
+  @Post('forgot-password')
+  @HttpCode(200)
+  forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(dto);
+  }
+
+  @Public()
+  @Post('reset-password')
+  @HttpCode(200)
+  resetPassword(@Body() dto: ResetPasswordDto) {
+    return this.authService.resetPassword(dto);
+  }
+
+  @Post('change-password')
+  @HttpCode(200)
+  changePassword(@Body() dto: ChangePasswordDto, @CurrentUser() user: AuthenticatedUser) {
+    return this.authService.changePassword(dto, user.id);
+  }
+
+  @Public()
   @Post('login')
   @UseGuards(AuthThrottlerGuard)
-  @Throttle({ default: { limit: 5, ttl: 3600000 } })
+  @Throttle({ default: { limit: 15, ttl: 3600000 } })
   login(@Body() dto: LoginDto, @Req() req: Request) {
     const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0] ?? req.ip;
     return this.authService.login(dto, ip, req.headers['user-agent']);
@@ -55,6 +86,29 @@ export class AuthController {
   @Post('logout')
   logout(@Body() dto: RefreshTokenDto) {
     return this.authService.logout(dto.refreshToken);
+  }
+
+  @Public()
+  @Get('google')
+  @UseGuards(GoogleOAuthGuard)
+  @ApiOperation({ summary: 'Initiate Google OAuth login' })
+  async googleAuth(@Req() req: Request) {
+    // Initiates the Google OAuth flow
+  }
+
+  @Public()
+  @Get('google/callback')
+  @UseGuards(GoogleOAuthGuard)
+  @ApiOperation({ summary: 'Google OAuth callback' })
+  async googleAuthRedirect(@Req() req: Request, @Res() res: Response) {
+    const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0] ?? req.ip;
+    const result = await this.authService.googleLogin(req as any, ip, req.headers['user-agent']);
+
+    const { accessToken, refreshToken } = result.data;
+    const frontendUrl = process.env.APP_URL;
+    res.redirect(
+      `${frontendUrl}/auth/callback?accessToken=${accessToken}&refreshToken=${refreshToken}`,
+    );
   }
 
   @Get('me')

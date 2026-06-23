@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { ThemeProvider } from "next-themes";
 import "./globals.css";
 import { ToastProvider } from "@/components/ui/Toast";
+import { BrandThemeProvider } from "@/providers/BrandThemeProvider";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
@@ -102,17 +104,21 @@ const jsonLd = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} h-full antialiased`}>
+    <html lang="en" className={`${inter.variable} h-full antialiased`} suppressHydrationWarning>
       <head>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body className="flex min-h-full flex-col">
-          {children}
-          <ToastProvider />
-        </body>
+      <body className="flex min-h-full flex-col" suppressHydrationWarning>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <BrandThemeProvider>
+            {children}
+          </BrandThemeProvider>
+        </ThemeProvider>
+        <ToastProvider />
+      </body>
     </html>
   );
 }

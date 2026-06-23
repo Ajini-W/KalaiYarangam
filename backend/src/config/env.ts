@@ -4,6 +4,7 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.coerce.number().default(4000),
   APP_URL: z.string().url().default('http://localhost:3000'),
+  API_URL: z.string().url().default('http://localhost:4000'),
   API_PREFIX: z.string().default('api/v1'),
   DATABASE_URL: z.string().min(1),
   JWT_SECRET: z.string().min(32),
@@ -24,6 +25,9 @@ const envSchema = z.object({
   FIREBASE_APP_ID: z.string().min(1),
   FIREBASE_MEASUREMENT_ID: z.string().optional(),
   FIREBASE_SERVICE_ACCOUNT_JSON: z.string().min(1),
+
+  GOOGLE_CLIENT_ID: z.string().min(1),
+  GOOGLE_CLIENT_SECRET: z.string().min(1),
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -32,6 +36,7 @@ export const env: Env = envSchema.parse({
   NODE_ENV: process.env.NODE_ENV,
   PORT: process.env.PORT,
   APP_URL: process.env.APP_URL,
+  API_URL: process.env.API_URL,
   API_PREFIX: process.env.API_PREFIX,
   DATABASE_URL: process.env.DATABASE_URL,
   JWT_SECRET: process.env.JWT_SECRET,
@@ -52,4 +57,7 @@ export const env: Env = envSchema.parse({
   FIREBASE_APP_ID: process.env.FIREBASE_APP_ID,
   FIREBASE_MEASUREMENT_ID: process.env.FIREBASE_MEASUREMENT_ID,
   FIREBASE_SERVICE_ACCOUNT_JSON: process.env.FIREBASE_SERVICE_ACCOUNT_JSON,
+
+  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+  GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
 });

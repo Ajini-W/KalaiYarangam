@@ -5,12 +5,12 @@ import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 const variants = {
-  primary:   "bg-brand-500 text-white hover:bg-brand-600 active:bg-brand-700 disabled:opacity-50",
-  secondary: "bg-surface-overlay text-text-primary hover:bg-border active:bg-border-subtle disabled:opacity-50",
+  primary:   "bg-primary text-primary-foreground hover:opacity-80 active:opacity-90 disabled:opacity-50",
+  secondary: "bg-secondary text-secondary-foreground hover:opacity-80 active:opacity-90 disabled:opacity-50",
   outline:   "border border-border bg-transparent text-text-primary hover:bg-surface-raised disabled:opacity-50",
   ghost:     "bg-transparent text-text-primary hover:bg-surface-overlay disabled:opacity-50",
   danger:    "bg-danger text-white hover:bg-danger-700 active:bg-danger-700 disabled:opacity-50",
-  link:      "bg-transparent text-brand-500 hover:underline p-0 h-auto disabled:opacity-50",
+  link:      "bg-transparent text-primary hover:underline p-0 h-auto disabled:opacity-50",
 } as const;
 
 const sizes = {
@@ -34,7 +34,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       ref={ref}
       disabled={disabled || loading}
       className={cn(
-        "inline-flex items-center justify-center font-medium transition-colors cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2",
+        "inline-flex items-center justify-center font-medium transition-colors cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
         variants[variant],
         sizes[size],
         className,

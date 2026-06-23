@@ -1,0 +1,20 @@
+meta {
+  name: Remove User Role
+  type: http
+  seq: 9
+}
+
+delete {
+  url: {{base-url}}/rbac/user-roles/{{userRoleMappingId}}
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: bearer {{accessToken}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

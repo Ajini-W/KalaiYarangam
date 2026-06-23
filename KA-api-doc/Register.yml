@@ -16,8 +16,6 @@ http:
         "name": "david",
         "email": "kkavin0661@gmail.com",
         "phone": "8645972153",
-        "businessName": "My carrer",
-        "industry": "RENTAL",
         "password": "demo@123"
       }
   auth: inherit
@@ -45,8 +43,6 @@ examples:
             "name": "John Doe",
             "email": "user@example.com",
             "phone": "9876543210",
-            "businessName": "My Business",
-            "industry": "TRAINING",
             "password": "password123"
           }
     response:
@@ -68,11 +64,11 @@ examples:
             "data": {
               "user": {
                 "id": "uuid",
-                "tenantId": "uuid",
+                "tenantId": null,
                 "branchId": null,
                 "email": "user@example.com",
                 "name": "John Doe",
-                "role": "OWNER"
+                "role": "STAFF"
               },
               "accessToken": "eyJhbGciOiJIUzI1NiIs..."
             },
@@ -87,10 +83,8 @@ examples:
         data: |-
           {
             "name": "John Doe",
-            "email": "user@example.com",
+            "email": "existing@example.com",
             "phone": "9876543210",
-            "businessName": "My Business",
-            "industry": "TRAINING",
             "password": "password123"
           }
     response:
@@ -104,7 +98,7 @@ examples:
         data: |-
           {
             "httpStatusCode": 409,
-            "message": "Business name is already registered",
+            "message": "A user with this email already exists",
             "data": null,
             "timestamp": "2026-06-20T10:00:00.000Z"
           }
@@ -119,8 +113,6 @@ examples:
             "name": "",
             "email": "not-an-email",
             "phone": "short",
-            "businessName": "",
-            "industry": "",
             "password": "123"
           }
     response:
@@ -149,8 +141,6 @@ examples:
             "name": "John",
             "email": "kkavin0661@gmail.com",
             "phone": "9788583045",
-            "businessName": "My hobby",
-            "industry": "RENTAL",
             "password": "demo@123"
           }
     response:
@@ -190,11 +180,11 @@ examples:
         - name: content-type
           value: application/json; charset=utf-8
         - name: content-length
-          value: "121"
+          value: "123"
         - name: etag
-          value: W/"79-ympBmZ3iFHBZSPhfHYf0UdjGdjo"
+          value: W/"7b-b5IGyr0y2Hsn1UQFDJHyCgUFKTM"
         - name: date
-          value: Fri, 19 Jun 2026 20:19:55 GMT
+          value: Sat, 20 Jun 2026 09:30:17 GMT
         - name: connection
           value: keep-alive
         - name: keep-alive
@@ -204,9 +194,9 @@ examples:
         data: |-
           {
             "httpStatusCode": 409,
-            "message": "Business name is already registered",
+            "message": "A user with this email already exists",
             "data": null,
-            "timestamp": "2026-06-19T20:19:55.604Z"
+            "timestamp": "2026-06-20T09:30:17.872Z"
           }
   - name: Error response
     request:
@@ -222,8 +212,6 @@ examples:
             "name": "david",
             "email": "kkavin0661@gmail.com",
             "phone": "8645972153",
-            "businessName": "My carrer",
-            "industry": "RENTAL",
             "password": "demo@123"
           }
     response:
