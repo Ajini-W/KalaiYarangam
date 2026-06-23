@@ -80,7 +80,16 @@ const nav: NavItem[] = [
   { label: "Reports", href: "/dashboard/reports/revenue", icon: BarChart2 },
   { label: "Notifications", href: "/dashboard/notifications", icon: Bell },
   { label: "Users", href: "/dashboard/users", icon: Users },
-  { label: "Settings", href: "/dashboard/settings/organisation", icon: Settings },
+  {
+    label: "Settings",
+    icon: Settings,
+    children: [
+      { label: "Organisation", href: "/dashboard/settings/organisation", icon: Settings },
+      { label: "Branches", href: "/dashboard/settings/branches", icon: Settings },
+      { label: "Branding", href: "/dashboard/settings/branding", icon: Settings },
+      { label: "Modules", href: "/dashboard/settings/modules", icon: Settings },
+    ],
+  },
 ];
 
 interface SidebarProps {
