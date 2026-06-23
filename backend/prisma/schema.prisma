@@ -259,6 +259,7 @@ model User {
   tenantId     String?    @map("tenant_id") @db.Uuid
   email        String     @unique @db.VarChar(255)
   passwordHash String     @map("password_hash") @db.VarChar(255)
+  passwordSet  Boolean    @default(false) @map("password_set")
   name         String     @db.VarChar(150)
   phone        String?    @unique @db.VarChar(20)
   role         UserRole   @default(STAFF)

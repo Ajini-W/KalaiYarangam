@@ -51,6 +51,10 @@ export interface ChangePasswordPayload {
   newPassword: string;
 }
 
+export interface SetPasswordPayload {
+  newPassword: string;
+}
+
 export interface UserProfileData {
   id: string;
   tenantId: string | null;
@@ -59,6 +63,7 @@ export interface UserProfileData {
   phone: string | null;
   role: string;
   status: string;
+  hasPassword: boolean;
   avatarUrl: string | null;
   lastLoginAt: string | null;
   createdAt: string;
@@ -136,6 +141,10 @@ export const authService = {
 
   async changePassword(payload: ChangePasswordPayload): Promise<void> {
     await http.post("/auth/change-password", payload);
+  },
+
+  async setPassword(payload: SetPasswordPayload): Promise<void> {
+    await http.post("/auth/set-password", payload);
   },
 
   async getProfile(): Promise<UserProfileData> {

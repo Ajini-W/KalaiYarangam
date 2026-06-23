@@ -22,6 +22,7 @@ interface AuthState {
   register: (payload: RegisterPayload) => Promise<{ isFirstLogin?: boolean }>;
   logout: () => Promise<void>;
   setUser: (user: AuthUser) => void;
+  handleOAuthCallback: (accessToken: string, refreshToken?: string) => Promise<AuthUser>;
   initialize: () => Promise<void>;
   verifyEmail: (token: string) => Promise<void>;
   sendVerificationToken: (email: string) => Promise<void>;
@@ -121,7 +122,32 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ user: null, accessToken: null, refreshToken: null, isAuthenticated: false, isFirstLogin: false });
   },
 
-  setUser: (user) => set({ user }),
+  setUser: (user) => set({ user, isAuthenticated: true }),
+
+  handleOAuthCallback: async (accessToken: string, refreshToken?: string) => {
+    localStorage.setItem("accessToken", accessToken);
+    setTokenCookie(accessToken);
+    if (refreshToken) localStorage.setItem("refreshToken", refreshToken);
+    set({ isLoading: true });
+    try {
+      const user = await authService.me();
+      set({
+        user,
+        accessToken,
+        refreshToken: refreshToken ?? null,
+        isAuthenticated: true,
+        isFirstLogin: false,
+        isLoading: false,
+      });
+      return user;
+    } catch {
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+      removeTokenCookie();
+      set({ isLoading: false });
+      throw new Error("Failed to verify session");
+    }
+  },
 
   initialize: async () => {
     const accessToken = localStorage.getItem("accessToken");

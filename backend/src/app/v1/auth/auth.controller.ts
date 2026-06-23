@@ -15,6 +15,7 @@ import {
   RefreshTokenDto,
   ResetPasswordDto,
   SendVerificationTokenDto,
+  SetPasswordDto,
   UpdatePreferencesDto,
   UpdateProfileDto,
   UpdateUserStatusDto,
@@ -66,6 +67,12 @@ export class AuthController {
   @HttpCode(200)
   changePassword(@Body() dto: ChangePasswordDto, @CurrentUser() user: AuthenticatedUser) {
     return this.authService.changePassword(dto, user.id);
+  }
+
+  @Post('set-password')
+  @HttpCode(200)
+  setPassword(@Body() dto: SetPasswordDto, @CurrentUser() user: AuthenticatedUser) {
+    return this.authService.setPassword(dto, user.id);
   }
 
   @Public()

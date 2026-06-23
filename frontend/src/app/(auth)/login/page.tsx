@@ -8,7 +8,7 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
-import { AtSign, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
+import { AtSign, Lock, Eye, EyeOff, ArrowRight, Mail } from "lucide-react";
 import { AuthLeftPanel, AuthMobileNav } from "@/components/ui/AuthBackground";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { Button } from "@/components/ui/Button";
@@ -45,13 +45,13 @@ const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.07, delayChildren: 0.05 },
+    transition: { staggerChildren: 0.06, delayChildren: 0.05 },
   },
 } as const;
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 12 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: "easeOut" as const } },
+  hidden: { opacity: 0, y: 14 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" as const } },
 };
 
 /* ── Component ─────────────────────────────────────────────────────── */
@@ -135,26 +135,29 @@ export default function LoginPage() {
 
   if (checking) {
     return (
-      <div className="flex h-screen w-screen items-center justify-center bg-white dark:bg-gray-900">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      <div className="flex h-dvh lg:h-screen w-screen items-center justify-center bg-white dark:bg-gray-900">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <span className="text-sm text-gray-400 dark:text-gray-500 font-medium">Loading...</span>
+        </div>
       </div>
     );
   }
 
   return (
-    <>
+    <div className="w-full max-w-[1020px] min-h-dvh sm:min-h-0 lg:min-h-[640px] grid grid-cols-1 lg:grid-cols-[38%_62%] lg:rounded-3xl overflow-hidden lg:shadow-2xl lg:shadow-gray-900/10 dark:lg:shadow-black/40 lg:border lg:border-gray-200/60 dark:lg:border-gray-700/40 bg-white dark:bg-gray-900 transition-colors duration-500">
       {/* ── Left Panel (desktop) ───────────────────────────────── */}
       <AuthLeftPanel />
 
       {/* ── Right Panel ────────────────────────────────────────── */}
-      <div className="flex flex-col bg-white dark:bg-gray-900 rounded-3xl lg:rounded-r-3xl lg:rounded-l-none transition-colors duration-500">
+      <div className="flex flex-col bg-white dark:bg-gray-900 lg:rounded-r-3xl lg:rounded-l-none transition-colors duration-500">
         {/* Mobile header + tabs */}
         <AuthMobileNav />
 
         {/* Form area */}
-        <div className="relative flex flex-1 flex-col items-center justify-center px-6 py-8 sm:px-12 sm:py-10 bg-white dark:bg-gray-900 transition-colors duration-500 lg:rounded-br-3xl">
-          {/* Theme toggle — top right */}
-          <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20">
+        <div className="relative flex flex-1 flex-col items-center justify-center px-5 py-6 sm:px-10 sm:py-8 lg:px-12 lg:py-10 bg-white dark:bg-gray-900 transition-colors duration-500 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
+          {/* Theme toggle — top right (desktop only, mobile has it in AuthMobileNav) */}
+          <div className="hidden lg:block absolute top-5 right-5 z-20">
             <ThemeToggle />
           </div>
 
@@ -165,26 +168,32 @@ export default function LoginPage() {
             className="w-full max-w-[380px]"
           >
             {/* Heading */}
-            <motion.div variants={itemVariants} className="text-center mb-8">
-              <h1 className="text-2xl font-bold text-primary uppercase tracking-[0.05em] transition-colors duration-500">Login</h1>
-              <p className="text-sm text-gray-400 dark:text-gray-400 mt-1.5 font-medium transition-colors duration-500">Enter your credentials to continue</p>
+            <motion.div variants={itemVariants} className="text-center mb-7 sm:mb-8">
+              <h1 className="text-2xl sm:text-[1.65rem] font-bold text-primary uppercase tracking-[0.06em] transition-colors duration-500">
+                Welcome Back
+              </h1>
+              <p className="text-[0.82rem] sm:text-sm text-gray-400 dark:text-gray-500 mt-2 font-medium transition-colors duration-500">
+                Sign in to your account to continue
+              </p>
             </motion.div>
 
             {/* Email Verification Warning */}
             {emailWarning && (
-              <motion.div variants={itemVariants} className="rounded-xl border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-900/30 p-4 text-sm">
+              <motion.div variants={itemVariants} className="rounded-xl border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-900/30 p-4 text-sm mb-5">
                 <div className="flex items-start gap-3">
-                  <span className="mt-0.5 shrink-0 text-amber-500 font-bold">!</span>
-                  <div className="flex-1">
-                    <p className="font-semibold text-amber-800 dark:text-amber-200">Email not verified</p>
-                    <p className="mt-0.5 text-amber-700 dark:text-amber-300">
-                      Please verify your email ({emailWarning}) to access all features.
+                  <div className="shrink-0 w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-800/50 flex items-center justify-center">
+                    <Mail size={16} className="text-amber-600 dark:text-amber-400" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-amber-800 dark:text-amber-200 text-sm">Email not verified</p>
+                    <p className="mt-0.5 text-amber-700 dark:text-amber-300 text-xs leading-relaxed">
+                      Please verify <span className="font-medium">{emailWarning}</span> to access all features.
                     </p>
                     <button
                       type="button"
                       onClick={handleResend}
                       disabled={resending}
-                      className="mt-2 text-xs font-semibold text-amber-700 dark:text-amber-300 underline hover:no-underline disabled:opacity-50"
+                      className="mt-2 text-xs font-semibold text-amber-700 dark:text-amber-300 underline hover:no-underline disabled:opacity-50 transition-opacity"
                     >
                       {resending ? "Sending..." : "Resend verification email"}
                     </button>
@@ -192,7 +201,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={() => { setEmailWarning(null); useAuthStore.getState().logout(); }}
-                    className="text-amber-500 hover:text-amber-700"
+                    className="shrink-0 w-6 h-6 rounded-md flex items-center justify-center text-amber-500 hover:bg-amber-100 dark:hover:bg-amber-800/50 hover:text-amber-700 transition-colors"
                     aria-label="Dismiss"
                   >
                     &times;
@@ -202,7 +211,7 @@ export default function LoginPage() {
             )}
 
             {/* Form */}
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-5" noValidate>
               <motion.div variants={itemVariants}>
                 <Input
                   label="Email or Phone"
@@ -212,7 +221,7 @@ export default function LoginPage() {
                   error={errors.identifier?.message}
                   leftAddon={<AtSign size={16} />}
                   aria-label="Email or phone number"
-                  className="dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder:text-gray-500 h-10 rounded-xl"
+                  className="dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder:text-gray-500 h-11 rounded-xl"
                   {...register("identifier")}
                 />
               </motion.div>
@@ -221,7 +230,7 @@ export default function LoginPage() {
                 <Input
                   label="Password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
+                  placeholder="Enter your password"
                   required
                   error={errors.password?.message}
                   leftAddon={<Lock size={16} />}
@@ -237,30 +246,30 @@ export default function LoginPage() {
                     </button>
                   }
                   aria-label="Password"
-                  className="dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder:text-gray-500 h-10 rounded-xl"
+                  className="dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder:text-gray-500 h-11 rounded-xl"
                   {...register("password")}
                 />
               </motion.div>
 
               {/* Remember me + Forgot password */}
-              <motion.div variants={itemVariants} className="flex items-center justify-between">
+              <motion.div variants={itemVariants} className="flex items-center justify-between pt-0.5">
                 <Checkbox label="Remember me" className="accent-primary" {...register("rememberMe")} />
                 <Link
                   href="/forgot-password"
-                  className="text-xs font-semibold text-primary hover:opacity-70 hover:underline transition-colors"
+                  className="text-xs font-semibold text-primary hover:opacity-70 hover:underline transition-all"
                 >
                   Forgot Password?
                 </Link>
               </motion.div>
 
               {/* Login button */}
-              <motion.div variants={itemVariants}>
+              <motion.div variants={itemVariants} className="pt-1">
                 <Button
                   type="submit"
-                  className="w-full h-11 text-sm font-bold uppercase tracking-wider"
+                  className="w-full h-11 text-sm font-bold uppercase tracking-wider rounded-xl group"
                   loading={isSubmitting}
                 >
-                  Login
+                  Sign In
                   {!isSubmitting && (
                     <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   )}
@@ -269,13 +278,13 @@ export default function LoginPage() {
             </form>
 
             {/* Divider */}
-            <motion.div variants={itemVariants} className="relative my-6">
+            <motion.div variants={itemVariants} className="relative my-5 sm:my-6">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200 dark:border-gray-700 transition-colors duration-500" />
+                <div className="w-full border-t border-gray-200 dark:border-gray-700/70 transition-colors duration-500" />
               </div>
               <div className="relative flex justify-center text-xs">
                 <span className="bg-white dark:bg-gray-900 px-4 text-gray-400 dark:text-gray-500 font-medium transition-colors duration-500">
-                  Or continue with
+                  or continue with
                 </span>
               </div>
             </motion.div>
@@ -285,30 +294,32 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={handleGoogleLogin}
-                className="flex items-center gap-3 px-6 h-11 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/60 hover:bg-gray-50 dark:hover:bg-gray-700/60 text-sm font-semibold text-gray-600 dark:text-gray-300 transition-all duration-200 hover:shadow-lg dark:hover:shadow-black/20 hover:border-gray-300 dark:hover:border-gray-600 hover:-translate-y-0.5 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                className="flex items-center justify-center gap-3 w-full h-11 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/50 hover:bg-gray-50 dark:hover:bg-gray-700/60 text-sm font-semibold text-gray-600 dark:text-gray-300 transition-all duration-200 hover:shadow-md dark:hover:shadow-black/20 hover:border-gray-300 dark:hover:border-gray-600 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                 aria-label="Sign in with Google"
               >
                 <GoogleIcon />
-                Google
+                Continue with Google
               </button>
             </motion.div>
 
-            {/* Sign-up link (mobile only — desktop uses left panel tabs) */}
-            <motion.p
+            {/* Sign-up link (mobile only) */}
+            <motion.div
               variants={itemVariants}
-              className="mt-6 text-center text-sm text-gray-500 dark:text-gray-400 lg:hidden transition-colors duration-500"
+              className="mt-6 sm:mt-7 text-center lg:hidden"
             >
-              Don&apos;t have an account?{" "}
-              <Link
-                href="/register"
-                className="font-bold text-primary hover:opacity-70 hover:underline transition-colors"
-              >
-                Sign Up
-              </Link>
-            </motion.p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-500">
+                Don&apos;t have an account?{" "}
+                <Link
+                  href="/register"
+                  className="font-bold text-primary hover:opacity-70 hover:underline transition-all"
+                >
+                  Create Account
+                </Link>
+              </p>
+            </motion.div>
           </motion.div>
         </div>
       </div>
-    </>
+    </div>
   );
 }

@@ -69,6 +69,7 @@ export class AuthService {
         where: { id: existingEmailUser.id },
         data: {
           passwordHash,
+          passwordSet: true,
           name: dto.name,
           phone: dto.phone || existingEmailUser.phone,
           verificationToken,
@@ -104,6 +105,7 @@ export class AuthService {
         data: {
           email: dto.email,
           passwordHash,
+          passwordSet: true,
           name: dto.name,
           phone: dto.phone,
           role: UserRole.STAFF,
@@ -271,6 +273,7 @@ export class AuthService {
       where: { id: user.id },
       data: {
         passwordHash,
+        passwordSet: true,
         resetPasswordToken: null,
         resetPasswordExpiresAt: null,
       },
@@ -298,10 +301,33 @@ export class AuthService {
 
     await this.prisma.user.update({
       where: { id: userId },
-      data: { passwordHash },
+      data: { passwordHash, passwordSet: true },
     });
 
     return { message: 'Password changed successfully.' };
+  }
+
+  async setPassword(dto: { newPassword: string }, userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (user.passwordSet) {
+      throw new BadRequestException('Password already set. Use change-password instead.');
+    }
+
+    const passwordHash = await bcrypt.hash(dto.newPassword, 10);
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash, passwordSet: true },
+    });
+
+    return { message: 'Password set successfully.' };
   }
 
   async login(dto: LoginDto, ipAddress?: string, userAgent?: string) {
@@ -505,6 +531,7 @@ export class AuthService {
         avatarUrl: user.avatarUrl,
         lastLoginAt: user.lastLoginAt,
         createdAt: user.createdAt,
+        hasPassword: user.passwordSet,
         preferences: user.preferences as Record<string, unknown> | null,
         profile: user.profile
           ? {

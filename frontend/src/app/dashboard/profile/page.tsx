@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Loader2, Camera, Moon, Sun, Bell, BellOff } from "lucide-react";
+import { Loader2, Camera, Moon, Sun, Bell, BellOff, Lock, KeyRound } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardBody } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -41,6 +41,10 @@ export default function ProfilePage() {
   const [theme, setTheme] = React.useState("system");
   const [notifEnabled, setNotifEnabled] = React.useState(true);
   const [pushEnabled, setPushEnabled] = React.useState(false);
+  const [passwordSaving, setPasswordSaving] = React.useState(false);
+  const [currentPassword, setCurrentPassword] = React.useState("");
+  const [newPassword, setNewPassword] = React.useState("");
+  const [confirmPassword, setConfirmPassword] = React.useState("");
 
   const form = useForm<ProfileForm>({
     resolver: zodResolver(profileSchema),
@@ -103,6 +107,43 @@ export default function ProfilePage() {
       toast.error("Failed to update profile");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handlePasswordSave = async () => {
+    if (!newPassword) {
+      toast.error("New password is required");
+      return;
+    }
+    if (newPassword.length < 8) {
+      toast.error("Password must be at least 8 characters");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+    setPasswordSaving(true);
+    try {
+      if (profile?.hasPassword) {
+        if (!currentPassword) {
+          toast.error("Current password is required");
+          setPasswordSaving(false);
+          return;
+        }
+        await authService.changePassword({ currentPassword, newPassword });
+      } else {
+        await authService.setPassword({ newPassword });
+      }
+      toast.success("Password updated successfully");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setProfile((prev) => prev ? { ...prev, hasPassword: true } : prev);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to update password");
+    } finally {
+      setPasswordSaving(false);
     }
   };
 
@@ -296,6 +337,57 @@ export default function ProfilePage() {
                 </div>
               </div>
               <Switch checked={pushEnabled} onCheckedChange={handlePushToggle} />
+            </div>
+          </CardBody>
+        </Card>
+
+        {/* Password */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Lock size={18} />
+              {profile?.hasPassword ? "Change Password" : "Set Password"}
+            </CardTitle>
+          </CardHeader>
+          <CardBody className="space-y-4 pt-0">
+            <p className="text-sm text-text-secondary">
+              {profile?.hasPassword
+                ? "Enter your current password and a new one to update."
+                : "You signed up via Google. Set a password to also log in with email."}
+            </p>
+            {profile?.hasPassword && (
+              <Input
+                label="Current Password"
+                type="password"
+                placeholder="Enter current password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+              />
+            )}
+            <Input
+              label="New Password"
+              type="password"
+              placeholder="At least 8 characters"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+            />
+            <Input
+              label="Confirm New Password"
+              type="password"
+              placeholder="Re-enter new password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+            />
+            <div className="flex justify-end">
+              <Button
+                type="button"
+                variant="outline"
+                loading={passwordSaving}
+                onClick={handlePasswordSave}
+              >
+                <KeyRound size={16} className="mr-2" />
+                {profile?.hasPassword ? "Change Password" : "Set Password"}
+              </Button>
             </div>
           </CardBody>
         </Card>

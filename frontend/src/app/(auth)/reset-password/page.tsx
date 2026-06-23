@@ -8,8 +8,7 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { Lock, Eye, EyeOff, ArrowRight, CheckCircle, XCircle } from "lucide-react";
-import { AuthLeftPanel, AuthMobileNav } from "@/components/ui/AuthBackground";
+import { Lock, Eye, EyeOff, ArrowRight, CheckCircle, XCircle, ShieldCheck, ChevronLeft } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -30,13 +29,13 @@ const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.07, delayChildren: 0.05 },
+    transition: { staggerChildren: 0.06, delayChildren: 0.05 },
   },
 } as const;
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 12 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: "easeOut" as const } },
+  hidden: { opacity: 0, y: 14 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" as const } },
 };
 
 export default function ResetPasswordPage() {
@@ -75,34 +74,48 @@ export default function ResetPasswordPage() {
   const isNoToken = !token && !success;
 
   return (
-    <>
-      <AuthLeftPanel />
-      <div className="flex flex-col bg-white dark:bg-gray-900 rounded-3xl lg:rounded-r-3xl lg:rounded-l-none transition-colors duration-500">
-        <AuthMobileNav />
-        <div className="relative flex flex-1 flex-col items-center justify-center px-6 py-8 sm:px-12 sm:py-10 bg-white dark:bg-gray-900 transition-colors duration-500 lg:rounded-br-3xl">
-          <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20">
+    <div className="w-full max-w-[440px] mx-auto px-4 py-6 sm:px-0 sm:py-0 lg:my-auto">
+      <div className="relative bg-white dark:bg-gray-900 rounded-2xl sm:rounded-3xl shadow-lg sm:shadow-2xl sm:shadow-gray-900/10 dark:sm:shadow-black/40 sm:border sm:border-gray-200/60 dark:sm:border-gray-700/40 transition-colors duration-500">
+        {/* Header row: back + theme toggle */}
+        {!success && !isNoToken && (
+          <div className="flex items-center justify-between px-5 pt-4 sm:px-6 sm:pt-5">
+            <Link
+              href="/forgot-password"
+              className="inline-flex items-center gap-1 text-sm font-medium text-gray-400 dark:text-gray-500 hover:text-primary transition-colors"
+            >
+              <ChevronLeft size={16} />
+              Back
+            </Link>
             <ThemeToggle />
           </div>
+        )}
+        {(!success && isNoToken) && (
+          <div className="flex justify-end px-5 pt-4 sm:px-6 sm:pt-5">
+            <ThemeToggle />
+          </div>
+        )}
+
+        {/* Content */}
+        <div className="px-5 py-6 sm:px-10 sm:py-8 lg:px-10 lg:py-10 pb-[max(2rem,env(safe-area-inset-bottom))]">
           <motion.div
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="w-full max-w-[380px]"
           >
             {success ? (
               <motion.div variants={itemVariants} className="text-center">
-                <div className="mx-auto w-16 h-16 rounded-full bg-green-50 dark:bg-green-900/30 flex items-center justify-center mb-6">
+                <div className="mx-auto w-16 h-16 rounded-2xl bg-green-50 dark:bg-green-900/30 flex items-center justify-center mb-5">
                   <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
                 </div>
-                <h1 className="text-2xl font-bold text-green-700 dark:text-green-300 uppercase tracking-[0.05em] mb-2">
+                <h1 className="text-xl sm:text-2xl font-bold text-green-700 dark:text-green-300 uppercase tracking-[0.05em] mb-2">
                   Password Updated!
                 </h1>
-                <p className="text-sm text-gray-400 dark:text-gray-400 font-medium mb-6">
+                <p className="text-sm text-gray-400 dark:text-gray-500 font-medium mb-6">
                   Your password has been reset successfully.
                 </p>
                 <Button
                   onClick={() => router.push("/login")}
-                  className="w-full h-11 text-sm font-bold uppercase tracking-wider bg-primary text-primary-foreground hover:opacity-80 transition-all duration-300 group rounded-xl"
+                  className="w-full h-11 text-sm font-bold uppercase tracking-wider rounded-xl group"
                 >
                   Back to Login
                   <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -110,29 +123,32 @@ export default function ResetPasswordPage() {
               </motion.div>
             ) : isNoToken ? (
               <motion.div variants={itemVariants} className="text-center">
-                <div className="mx-auto w-16 h-16 rounded-full bg-red-50 dark:bg-red-900/30 flex items-center justify-center mb-6">
+                <div className="mx-auto w-16 h-16 rounded-2xl bg-red-50 dark:bg-red-900/30 flex items-center justify-center mb-5">
                   <XCircle className="w-8 h-8 text-red-600 dark:text-red-400" />
                 </div>
-                <h1 className="text-2xl font-bold text-red-700 dark:text-red-300 uppercase tracking-[0.05em] mb-2">
+                <h1 className="text-xl sm:text-2xl font-bold text-red-700 dark:text-red-300 uppercase tracking-[0.05em] mb-2">
                   Invalid Link
                 </h1>
-                <p className="text-sm text-gray-400 dark:text-gray-400 font-medium mb-6">
+                <p className="text-sm text-gray-400 dark:text-gray-500 font-medium mb-6">
                   This reset link is invalid or missing. Please request a new one.
                 </p>
                 <Button
                   onClick={() => router.push("/forgot-password")}
-                  className="w-full h-11 text-sm font-bold uppercase tracking-wider bg-primary text-primary-foreground hover:opacity-80 transition-all duration-300 rounded-xl"
+                  className="w-full h-11 text-sm font-bold uppercase tracking-wider rounded-xl"
                 >
                   Request New Link
                 </Button>
               </motion.div>
             ) : (
               <>
-                <motion.div variants={itemVariants} className="text-center mb-8">
-                  <h1 className="text-2xl font-bold text-primary uppercase tracking-[0.05em] transition-colors duration-500">
+                <motion.div variants={itemVariants} className="text-center mb-7 sm:mb-8">
+                  <div className="mx-auto w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-5">
+                    <ShieldCheck className="w-8 h-8 text-primary" />
+                  </div>
+                  <h1 className="text-xl sm:text-2xl font-bold text-primary uppercase tracking-[0.06em] transition-colors duration-500">
                     Reset Password
                   </h1>
-                  <p className="text-sm text-gray-400 dark:text-gray-400 mt-1.5 font-medium transition-colors duration-500">
+                  <p className="text-[0.82rem] sm:text-sm text-gray-400 dark:text-gray-500 mt-2 font-medium transition-colors duration-500">
                     Enter your new password below
                   </p>
                 </motion.div>
@@ -143,12 +159,12 @@ export default function ResetPasswordPage() {
                     </div>
                   </motion.div>
                 )}
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-5" noValidate>
                   <motion.div variants={itemVariants}>
                     <Input
                       label="New Password"
                       type={showPassword ? "text" : "password"}
-                      placeholder="••••••••"
+                      placeholder="Enter new password"
                       required
                       error={errors.password?.message}
                       leftAddon={<Lock size={16} />}
@@ -164,7 +180,7 @@ export default function ResetPasswordPage() {
                         </button>
                       }
                       aria-label="New password"
-                      className="dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder:text-gray-500 h-10 rounded-xl"
+                      className="dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder:text-gray-500 h-11 rounded-xl"
                       {...register("password")}
                     />
                   </motion.div>
@@ -172,7 +188,7 @@ export default function ResetPasswordPage() {
                     <Input
                       label="Confirm Password"
                       type={showConfirm ? "text" : "password"}
-                      placeholder="••••••••"
+                      placeholder="Re-enter new password"
                       required
                       error={errors.confirm?.message}
                       leftAddon={<Lock size={16} />}
@@ -188,14 +204,14 @@ export default function ResetPasswordPage() {
                         </button>
                       }
                       aria-label="Confirm password"
-                      className="dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder:text-gray-500 h-10 rounded-xl"
+                      className="dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder:text-gray-500 h-11 rounded-xl"
                       {...register("confirm")}
                     />
                   </motion.div>
-                  <motion.div variants={itemVariants}>
+                  <motion.div variants={itemVariants} className="pt-1">
                     <Button
                       type="submit"
-                      className="w-full h-11 text-sm font-bold uppercase tracking-wider bg-primary text-primary-foreground hover:opacity-80 transition-all duration-300 group rounded-xl"
+                      className="w-full h-11 text-sm font-bold uppercase tracking-wider rounded-xl group"
                       loading={isSubmitting}
                     >
                       Update Password
@@ -207,24 +223,9 @@ export default function ResetPasswordPage() {
                 </form>
               </>
             )}
-
-            {!success && (
-              <motion.p
-                variants={itemVariants}
-                className="mt-6 text-center text-sm text-gray-500 dark:text-gray-400 lg:hidden"
-              >
-                Back to{" "}
-                <Link
-                  href="/login"
-                  className="font-bold text-primary hover:opacity-70 hover:underline transition-colors"
-                >
-                  Sign In
-                </Link>
-              </motion.p>
-            )}
           </motion.div>
         </div>
       </div>
-    </>
+    </div>
   );
 }

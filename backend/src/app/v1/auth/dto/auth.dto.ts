@@ -80,6 +80,12 @@ export class ResetPasswordDto {
   password!: string;
 }
 
+export class SetPasswordDto {
+  @IsString()
+  @MinLength(8)
+  newPassword!: string;
+}
+
 export class ChangePasswordDto {
   @IsString()
   @MinLength(6)
