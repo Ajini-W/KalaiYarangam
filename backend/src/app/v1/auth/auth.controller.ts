@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Post, Put, Req, Res, UseGuards } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import { Throttle } from '@nestjs/throttler';
@@ -15,6 +15,7 @@ import {
   RefreshTokenDto,
   ResetPasswordDto,
   SendVerificationTokenDto,
+  UpdateProfileDto,
   UpdateUserStatusDto,
   VerifyEmailDto,
 } from './dto/auth.dto';
@@ -115,6 +116,16 @@ export class AuthController {
   @Get('me')
   me(@CurrentUser() user: AuthenticatedUser) {
     return this.authService.me(user);
+  }
+
+  @Get('profile')
+  getProfile(@CurrentUser() user: AuthenticatedUser) {
+    return this.authService.getProfile(user.id);
+  }
+
+  @Put('profile')
+  updateProfile(@Body() dto: UpdateProfileDto, @CurrentUser() user: AuthenticatedUser) {
+    return this.authService.updateProfile(user.id, dto);
   }
 
   @Public()

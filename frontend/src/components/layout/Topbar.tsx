@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Menu, Search, Bell, Sun, Moon, User, Settings, Lock, LogOut } from "lucide-react";
+import { Menu, Search, Bell, Sun, Moon, User, Settings, Lock, LogOut, IdCard } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { Breadcrumb } from "./Breadcrumb";
 import { useAuthStore } from "@/store/auth.store";
@@ -44,8 +44,8 @@ export function Topbar({ onMenuToggle, className }: TopbarProps) {
     ? user.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
     : "?";
 
-  const handleSignOut = () => {
-    logout();
+  const handleSignOut = async () => {
+    await logout();
     router.push("/login");
   };
 
@@ -101,6 +101,14 @@ export function Topbar({ onMenuToggle, className }: TopbarProps) {
                 <p className="text-sm font-medium text-text-primary truncate">{user?.name}</p>
                 <p className="text-xs text-text-secondary truncate">{user?.email}</p>
               </div>
+              <Link
+                href="/dashboard/profile"
+                onClick={() => setMenuOpen(false)}
+                className="flex items-center gap-2 px-3 py-2 text-sm text-text-primary hover:bg-surface-overlay transition-colors"
+              >
+                <IdCard size={16} className="text-text-secondary" />
+                Profile
+              </Link>
               <Link
                 href="/dashboard/settings/organisation"
                 onClick={() => setMenuOpen(false)}

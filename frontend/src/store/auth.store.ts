@@ -20,7 +20,7 @@ interface AuthState {
 
   login: (payload: LoginPayload) => Promise<{ isFirstLogin?: boolean }>;
   register: (payload: RegisterPayload) => Promise<{ isFirstLogin?: boolean }>;
-  logout: () => void;
+  logout: () => Promise<void>;
   setUser: (user: AuthUser) => void;
   initialize: () => Promise<void>;
   verifyEmail: (token: string) => Promise<void>;
@@ -87,10 +87,37 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
-  logout: () => {
+  logout: async () => {
+    const refreshToken = localStorage.getItem("refreshToken");
+
+    // Call server to revoke the refresh token (best-effort)
+    if (refreshToken) {
+      try {
+        await authService.logout(refreshToken);
+      } catch {
+        // Server-side token revocation is best-effort
+      }
+    }
+
+    // Clear all browser storage
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
+    sessionStorage.clear();
+
+    // Clear cookies
     removeTokenCookie();
+
+    // Clear service worker caches if any
+    if (typeof caches !== "undefined") {
+      try {
+        const keys = await caches.keys();
+        await Promise.all(keys.map((k) => caches.delete(k)));
+      } catch {
+        // Cache clearing is best-effort
+      }
+    }
+
+    // Reset state
     set({ user: null, accessToken: null, refreshToken: null, isAuthenticated: false, isFirstLogin: false });
   },
 

@@ -23,6 +23,7 @@ import {
   RefreshTokenDto,
   ResetPasswordDto,
   SendVerificationTokenDto,
+  UpdateProfileDto,
   UpdateUserStatusDto,
   VerifyEmailDto,
 } from './dto/auth.dto';
@@ -451,6 +452,94 @@ export class AuthService {
 
   me(user: AuthenticatedUser) {
     return { message: 'User profile retrieved', data: user };
+  }
+
+  async getProfile(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { profile: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return {
+      message: 'Profile retrieved',
+      data: {
+        id: user.id,
+        tenantId: user.tenantId,
+        email: user.email,
+        name: user.name,
+        phone: user.phone,
+        role: user.role,
+        status: user.status,
+        avatarUrl: user.avatarUrl,
+        lastLoginAt: user.lastLoginAt,
+        createdAt: user.createdAt,
+        profile: user.profile
+          ? {
+              dateOfBirth: user.profile.dateOfBirth?.toISOString().split('T')[0],
+              gender: user.profile.gender,
+              addressLine1: user.profile.addressLine1,
+              addressLine2: user.profile.addressLine2,
+              city: user.profile.city,
+              state: user.profile.state,
+              pincode: user.profile.pincode,
+              emergencyName: user.profile.emergencyName,
+              emergencyPhone: user.profile.emergencyPhone,
+              bio: user.profile.bio,
+            }
+          : null,
+      },
+    };
+  }
+
+  async updateProfile(userId: string, dto: UpdateProfileDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { profile: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Update User-level fields
+    const userUpdate: Record<string, unknown> = {};
+    if (dto.name !== undefined) userUpdate.name = dto.name;
+    if (dto.phone !== undefined) userUpdate.phone = dto.phone;
+    if (dto.avatarUrl !== undefined) userUpdate.avatarUrl = dto.avatarUrl;
+
+    if (Object.keys(userUpdate).length > 0) {
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: userUpdate,
+      });
+    }
+
+    // Update UserProfile-level fields — upsert
+    const profileUpdate: Record<string, unknown> = {};
+    if (dto.dateOfBirth !== undefined) profileUpdate.dateOfBirth = dto.dateOfBirth ? new Date(dto.dateOfBirth) : null;
+    if (dto.gender !== undefined) profileUpdate.gender = dto.gender;
+    if (dto.addressLine1 !== undefined) profileUpdate.addressLine1 = dto.addressLine1;
+    if (dto.addressLine2 !== undefined) profileUpdate.addressLine2 = dto.addressLine2;
+    if (dto.city !== undefined) profileUpdate.city = dto.city;
+    if (dto.state !== undefined) profileUpdate.state = dto.state;
+    if (dto.pincode !== undefined) profileUpdate.pincode = dto.pincode;
+    if (dto.emergencyName !== undefined) profileUpdate.emergencyName = dto.emergencyName;
+    if (dto.emergencyPhone !== undefined) profileUpdate.emergencyPhone = dto.emergencyPhone;
+    if (dto.bio !== undefined) profileUpdate.bio = dto.bio;
+
+    if (Object.keys(profileUpdate).length > 0) {
+      await this.prisma.userProfile.upsert({
+        where: { userId },
+        create: { userId, ...profileUpdate } as any,
+        update: profileUpdate,
+      });
+    }
+
+    return this.getProfile(userId);
   }
 
   private async generateTokens(user: {

@@ -23,6 +23,7 @@ import {
   Shield,
   KeyRound,
   Building2,
+  IdCard,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 
@@ -80,6 +81,7 @@ const nav: NavItem[] = [
   { label: "Reports", href: "/dashboard/reports/revenue", icon: BarChart2 },
   { label: "Notifications", href: "/dashboard/notifications", icon: Bell },
   { label: "Users", href: "/dashboard/users", icon: Users },
+  { label: "Profile", href: "/dashboard/profile", icon: IdCard },
   {
     label: "Settings",
     icon: Settings,
@@ -161,8 +163,8 @@ export function Sidebar({ collapsed, onClose }: SidebarProps) {
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
 
-  const handleSignOut = () => {
-    logout();
+  const handleSignOut = async () => {
+    await logout();
     router.push("/login");
   };
 

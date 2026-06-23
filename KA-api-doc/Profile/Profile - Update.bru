@@ -1,0 +1,109 @@
+meta {
+  name: Profile - Update
+  type: http
+  seq: 2
+}
+
+put {
+  url: {{base-url}}/auth/profile
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: bearer {{accessToken}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "John Doe Updated",
+    "phone": "+919876543210",
+    "dateOfBirth": "1995-06-15",
+    "gender": "MALE",
+    "addressLine1": "456 New Street",
+    "addressLine2": "Floor 3",
+    "city": "Chennai",
+    "state": "Tamil Nadu",
+    "pincode": "600001",
+    "emergencyName": "Jane Doe",
+    "emergencyPhone": "+919876543211",
+    "bio": "Updated bio information"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
+
+example {
+  name: 200
+
+  request: {
+    url: {{base-url}}/auth/profile
+    method: PUT
+    mode: json
+    headers: {
+      Authorization: bearer {{accessToken}}
+      Content-Type: application/json
+    }
+    body: {
+      type: json
+      content: '''
+        {
+          "name": "John Doe Updated",
+          "phone": "+919876543210",
+          "dateOfBirth": "1995-06-15",
+          "gender": "MALE",
+          "addressLine1": "456 New Street",
+          "city": "Chennai",
+          "state": "Tamil Nadu",
+          "pincode": "600001"
+        }
+      '''
+    }
+  }
+
+  response: {
+    status: {
+      code: 200
+      text: OK
+    }
+
+    body: {
+      type: json
+      content: '''
+        {
+          "httpStatusCode": 200,
+          "message": "Profile retrieved",
+          "data": {
+            "id": "6c825958-60a1-4d03-aac8-19f9bbd650fd",
+            "tenantId": "d1a2b3c4-...",
+            "email": "user@example.com",
+            "name": "John Doe Updated",
+            "phone": "+919876543210",
+            "role": "STAFF",
+            "status": "ACTIVE",
+            "avatarUrl": null,
+            "lastLoginAt": "2026-06-24T10:00:00.000Z",
+            "createdAt": "2026-06-20T08:00:00.000Z",
+            "profile": {
+              "dateOfBirth": "1995-06-15",
+              "gender": "MALE",
+              "addressLine1": "456 New Street",
+              "addressLine2": null,
+              "city": "Chennai",
+              "state": "Tamil Nadu",
+              "pincode": "600001",
+              "emergencyName": null,
+              "emergencyPhone": null,
+              "bio": null
+            }
+          },
+          "timestamp": "2026-06-24T10:31:00.000Z"
+        }
+      '''
+    }
+  }
+}
