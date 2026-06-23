@@ -1,8 +1,3 @@
-Loaded Prisma config from prisma.config.ts.
-
--- CreateSchema
-CREATE SCHEMA IF NOT EXISTS "public";
-
 -- CreateEnum
 CREATE TYPE "UserRole" AS ENUM ('SUPER_ADMIN', 'OWNER', 'BRANCH_MANAGER', 'TRAINER', 'STAFF', 'STUDENT', 'CLIENT');
 
@@ -88,6 +83,11 @@ CREATE TABLE "users" (
     "phone" VARCHAR(20),
     "role" "UserRole" NOT NULL DEFAULT 'STAFF',
     "status" "UserStatus" NOT NULL DEFAULT 'PENDING',
+    "verification_token" VARCHAR(255),
+    "verification_token_expires_at" TIMESTAMP(3),
+    "verified_at" TIMESTAMP(3),
+    "reset_password_token" VARCHAR(255),
+    "reset_password_expires_at" TIMESTAMP(3),
     "avatar_url" VARCHAR(500),
     "last_login_at" TIMESTAMP(3),
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -1198,10 +1198,22 @@ CREATE TABLE "commission_payouts" (
 );
 
 -- CreateIndex
+CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "users_phone_key" ON "users"("phone");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "users_verification_token_key" ON "users"("verification_token");
+
+-- CreateIndex
 CREATE INDEX "users_tenant_id_idx" ON "users"("tenant_id");
 
 -- CreateIndex
 CREATE INDEX "users_email_idx" ON "users"("email");
+
+-- CreateIndex
+CREATE INDEX "users_phone_idx" ON "users"("phone");
 
 -- CreateIndex
 CREATE INDEX "users_role_idx" ON "users"("role");
@@ -1210,7 +1222,7 @@ CREATE INDEX "users_role_idx" ON "users"("role");
 CREATE INDEX "users_status_idx" ON "users"("status");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "users_tenant_id_email_key" ON "users"("tenant_id", "email");
+CREATE INDEX "users_reset_password_token_idx" ON "users"("reset_password_token");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "user_profiles_user_id_key" ON "user_profiles"("user_id");
@@ -1241,6 +1253,9 @@ CREATE UNIQUE INDEX "role_permissions_role_permission_id_key" ON "role_permissio
 
 -- CreateIndex
 CREATE UNIQUE INDEX "user_roles_user_id_role_tenant_id_key" ON "user_roles"("user_id", "role", "tenant_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "tenants_name_key" ON "tenants"("name");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "tenants_slug_key" ON "tenants"("slug");
@@ -1781,4 +1796,3 @@ ALTER TABLE "customer_feedback" ADD CONSTRAINT "customer_feedback_customer_id_fk
 
 -- AddForeignKey
 ALTER TABLE "platform_notifications" ADD CONSTRAINT "platform_notifications_template_id_fkey" FOREIGN KEY ("template_id") REFERENCES "announcement_templates"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
