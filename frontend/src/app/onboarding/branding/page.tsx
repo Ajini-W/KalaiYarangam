@@ -5,13 +5,19 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { BrandingForm, type BrandingFormData } from "@/components/forms/BrandingForm";
 import { updateBranding } from "@/services/branding";
+import { useBrandTheme } from "@/providers/BrandThemeProvider";
 
 export default function BrandingPage() {
   const router = useRouter();
 
+  const { applyBrandTheme } = useBrandTheme();
+
   const handleSave = async (data: BrandingFormData) => {
     try {
       await updateBranding(data);
+      if (data.primaryColor) {
+        applyBrandTheme(data.primaryColor, data.secondaryColor ?? data.primaryColor);
+      }
       toast.success("Branding settings saved");
       router.push("/onboarding/module-activation");
     } catch {

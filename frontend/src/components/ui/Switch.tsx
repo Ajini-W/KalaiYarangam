@@ -20,9 +20,9 @@ export function Switch({ checked, onCheckedChange, disabled, id }: SwitchProps) 
       onClick={() => onCheckedChange(!checked)}
       className={cn(
         "relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
         "disabled:cursor-not-allowed disabled:opacity-50",
-        checked ? "bg-brand-500" : "bg-border",
+        checked ? "bg-primary" : "bg-border",
       )}
     >
       <span

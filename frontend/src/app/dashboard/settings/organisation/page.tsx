@@ -15,12 +15,17 @@ import { getTenant, updateTenant } from "@/services/tenant";
 import { getSettings, updateSettings } from "@/services/settings";
 
 const schema = z.object({
-  orgName:   z.string().min(2, "Required"),
-  phone:     z.string().min(10, "Required"),
-  email:     z.string().email("Valid email required"),
-  industry:  z.string().min(1, "Select an industry"),
-  timezone:  z.string().min(1, "Required"),
-  currency:  z.string().min(1, "Required"),
+  orgName:     z.string().min(2, "Required"),
+  phone:       z.string().min(10, "Required"),
+  email:       z.string().email("Valid email required"),
+  website:     z.string().url("Must be a valid URL").or(z.literal("")).optional(),
+  industry:    z.string().min(1, "Select an industry"),
+  timezone:    z.string().min(1, "Required"),
+  currency:    z.string().min(1, "Required"),
+  dateFormat:  z.string().min(1, "Required"),
+  language:    z.string().min(1, "Required"),
+  timeFormat:  z.string().min(1, "Required"),
+  weekStartDay: z.string().min(1, "Required"),
 });
 type FormData = z.infer<typeof schema>;
 
@@ -49,12 +54,17 @@ export default function OrganisationSettingsPage() {
         if (!mounted) return;
 
         reset({
-          orgName:  tenantRes.data.name ?? "",
-          phone:    tenantRes.data.phone ?? "",
-          email:    tenantRes.data.email ?? "",
-          industry: tenantRes.data.industry?.toLowerCase() ?? "",
-          timezone: settingsRes.data.timezone ?? "",
-          currency: settingsRes.data.currency ?? "",
+          orgName:      tenantRes.data.name ?? "",
+          phone:        tenantRes.data.phone ?? "",
+          email:        tenantRes.data.email ?? "",
+          website:      tenantRes.data.website ?? "",
+          industry:     tenantRes.data.industry?.toLowerCase() ?? "",
+          timezone:     settingsRes.data.timezone ?? "",
+          currency:     settingsRes.data.currency ?? "",
+          dateFormat:   settingsRes.data.dateFormat ?? "",
+          language:     settingsRes.data.language ?? "",
+          timeFormat:   settingsRes.data.timeFormat ?? "",
+          weekStartDay: settingsRes.data.weekStartDay ?? "",
         });
       } catch {
         if (!mounted) return;
@@ -78,11 +88,16 @@ export default function OrganisationSettingsPage() {
           name:     data.orgName,
           phone:    data.phone,
           email:    data.email,
+          website:  data.website || undefined,
           industry: data.industry.toUpperCase(),
         }),
         updateSettings({
-          timezone: data.timezone,
-          currency: data.currency,
+          timezone:     data.timezone,
+          currency:     data.currency,
+          dateFormat:   data.dateFormat,
+          language:     data.language,
+          timeFormat:   data.timeFormat,
+          weekStartDay: data.weekStartDay,
         }),
       ]);
 
@@ -132,6 +147,7 @@ export default function OrganisationSettingsPage() {
               <Input label="Phone" type="tel" required error={errors.phone?.message}  {...register("phone")} />
               <Input label="Email" type="email" required error={errors.email?.message} {...register("email")} />
             </div>
+            <Input label="Website" type="url" placeholder="https://example.com" error={errors.website?.message} {...register("website")} />
             <Select
               label="Industry"
               required
@@ -139,7 +155,7 @@ export default function OrganisationSettingsPage() {
               options={[
                 { value: "training", label: "Training / Coaching" },
                 { value: "rental",   label: "Rental Business" },
-                { value: "events",   label: "Event Management" },
+                { value: "event",   label: "Event Management" },
               ]}
               {...register("industry")}
             />
@@ -171,6 +187,53 @@ export default function OrganisationSettingsPage() {
                   { value: "SGD", label: "SGD — Singapore Dollar" },
                 ]}
                 {...register("currency")}
+              />
+            </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <Select
+                label="Date Format"
+                required
+                error={errors.dateFormat?.message}
+                options={[
+                  { value: "DD/MM/YYYY", label: "DD/MM/YYYY" },
+                  { value: "MM/DD/YYYY", label: "MM/DD/YYYY" },
+                  { value: "YYYY-MM-DD", label: "YYYY-MM-DD" },
+                ]}
+                {...register("dateFormat")}
+              />
+              <Select
+                label="Time Format"
+                required
+                error={errors.timeFormat?.message}
+                options={[
+                  { value: "12h", label: "12-hour (AM/PM)" },
+                  { value: "24h", label: "24-hour" },
+                ]}
+                {...register("timeFormat")}
+              />
+            </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <Select
+                label="Language"
+                required
+                error={errors.language?.message}
+                options={[
+                  { value: "en", label: "English" },
+                  { value: "ta", label: "தமிழ் (Tamil)" },
+                  { value: "hi", label: "हिन्दी (Hindi)" },
+                ]}
+                {...register("language")}
+              />
+              <Select
+                label="Week Starts On"
+                required
+                error={errors.weekStartDay?.message}
+                options={[
+                  { value: "monday",    label: "Monday" },
+                  { value: "sunday",    label: "Sunday" },
+                  { value: "saturday",  label: "Saturday" },
+                ]}
+                {...register("weekStartDay")}
               />
             </div>
           </CardBody>

@@ -1,11 +1,11 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { IndustryType } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '@/database';
 import { AuthenticatedUser } from '@/common/interfaces';
 import { paginate, paginationArgs } from '@/common/utils';
-import { CreateBatchDto, CreateBranchDto, CreateStudentDto, CreateTenantDto, QueryPaginationDto, UpdateBranchDto, UpdateBranchStatusDto, UpdateBrandingDto, UpdateModulesDto, UpdateTenantDto, UpdateTenantSettingsDto } from './dto/training.dto';
+import { ClaimTenantDto, CreateBatchDto, CreateBranchDto, CreateStudentDto, CreateTenantDto, QueryPaginationDto, UpdateBranchDto, UpdateBranchStatusDto, UpdateBrandingDto, UpdateModulesDto, UpdateTenantDto, UpdateTenantSettingsDto } from './dto/training.dto';
 
 function slugify(value: string) {
   return value
@@ -133,6 +133,100 @@ export class TrainingService {
     return { message: 'Tenant created successfully', data: { id: tenant.id, name: tenant.name, slug: tenant.slug } };
   }
 
+  async claimTenant(user: AuthenticatedUser, dto: ClaimTenantDto) {
+    if (user.tenantId) {
+      // Only link the user if they don't already have a tenant
+      const existingTenant = await this.prisma.tenant.findUnique({ where: { id: user.tenantId } });
+      if (existingTenant) {
+        throw new ConflictException('User already belongs to a tenant');
+      }
+    }
+
+    const slug = slugify(dto.businessName);
+    const existing = await this.prisma.tenant.findUnique({ where: { slug } });
+
+    if (existing) {
+      throw new ConflictException('Business name is already registered');
+    }
+
+    const result = await this.prisma.$transaction(async (tx) => {
+      const t = await tx.tenant.create({
+        data: {
+          name: dto.businessName,
+          slug,
+          ...(dto.industry ? { industry: dto.industry as IndustryType } : {}),
+          ...(dto.phone ? { phone: dto.phone } : {}),
+          ...(dto.email ? { email: dto.email } : {}),
+          branches: {
+            create: { name: 'Main Branch', isDefault: true },
+          },
+        },
+        include: { branches: true },
+      });
+
+      const branch = t.branches[0];
+
+      await tx.user.update({
+        where: { id: user.id },
+        data: {
+          tenantId: t.id,
+          role: 'OWNER',
+          status: 'ACTIVE',
+        },
+      });
+
+      await tx.userRoleMapping.create({
+        data: { userId: user.id, role: 'OWNER', tenantId: t.id },
+      });
+
+      await tx.userBranch.create({
+        data: { userId: user.id, branchId: branch.id, isPrimary: true },
+      });
+
+      const defaultSettings = [
+        { key: 'timezone', value: 'Asia/Kolkata' },
+        { key: 'dateFormat', value: 'DD/MM/YYYY' },
+        { key: 'currency', value: 'INR' },
+        { key: 'language', value: 'en' },
+        { key: 'timeFormat', value: '12h' },
+        { key: 'weekStartDay', value: 'monday' },
+      ];
+
+      await tx.tenantSetting.createMany({
+        data: defaultSettings.map((s) => ({ tenantId: t.id, ...s })),
+      });
+
+      const defaultModules = [
+        { key: 'module_trainingManagement', value: 'true' },
+        { key: 'module_rentalManagement', value: 'false' },
+        { key: 'module_eventManagement', value: 'false' },
+      ];
+
+      await tx.tenantSetting.createMany({
+        data: defaultModules.map((m) => ({ tenantId: t.id, ...m })),
+      });
+
+      return { tenant: t, branch };
+    });
+
+    const updatedUser = await this.prisma.user.findUnique({
+      where: { id: user.id },
+      select: { id: true, tenantId: true, email: true, name: true, role: true },
+    });
+
+    const payload = toPayload(updatedUser!);
+    const accessToken = this.jwtService.sign(payload);
+
+    return {
+      message: 'Tenant created successfully',
+      data: {
+        token: { accessToken, user: payload },
+        tenant: { id: result.tenant.id, name: result.tenant.name, slug: result.tenant.slug, industry: result.tenant.industry },
+        branch: { id: result.branch.id, name: result.branch.name, isDefault: result.branch.isDefault },
+      },
+    };
+  }
+
   async completeOnboarding(dto: CreateTenantDto) {
     const slug = slugify(dto.businessName);
     const existing = await this.prisma.tenant.findUnique({ where: { slug } });
@@ -238,6 +332,10 @@ export class TrainingService {
   }
 
   async getTenant(user: AuthenticatedUser) {
+    if (!user.tenantId) {
+      throw new NotFoundException('Tenant not found');
+    }
+
     const tenant = await this.prisma.tenant.findUnique({ where: { id: user.tenantId } });
 
     if (!tenant) {
@@ -248,6 +346,10 @@ export class TrainingService {
   }
 
   async updateTenant(user: AuthenticatedUser, dto: UpdateTenantDto) {
+    if (!user.tenantId) {
+      throw new NotFoundException('Tenant not found');
+    }
+
     const tenant = await this.prisma.tenant.update({
       where: { id: user.tenantId },
       data: {
@@ -256,6 +358,7 @@ export class TrainingService {
         ...(dto.email ? { email: dto.email } : {}),
         ...(dto.website ? { website: dto.website } : {}),
         ...(dto.logoUrl ? { logoUrl: dto.logoUrl } : {}),
+        ...(dto.industry ? { industry: dto.industry as IndustryType } : {}),
       },
     });
 
@@ -263,6 +366,10 @@ export class TrainingService {
   }
 
   async createBranch(user: AuthenticatedUser, dto: CreateBranchDto) {
+    if (!user.tenantId) {
+      throw new NotFoundException('Tenant not found');
+    }
+
     const data = await this.prisma.branch.create({
       data: {
         tenantId: user.tenantId,
@@ -274,6 +381,10 @@ export class TrainingService {
   }
 
   async findBranches(user: AuthenticatedUser, query: QueryPaginationDto) {
+    if (!user.tenantId) {
+      throw new NotFoundException('Tenant not found');
+    }
+
     const where = { tenantId: user.tenantId };
     const { skip, take, page, pageSize } = paginationArgs(query.page, query.pageSize);
 
@@ -286,6 +397,10 @@ export class TrainingService {
   }
 
   async findOneBranch(user: AuthenticatedUser, id: string) {
+    if (!user.tenantId) {
+      throw new NotFoundException('Tenant not found');
+    }
+
     const branch = await this.prisma.branch.findFirst({
       where: { id, tenantId: user.tenantId },
     });
@@ -298,6 +413,10 @@ export class TrainingService {
   }
 
   async updateBranch(user: AuthenticatedUser, id: string, dto: UpdateBranchDto) {
+    if (!user.tenantId) {
+      throw new NotFoundException('Tenant not found');
+    }
+
     const branch = await this.prisma.branch.findFirst({
       where: { id, tenantId: user.tenantId },
     });
@@ -315,6 +434,10 @@ export class TrainingService {
   }
 
   async updateBranchStatus(user: AuthenticatedUser, id: string, dto: UpdateBranchStatusDto) {
+    if (!user.tenantId) {
+      throw new NotFoundException('Tenant not found');
+    }
+
     const branch = await this.prisma.branch.findFirst({
       where: { id, tenantId: user.tenantId },
     });
@@ -332,6 +455,10 @@ export class TrainingService {
   }
 
   async getTenantSettings(user: AuthenticatedUser) {
+    if (!user.tenantId) {
+      throw new NotFoundException('Tenant not found');
+    }
+
     const settings = await this.prisma.tenantSetting.findMany({
       where: { tenantId: user.tenantId },
     });
@@ -345,6 +472,10 @@ export class TrainingService {
   }
 
   async createTenantSettings(user: AuthenticatedUser, dto: UpdateTenantSettingsDto) {
+    if (!user.tenantId) {
+      throw new NotFoundException('Tenant not found');
+    }
+
     const entries = Object.entries(dto).filter(
       (entry): entry is [string, string] => entry[1] !== undefined,
     );
@@ -374,6 +505,10 @@ export class TrainingService {
   }
 
   async updateTenantSettings(user: AuthenticatedUser, dto: UpdateTenantSettingsDto) {
+    if (!user.tenantId) {
+      throw new NotFoundException('Tenant not found');
+    }
+
     const entries = Object.entries(dto).filter(
       (entry): entry is [string, string] => entry[1] !== undefined,
     );
@@ -403,6 +538,10 @@ export class TrainingService {
   }
 
   async getBranding(user: AuthenticatedUser) {
+    if (!user.tenantId) {
+      throw new NotFoundException('Tenant not found');
+    }
+
     const [tenantBrand, tenant] = await Promise.all([
       this.prisma.tenantBrand.findUnique({ where: { tenantId: user.tenantId } }),
       this.prisma.tenant.findUnique({
@@ -413,17 +552,19 @@ export class TrainingService {
 
     const data = {
       logoUrl: tenant?.logoUrl ?? null,
-      faviconUrl: tenantBrand?.faviconUrl ?? null,
       primaryColor: tenantBrand?.primaryColor ?? null,
       secondaryColor: tenantBrand?.secondaryColor ?? null,
       tagline: tenantBrand?.tagline ?? null,
-      customDomain: tenantBrand?.customDomain ?? null,
     };
 
     return { message: 'Branding retrieved successfully', data };
   }
 
   async updateBranding(user: AuthenticatedUser, dto: UpdateBrandingDto) {
+    if (!user.tenantId) {
+      throw new NotFoundException('Tenant not found');
+    }
+
     const { logoUrl, ...brandFields } = dto;
 
     const entries = Object.entries(brandFields).filter(
@@ -460,17 +601,19 @@ export class TrainingService {
 
     const data = {
       logoUrl: tenant?.logoUrl ?? null,
-      faviconUrl: tenantBrand?.faviconUrl ?? null,
       primaryColor: tenantBrand?.primaryColor ?? null,
       secondaryColor: tenantBrand?.secondaryColor ?? null,
       tagline: tenantBrand?.tagline ?? null,
-      customDomain: tenantBrand?.customDomain ?? null,
     };
 
     return { message: 'Branding updated successfully', data };
   }
 
   async getModules(user: AuthenticatedUser) {
+    if (!user.tenantId) {
+      throw new NotFoundException('Tenant not found');
+    }
+
     const settings = await this.prisma.tenantSetting.findMany({
       where: { tenantId: user.tenantId, key: { startsWith: 'module_' } },
     });
@@ -492,6 +635,10 @@ export class TrainingService {
   }
 
   async updateModules(user: AuthenticatedUser, dto: UpdateModulesDto) {
+    if (!user.tenantId) {
+      throw new NotFoundException('Tenant not found');
+    }
+
     const entries = Object.entries(dto).filter(
       (entry): entry is [string, boolean] => entry[1] !== undefined,
     );

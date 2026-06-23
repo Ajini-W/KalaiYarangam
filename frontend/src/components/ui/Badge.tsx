@@ -8,7 +8,8 @@ const variants = {
   danger:  "bg-danger-light  text-danger-700",
   info:    "bg-info-light    text-info-700",
   outline: "border border-border text-text-secondary bg-transparent",
-  brand:   "bg-primary/10 text-primary",
+  brand:    "bg-primary/10 text-primary",
+  secondary: "bg-secondary/10 text-secondary",
 } as const;
 
 const sizes = {

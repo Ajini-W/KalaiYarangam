@@ -16,6 +16,12 @@
   --brand-800: #3730a3;
   --brand-900: #312e81;
 
+  /* Dynamic tenant brand (overridden by BrandThemeProvider) */
+  --primary:             #6366f1;
+  --primary-foreground:   #ffffff;
+  --secondary:           #818cf8;
+  --secondary-foreground: #ffffff;
+
   /* Success — Green */
   --success-50:  #f0fdf4;
   --success-500: #22c55e;
@@ -59,6 +65,9 @@
 
 /* ─── Dark Mode ─────────────────────────────────────────────────────────────── */
 .dark {
+  /* Dynamic tenant brand — dark mode overrides */
+  --primary-foreground: #0f172a;
+
   /* Surfaces */
   --surface:         #0f172a;
   --surface-raised:  #1e293b;

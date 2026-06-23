@@ -84,6 +84,10 @@ export class UpdateTenantDto {
   @IsOptional()
   @IsString()
   logoUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  industry?: string;
 }
 
 export class QueryPaginationDto {
@@ -223,13 +227,7 @@ export class UpdateTenantSettingsDto {
 export class UpdateBrandingDto {
   @IsOptional()
   @IsString()
-  @MaxLength(500)
   logoUrl?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(500)
-  faviconUrl?: string;
 
   @IsOptional()
   @IsString()
@@ -245,11 +243,25 @@ export class UpdateBrandingDto {
   @IsString()
   @MaxLength(255)
   tagline?: string;
+}
+
+export class ClaimTenantDto {
+  @IsString()
+  @MinLength(2)
+  businessName!: string;
 
   @IsOptional()
   @IsString()
-  @MaxLength(255)
-  customDomain?: string;
+  industry?: string;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(10)
+  phone?: string;
+
+  @IsOptional()
+  @IsEmail()
+  email?: string;
 }
 
 export class UpdateModulesDto {

@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { BrandingForm, type BrandingFormData } from "@/components/forms/BrandingForm";
 import { getBranding, updateBranding } from "@/services/branding";
+import { useBrandTheme } from "@/providers/BrandThemeProvider";
 
 export default function BrandingSettingsPage() {
   const [loading, setLoading] = React.useState(true);
@@ -19,11 +20,9 @@ export default function BrandingSettingsPage() {
         if (!mounted) return;
         setDefaultValues({
           logoUrl: res.data.logoUrl ?? "",
-          faviconUrl: res.data.faviconUrl ?? "",
           primaryColor: res.data.primaryColor ?? "",
           secondaryColor: res.data.secondaryColor ?? "",
           tagline: res.data.tagline ?? "",
-          customDomain: res.data.customDomain ?? "",
         });
       } catch {
         if (!mounted) return;
@@ -37,9 +36,14 @@ export default function BrandingSettingsPage() {
     return () => { mounted = false; };
   }, []);
 
+  const { applyBrandTheme } = useBrandTheme();
+
   const handleSave = async (data: BrandingFormData) => {
     try {
       await updateBranding(data);
+      if (data.primaryColor) {
+        applyBrandTheme(data.primaryColor, data.secondaryColor ?? data.primaryColor);
+      }
       toast.success("Branding settings saved");
     } catch {
       toast.error("Failed to save branding settings");

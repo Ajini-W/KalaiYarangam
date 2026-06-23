@@ -7,12 +7,14 @@ import helmet from 'helmet';
 const compression = require('compression');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const session = require('express-session');
+import { json } from 'express';
 import { AppModule } from '@/app.module';
 import { env } from '@/config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  app.use(json({ limit: '5mb' }));
   app.use(helmet());
   app.use(compression());
   app.use(

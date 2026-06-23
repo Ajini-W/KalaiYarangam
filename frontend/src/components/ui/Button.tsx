@@ -6,7 +6,7 @@ import { cn } from "@/lib/cn";
 
 const variants = {
   primary:   "bg-primary text-primary-foreground hover:opacity-80 active:opacity-90 disabled:opacity-50",
-  secondary: "bg-surface-overlay text-text-primary hover:bg-border active:bg-border-subtle disabled:opacity-50",
+  secondary: "bg-secondary text-secondary-foreground hover:opacity-80 active:opacity-90 disabled:opacity-50",
   outline:   "border border-border bg-transparent text-text-primary hover:bg-surface-raised disabled:opacity-50",
   ghost:     "bg-transparent text-text-primary hover:bg-surface-overlay disabled:opacity-50",
   danger:    "bg-danger text-white hover:bg-danger-700 active:bg-danger-700 disabled:opacity-50",
