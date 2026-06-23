@@ -37,8 +37,8 @@ export default function ProfileSetupPage() {
     getOnboardingProgress()
       .then((res) => {
         const role = res.data.progress.selectedRole || res.data.user.role;
-        if (role === "OWNER") setRedirectPath("/onboarding/company-profile");
-        else if (role === "CLIENT") setRedirectPath("/onboarding");
+        if (role === "OWNER") setRedirectPath("/onboarding/tenant-setup");
+        else if (role === "CLIENT") setRedirectPath("/client/dashboard");
         else setRedirectPath("/onboarding/tenant-search");
       })
       .catch(() => {});
@@ -55,9 +55,14 @@ export default function ProfileSetupPage() {
   const handleSubmit = async (data: ProfileFormData) => {
     setSaving(true);
     try {
-      await setupProfile(data);
+      const res = await setupProfile(data);
       toast.success("Profile saved successfully");
-      router.push(redirectPath);
+
+      if (res.data?.completed && res.data?.redirectTo) {
+        router.push(res.data.redirectTo);
+      } else {
+        router.push(redirectPath);
+      }
     } catch {
       toast.error("Failed to save profile");
     } finally {

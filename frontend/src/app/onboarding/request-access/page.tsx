@@ -7,12 +7,19 @@ import { Card, CardHeader, CardTitle, CardBody } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Button } from "@/components/ui/Button";
-import { requestAccess } from "@/services/onboarding";
+import { requestAccess, getOnboardingProgress } from "@/services/onboarding";
 
 export default function RequestAccessPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tenantId = searchParams.get("tenantId") || "";
+  const [role, setRole] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    getOnboardingProgress()
+      .then((res) => setRole(res.data.progress.selectedRole || res.data.user.role))
+      .catch(() => {});
+  }, []);
 
   const [notes, setNotes] = React.useState("");
   const [skills, setSkills] = React.useState("");
@@ -32,7 +39,13 @@ export default function RequestAccessPage() {
         skills: skills ? skills.split(",").map((s) => s.trim()) : [],
       });
       toast.success("Access request submitted! The owner will review your request.");
-      router.push("/dashboard");
+      const dashboards: Record<string, string> = {
+        BRANCH_MANAGER: "/branch-manager/dashboard",
+        TRAINER: "/staff/dashboard",
+        STAFF: "/staff/dashboard",
+        STUDENT: "/student/dashboard",
+      };
+      router.push(role ? dashboards[role] || "/client/dashboard" : "/client/dashboard");
     } catch {
       toast.error("Failed to submit access request");
     } finally {

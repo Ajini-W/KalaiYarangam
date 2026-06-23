@@ -27,9 +27,11 @@ export function AppShell({ children, className }: AppShellProps) {
   React.useEffect(() => {
     if (isLoading || redirectedRef.current) return;
     if (!user) return;
-    if (!user.tenantId && !pathname.startsWith("/onboarding")) {
+
+    const needsOnboarding = !user.tenantId && user.role !== "CLIENT";
+    if (needsOnboarding && !pathname.startsWith("/onboarding")) {
       redirectedRef.current = true;
-      router.replace("/onboarding/branch-setup");
+      router.replace("/onboarding");
     }
   }, [user, isLoading, pathname, router]);
 

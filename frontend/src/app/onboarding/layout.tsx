@@ -3,36 +3,28 @@
 import * as React from "react";
 import { usePathname } from "next/navigation";
 
-const STEPS = [
-  { path: "/onboarding", label: "Role", step: 1 },
-  { path: "/onboarding/profile-setup", label: "Profile", step: 2 },
-  { path: "/onboarding/company-profile", label: "Company", step: 3 },
-  { path: "/onboarding/branch-setup", label: "Branch", step: 4 },
-  { path: "/onboarding/branding", label: "Branding", step: 5 },
-  { path: "/onboarding/module-activation", label: "Modules", step: 6 },
-  { path: "/onboarding/subscription", label: "Plan", step: 7 },
+const OWNER_STEPS = [
+  { path: "/onboarding/tenant-setup", label: "Tenant", step: 3 },
 ];
 
 const SEARCH_STEPS = [
-  { path: "/onboarding", label: "Role", step: 1 },
-  { path: "/onboarding/profile-setup", label: "Profile", step: 2 },
   { path: "/onboarding/tenant-search", label: "Search", step: 3 },
   { path: "/onboarding/request-access", label: "Request", step: 4 },
 ];
 
-const CLIENT_STEPS = [
+const BASE_STEPS = [
   { path: "/onboarding", label: "Role", step: 1 },
   { path: "/onboarding/profile-setup", label: "Profile", step: 2 },
 ];
 
 function getActiveSteps(pathname: string) {
-  if (pathname.includes("tenant-search") || pathname.includes("request-access")) {
-    return SEARCH_STEPS;
-  }
-  if (pathname.includes("company-profile") || pathname.includes("branch-setup") || pathname.includes("branding") || pathname.includes("module-activation") || pathname.includes("subscription")) {
-    return STEPS;
-  }
-  return STEPS;
+  const isOnboarding = pathname === "/onboarding";
+  if (isOnboarding) return BASE_STEPS;
+
+  if (pathname.includes("tenant-setup")) return [...BASE_STEPS, ...OWNER_STEPS];
+  if (pathname.includes("request-access")) return [...BASE_STEPS, ...SEARCH_STEPS];
+  if (pathname.includes("tenant-search")) return [...BASE_STEPS, ...SEARCH_STEPS];
+  return BASE_STEPS;
 }
 
 export default function OnboardingLayout({ children }: { children: React.ReactNode }) {

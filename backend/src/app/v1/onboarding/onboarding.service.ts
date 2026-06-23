@@ -147,20 +147,40 @@ export class OnboardingService {
       // Determine next step based on role
       const nextStep = this.getNextStepAfterProfile(role);
 
-      await tx.onboardingProgress.upsert({
-        where: { userId },
-        update: { currentStep: nextStep },
-        create: { userId, selectedRole: role, currentStep: nextStep },
-      });
+      // For CLIENT: complete onboarding immediately
+      if (role === UserRole.CLIENT) {
+        await tx.onboardingProgress.upsert({
+          where: { userId },
+          update: { currentStep: OnboardingStep.COMPLETED, isCompleted: true, completedAt: now },
+          create: { userId, selectedRole: role, currentStep: OnboardingStep.COMPLETED, isCompleted: true, completedAt: now },
+        });
 
-      // Update user status
-      if (user.status === UserStatus.NEW_USER || user.status === UserStatus.REGISTERED) {
         await tx.user.update({
           where: { id: userId },
-          data: { status: UserStatus.PROFILE_COMPLETED },
+          data: { status: UserStatus.ACTIVE },
         });
+      } else {
+        await tx.onboardingProgress.upsert({
+          where: { userId },
+          update: { currentStep: nextStep },
+          create: { userId, selectedRole: role, currentStep: nextStep },
+        });
+
+        if (user.status === UserStatus.NEW_USER || user.status === UserStatus.REGISTERED) {
+          await tx.user.update({
+            where: { id: userId },
+            data: { status: UserStatus.PROFILE_COMPLETED },
+          });
+        }
       }
     });
+
+    if (role === UserRole.CLIENT) {
+      return {
+        message: 'Profile setup completed. Onboarding finished.',
+        data: { nextStep: OnboardingStep.COMPLETED, completed: true, redirectTo: '/client/dashboard' },
+      };
+    }
 
     return {
       message: 'Profile setup completed',
@@ -199,6 +219,7 @@ export class OnboardingService {
       throw new BadRequestException('Only Business Owners can setup a tenant');
     }
 
+    const now = new Date();
     const slug = slugify(dto.businessName);
     const existing = await this.prisma.tenant.findUnique({ where: { slug } });
     if (existing) {
@@ -259,18 +280,35 @@ export class OnboardingService {
         });
       }
 
-      // Update onboarding progress
+      // Update onboarding progress — Owner flow: tenant → dashboard
       await tx.onboardingProgress.update({
         where: { userId },
-        data: { currentStep: OnboardingStep.BRANCH_SETUP },
+        data: { currentStep: OnboardingStep.COMPLETED, isCompleted: true, completedAt: now },
+      });
+
+      await tx.user.update({
+        where: { id: userId },
+        data: { status: UserStatus.ACTIVE },
       });
 
       return tenant;
     });
 
+    const updatedUser = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, tenantId: true, email: true, name: true, role: true },
+    });
+
+    const payload = toPayload(updatedUser!);
+    const accessToken = this.jwtService.sign(payload);
+
     return {
-      message: 'Tenant created successfully',
-      data: { tenant: { id: result.id, name: result.name, slug: result.slug }, nextStep: OnboardingStep.BRANCH_SETUP },
+      message: 'Tenant created successfully. Onboarding completed.',
+      data: {
+        tenant: { id: result.id, name: result.name, slug: result.slug },
+        token: { accessToken, user: payload },
+        redirectTo: '/owner/dashboard',
+      },
     };
   }
 
@@ -402,7 +440,7 @@ export class OnboardingService {
       message: 'Onboarding completed successfully',
       data: {
         token: { accessToken, user: payload },
-        redirectTo: '/dashboard/owner',
+        redirectTo: '/owner/dashboard',
       },
     };
   }
@@ -521,7 +559,7 @@ export class OnboardingService {
       });
     });
 
-    return { message: 'Onboarding completed', data: { redirectTo: '/dashboard/client' } };
+    return { message: 'Onboarding completed', data: { redirectTo: '/client/dashboard' } };
   }
 
   // ── Approval Workflow ───────────────────────────────────────

@@ -130,13 +130,13 @@ export async function selectRole(data: SelectRoleRequest): Promise<ApiResponse<{
   return response.data;
 }
 
-export async function setupProfile(data: ProfileSetupRequest): Promise<ApiResponse<{ nextStep: string }>> {
-  const response = await apiClient.post<ApiResponse<{ nextStep: string }>>("/onboarding/profile", data);
+export async function setupProfile(data: ProfileSetupRequest): Promise<ApiResponse<{ nextStep: string; completed?: boolean; redirectTo?: string }>> {
+  const response = await apiClient.post<ApiResponse<{ nextStep: string; completed?: boolean; redirectTo?: string }>>("/onboarding/profile", data);
   return response.data;
 }
 
-export async function setupTenant(data: TenantSetupRequest): Promise<ApiResponse<{ tenant: { id: string; name: string; slug: string }; nextStep: string }>> {
-  const response = await apiClient.post<ApiResponse<{ tenant: { id: string; name: string; slug: string }; nextStep: string }>>("/onboarding/tenant", data);
+export async function setupTenant(data: TenantSetupRequest): Promise<ApiResponse<{ tenant: { id: string; name: string; slug: string }; token?: { accessToken: string; user: Record<string, unknown> }; redirectTo?: string }>> {
+  const response = await apiClient.post<ApiResponse<{ tenant: { id: string; name: string; slug: string }; token?: { accessToken: string; user: Record<string, unknown> }; redirectTo?: string }>>("/onboarding/tenant", data);
   return response.data;
 }
 

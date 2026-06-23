@@ -31,3 +31,13 @@ settings {
   encodeUrl: true
   timeout: 0
 }
+
+# Response (Owner flow simplified):
+# {
+#   "message": "Tenant created successfully. Onboarding completed.",
+#   "data": {
+#     "tenant": { "id": "...", "name": "...", "slug": "..." },
+#     "token": { "accessToken": "...", "user": {...} },
+#     "redirectTo": "/owner/dashboard"
+#   }
+# }
