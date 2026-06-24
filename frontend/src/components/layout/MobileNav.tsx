@@ -2,7 +2,20 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Users, BookOpen, Bell, MoreHorizontal, Calendar, FileText, CreditCard, IdCard, ClipboardCheck, BookMarked } from "lucide-react";
+import {
+  LayoutDashboard,
+  Users,
+  BookOpen,
+  Bell,
+  MoreHorizontal,
+  Calendar,
+  FileText,
+  CreditCard,
+  IdCard,
+  ClipboardCheck,
+  BookMarked,
+  Target,
+} from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useAuthStore } from "@/store/auth.store";
 
@@ -15,31 +28,31 @@ interface MobileTab {
 const roleTabs: Record<string, MobileTab[]> = {
   OWNER: [
     { label: "Home", href: "/owner/dashboard", icon: LayoutDashboard },
-    { label: "Users", href: "/owner/users", icon: Users },
-    { label: "Reports", href: "/owner/reports", icon: MoreHorizontal },
-    { label: "Alerts", href: "/owner/analytics", icon: Bell },
-    { label: "More", href: "/owner/organisation", icon: MoreHorizontal },
+    { label: "Leads", href: "/owner/leads", icon: Target },
+    { label: "Students", href: "/owner/students", icon: Users },
+    { label: "Alerts", href: "/owner/notifications", icon: Bell },
+    { label: "More", href: "/owner/reports", icon: MoreHorizontal },
   ],
   BRANCH_MANAGER: [
     { label: "Home", href: "/branch-manager/dashboard", icon: LayoutDashboard },
-    { label: "Leads", href: "/branch-manager/leads", icon: Users },
-    { label: "Operations", href: "/branch-manager/operations", icon: ClipboardCheck },
+    { label: "Leads", href: "/branch-manager/leads", icon: Target },
+    { label: "Students", href: "/branch-manager/students", icon: Users },
     { label: "Alerts", href: "/branch-manager/notifications", icon: Bell },
     { label: "More", href: "/branch-manager/reports", icon: MoreHorizontal },
   ],
   STAFF: [
     { label: "Home", href: "/staff/dashboard", icon: LayoutDashboard },
-    { label: "Classes", href: "/staff/assigned-classes", icon: BookOpen },
-    { label: "Attendance", href: "/staff/attendance", icon: ClipboardCheck },
+    { label: "Leads", href: "/staff/leads", icon: Target },
+    { label: "Students", href: "/staff/students", icon: Users },
     { label: "Alerts", href: "/staff/notifications", icon: Bell },
-    { label: "More", href: "/staff/calendar", icon: Calendar },
+    { label: "More", href: "/staff/reports", icon: MoreHorizontal },
   ],
   TRAINER: [
     { label: "Home", href: "/staff/dashboard", icon: LayoutDashboard },
-    { label: "Classes", href: "/staff/assigned-classes", icon: BookOpen },
-    { label: "Attendance", href: "/staff/attendance", icon: ClipboardCheck },
+    { label: "Leads", href: "/staff/leads", icon: Target },
+    { label: "Students", href: "/staff/students", icon: Users },
     { label: "Alerts", href: "/staff/notifications", icon: Bell },
-    { label: "More", href: "/staff/tasks", icon: ClipboardCheck },
+    { label: "More", href: "/staff/reports", icon: MoreHorizontal },
   ],
   STUDENT: [
     { label: "Home", href: "/student/dashboard", icon: LayoutDashboard },
