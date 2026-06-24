@@ -20,22 +20,30 @@ function CallbackHandler() {
     const refreshToken = searchParams.get("refreshToken");
 
     if (!accessToken) {
-      router.replace("/login?error=no_token");
+      window.location.replace("/login?error=no_token");
       return;
     }
 
+    // Safety timeout — redirect to login if callback takes > 15s
+    const timeout = setTimeout(() => {
+      window.location.replace("/login?error=session_expired");
+    }, 15000);
+
     handleOAuthCallback(accessToken, refreshToken ?? undefined)
       .then((user) => {
-        if (!user.tenantId && user.role !== "CLIENT") {
-          router.replace("/onboarding");
-        } else {
-          router.replace(getDashboardRoute(user.role));
-        }
+        clearTimeout(timeout);
+        const noRedirectStatuses = ["ACCESS_REQUESTED", "PENDING_APPROVAL", "APPROVED", "ACTIVE"];
+        const needsOnboarding = !user.tenantId
+          && user.role !== "CLIENT"
+          && !noRedirectStatuses.includes(user.status);
+        const dest = needsOnboarding ? "/onboarding" : getDashboardRoute(user.role);
+        window.location.replace(dest);
       })
       .catch(() => {
-        router.replace("/login?error=session_expired");
+        clearTimeout(timeout);
+        window.location.replace("/login?error=session_expired");
       });
-  }, [searchParams, router, handleOAuthCallback]);
+  }, [searchParams, handleOAuthCallback]);
 
   return (
     <div className="flex flex-col items-center gap-4">

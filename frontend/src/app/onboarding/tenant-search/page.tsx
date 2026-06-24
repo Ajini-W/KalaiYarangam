@@ -18,13 +18,17 @@ export default function TenantSearchPage() {
   const [searching, setSearching] = React.useState(false);
   const [searched, setSearched] = React.useState(false);
 
-  const handleSearch = async () => {
+  React.useEffect(() => {
+    handleSearch();
+  }, []);
+
+  const handleSearch = async (name?: string, btype?: string) => {
     setSearching(true);
     setSearched(true);
     try {
       const res = await searchTenants({
-        name: query || undefined,
-        businessType: businessType || undefined,
+        name: name || undefined,
+        businessType: btype || undefined,
       });
       setResults(res.data);
     } catch {
@@ -48,10 +52,10 @@ export default function TenantSearchPage() {
       <Card className="mb-6">
         <CardBody className="space-y-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <Input placeholder="Search by name..." value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleSearch()} />
+            <Input placeholder="Search by name..." value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleSearch(query, businessType)} />
             <Select
               value={businessType}
-              onChange={(e) => setBusinessType(e.target.value)}
+              onChange={(e) => { setBusinessType(e.target.value); handleSearch(query, e.target.value); }}
               options={[
                 { value: "", label: "All Types" },
                 { value: "TRAINING", label: "Training Institute" },
@@ -59,7 +63,7 @@ export default function TenantSearchPage() {
                 { value: "EVENT", label: "Event Management" },
               ]}
             />
-            <Button onClick={handleSearch} loading={searching}>Search</Button>
+            <Button onClick={() => handleSearch(query, businessType)} loading={searching}>Search</Button>
           </div>
         </CardBody>
       </Card>
@@ -82,7 +86,14 @@ export default function TenantSearchPage() {
           >
             <div className="flex items-start justify-between">
               <div>
-                <h3 className="font-semibold text-text-primary">{tenant.name}</h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-semibold text-text-primary">{tenant.name}</h3>
+                  {tenant.status === "TRIAL" && (
+                    <Badge variant="warning" className="shrink-0">
+                      Trial
+                    </Badge>
+                  )}
+                </div>
                 <Badge variant="info" className="mt-1">{tenant.industry}</Badge>
               </div>
               {tenant.logoUrl && (

@@ -448,7 +448,7 @@ export class OnboardingService {
   // ── Tenant Search (for Branch Manager, Staff, Student) ──────
 
   async searchTenants(dto: SearchTenantDto) {
-    const where: any = { status: 'ACTIVE' };
+    const where: any = { status: { in: ['ACTIVE', 'TRIAL'] } };
 
     if (dto.name) {
       where.name = { contains: dto.name, mode: 'insensitive' };
@@ -470,6 +470,7 @@ export class OnboardingService {
         name: true,
         slug: true,
         industry: true,
+        status: true,
         logoUrl: true,
         branches: {
           select: { id: true, name: true, city: true, state: true },
@@ -531,9 +532,30 @@ export class OnboardingService {
       });
     });
 
+    // Issue fresh tokens so the frontend sees the updated status
+    const payload = {
+      id: user.id,
+      tenantId: user.tenantId ?? '',
+      branchId: null,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      status: UserStatus.ACCESS_REQUESTED,
+      emailVerified: user.status === 'ACTIVE',
+    };
+    const accessToken = this.jwtService.sign(payload);
+    const refreshToken = this.jwtService.sign(
+      { sub: user.id },
+      { secret: env.JWT_REFRESH_SECRET, expiresIn: env.JWT_REFRESH_EXPIRES_IN as any },
+    );
+
     return {
       message: 'Access request submitted. Waiting for approval.',
-      data: { status: AccessRequestStatus.PENDING },
+      data: {
+        status: AccessRequestStatus.PENDING,
+        tokens: { accessToken, refreshToken },
+        user: payload,
+      },
     };
   }
 

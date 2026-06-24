@@ -28,7 +28,11 @@ export function AppShell({ children, className }: AppShellProps) {
     if (isLoading || redirectedRef.current) return;
     if (!user) return;
 
-    const needsOnboarding = !user.tenantId && user.role !== "CLIENT";
+    // Users who have submitted an access request are waiting for approval — don't redirect back to onboarding
+    const noRedirectStatuses = ["ACCESS_REQUESTED", "PENDING_APPROVAL", "APPROVED", "ACTIVE"];
+    const needsOnboarding = !user.tenantId
+      && user.role !== "CLIENT"
+      && !noRedirectStatuses.includes(user.status);
     if (needsOnboarding && !pathname.startsWith("/onboarding")) {
       redirectedRef.current = true;
       router.replace("/onboarding");

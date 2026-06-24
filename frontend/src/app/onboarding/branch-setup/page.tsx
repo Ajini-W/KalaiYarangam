@@ -46,7 +46,7 @@ export default function BranchSetupPage() {
       });
       const { accessToken, user } = res.data.token;
       setTokens(accessToken, accessToken);
-      setUser({ ...user, branchId: null, emailVerified: true });
+      setUser({ ...user, branchId: null, emailVerified: true, status: (user as any).status || "ACTIVE" });
       setTenantId(res.data.tenant.id);
       toast.success("Business created successfully");
       setStep("branch");

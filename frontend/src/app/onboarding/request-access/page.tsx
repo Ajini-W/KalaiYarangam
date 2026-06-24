@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { Card, CardHeader, CardTitle, CardBody } from "@/components/ui/Card";
@@ -8,8 +9,10 @@ import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Button } from "@/components/ui/Button";
 import { requestAccess, getOnboardingProgress } from "@/services/onboarding";
+import { useAuthStore } from "@/store/auth.store";
+import { setTokens } from "@/services/api-client";
 
-export default function RequestAccessPage() {
+function RequestAccessForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tenantId = searchParams.get("tenantId") || "";
@@ -33,11 +36,19 @@ export default function RequestAccessPage() {
     }
     setSaving(true);
     try {
-      await requestAccess({
+      const res = await requestAccess({
         tenantId,
         notes,
         skills: skills ? skills.split(",").map((s) => s.trim()) : [],
       });
+
+      // Update auth store with fresh token that includes updated status
+      if (res.data?.tokens) {
+        const { accessToken, refreshToken, user } = res.data.tokens;
+        setTokens(accessToken, refreshToken);
+        useAuthStore.getState().setUser(user as any);
+      }
+
       toast.success("Access request submitted! The owner will review your request.");
       const dashboards: Record<string, string> = {
         BRANCH_MANAGER: "/branch-manager/dashboard",
@@ -45,7 +56,7 @@ export default function RequestAccessPage() {
         STAFF: "/staff/dashboard",
         STUDENT: "/student/dashboard",
       };
-      router.push(role ? dashboards[role] || "/client/dashboard" : "/client/dashboard");
+      window.location.replace(role ? dashboards[role] || "/client/dashboard" : "/client/dashboard");
     } catch {
       toast.error("Failed to submit access request");
     } finally {
@@ -93,5 +104,13 @@ export default function RequestAccessPage() {
         </CardBody>
       </Card>
     </div>
+  );
+}
+
+export default function RequestAccessPage() {
+  return (
+    <Suspense fallback={null}>
+      <RequestAccessForm />
+    </Suspense>
   );
 }

@@ -74,11 +74,19 @@ export default function LoginPage() {
     })();
   }, [initialize]);
 
+  function needsOnboarding(u: typeof user): boolean {
+    if (u?.role === "CLIENT") return false;
+    if (u?.tenantId) return false;
+    return !["ACCESS_REQUESTED", "PENDING_APPROVAL", "APPROVED", "ACTIVE"].includes(u?.status ?? "");
+  }
+
   useEffect(() => {
     if (checking) return;
     if (isAuthenticated && user) {
       if (!user.emailVerified) {
         setEmailWarning(user.email);
+      } else if (needsOnboarding(user)) {
+        router.replace("/onboarding");
       } else {
         router.replace(getDashboardRoute(user.role));
       }
@@ -118,7 +126,7 @@ export default function LoginPage() {
         setEmailWarning(updatedUser.email);
       } else {
         toast.success("Logged in successfully!");
-        if (result?.isFirstLogin) {
+        if (result?.isFirstLogin || needsOnboarding(updatedUser)) {
           router.push("/onboarding");
         } else {
           router.push(updatedUser ? getDashboardRoute(updatedUser.role) : "/login");

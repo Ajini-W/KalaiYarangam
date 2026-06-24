@@ -74,6 +74,7 @@ export interface SearchTenantResult {
   name: string;
   slug: string;
   industry: string;
+  status: string;
   logoUrl: string | null;
   branches: { id: string; name: string; city: string | null; state: string | null }[];
 }
@@ -165,7 +166,7 @@ export async function searchTenants(data: SearchTenantRequest): Promise<ApiRespo
   return response.data;
 }
 
-export async function requestAccess(data: RequestAccessPayload): Promise<ApiResponse<{ status: string }>> {
+export async function requestAccess(data: RequestAccessPayload): Promise<ApiResponse<{ status: string; tokens?: { accessToken: string; refreshToken: string; user: Record<string, unknown> } }>> {
   const response = await apiClient.post<ApiResponse<{ status: string }>>("/onboarding/request-access", data);
   return response.data;
 }

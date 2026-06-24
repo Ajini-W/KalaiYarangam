@@ -764,6 +764,7 @@ export class AuthService {
       email: user.email,
       name: user.name,
       role: user.role,
+      status: user.status ?? '',
       emailVerified: user.status === 'ACTIVE',
     };
   }
