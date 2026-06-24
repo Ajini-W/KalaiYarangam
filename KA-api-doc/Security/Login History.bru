@@ -1,11 +1,11 @@
 meta {
-  name: Security - Security Events
+  name: Login History
   type: http
-  seq: 7
+  seq: 4
 }
 
 get {
-  url: {{base-url}}/security/security-events?page=1&pageSize=20
+  url: {{base-url}}/security/login-history?page=1&pageSize=20
   body: none
   auth: inherit
 }
@@ -21,54 +21,51 @@ settings {
 
 example {
   name: 200
-
+  
   request: {
-    url: {{base-url}}/security/security-events?page=1&pageSize=20&severity=CRITICAL
+    url: {{base-url}}/security/login-history?page=1&pageSize=20
     method: GET
     mode: none
     headers: {
       Authorization: bearer {{accessToken}}
     }
   }
-
+  
   response: {
     status: {
       code: 200
       text: OK
     }
-
+  
     body: {
       type: json
       content: '''
         {
           "httpStatusCode": 200,
-          "message": "Security events fetched",
+          "message": "Login history fetched",
           "data": [
             {
               "id": "uuid-1",
               "userId": "uuid-2",
-              "tenantId": null,
-              "eventType": "BRUTE_FORCE_ATTEMPT",
-              "severity": "CRITICAL",
-              "message": "Multiple failed login attempts detected for user john@example.com",
-              "ipAddress": "10.0.0.5",
+              "ipAddress": "192.168.1.1",
               "userAgent": "Mozilla/5.0...",
-              "metadata": {"attempts": 15, "windowMinutes": 5},
-              "createdAt": "2026-06-24T10:30:00.000Z",
+              "accessToken": "eyJ...",
+              "refreshToken": "eyJ...",
+              "loginAt": "2026-06-24T10:30:00.000Z",
+              "success": true,
               "user": {
                 "id": "uuid-2",
                 "name": "John Doe",
                 "email": "john@example.com",
                 "role": "STAFF"
-              },
-              "tenant": null
+              }
             }
           ],
           "meta": {
             "page": 1,
             "pageSize": 20,
-            "total": 5,
-            "totalPages": 1
+            "total": 156,
+            "totalPages": 8
           }
         }
       '''

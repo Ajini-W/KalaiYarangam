@@ -1,5 +1,5 @@
 meta {
-  name: Security - Activity Logs
+  name: Activity Logs
   type: http
   seq: 6
 }
@@ -21,7 +21,7 @@ settings {
 
 example {
   name: 200
-
+  
   request: {
     url: {{base-url}}/security/activity-logs?page=1&pageSize=20
     method: GET
@@ -30,13 +30,13 @@ example {
       Authorization: bearer {{accessToken}}
     }
   }
-
+  
   response: {
     status: {
       code: 200
       text: OK
     }
-
+  
     body: {
       type: json
       content: '''

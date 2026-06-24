@@ -1,11 +1,11 @@
 meta {
-  name: Security - Login History
+  name: List Sessions
   type: http
-  seq: 4
+  seq: 2
 }
 
 get {
-  url: {{base-url}}/security/login-history?page=1&pageSize=20
+  url: {{base-url}}/security/sessions?page=1&pageSize=20
   body: none
   auth: inherit
 }
@@ -21,38 +21,42 @@ settings {
 
 example {
   name: 200
-
+  
   request: {
-    url: {{base-url}}/security/login-history?page=1&pageSize=20
+    url: {{base-url}}/security/sessions?page=1&pageSize=20
     method: GET
     mode: none
     headers: {
       Authorization: bearer {{accessToken}}
     }
   }
-
+  
   response: {
     status: {
       code: 200
       text: OK
     }
-
+  
     body: {
       type: json
       content: '''
         {
           "httpStatusCode": 200,
-          "message": "Login history fetched",
+          "message": "Sessions fetched",
           "data": [
             {
               "id": "uuid-1",
               "userId": "uuid-2",
+              "token": "eyJ...",
+              "refreshToken": "eyJ...",
               "ipAddress": "192.168.1.1",
               "userAgent": "Mozilla/5.0...",
-              "accessToken": "eyJ...",
-              "refreshToken": "eyJ...",
-              "loginAt": "2026-06-24T10:30:00.000Z",
-              "success": true,
+              "deviceInfo": "Chrome 120 on Linux",
+              "isActive": true,
+              "lastActivity": "2026-06-24T10:30:00.000Z",
+              "expiresAt": "2026-07-01T10:30:00.000Z",
+              "createdAt": "2026-06-20T10:30:00.000Z",
+              "revokedAt": null,
               "user": {
                 "id": "uuid-2",
                 "name": "John Doe",
@@ -64,8 +68,8 @@ example {
           "meta": {
             "page": 1,
             "pageSize": 20,
-            "total": 156,
-            "totalPages": 8
+            "total": 42,
+            "totalPages": 3
           }
         }
       '''
