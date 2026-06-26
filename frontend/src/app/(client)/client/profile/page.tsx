@@ -1,4 +1,7 @@
-import { PlaceholderPage } from "@/lib/placeholder-page";
-export default function Page() {
-  return <PlaceholderPage title="Profile" description="Manage your account." />;
+"use client";
+
+import ProfilePage from "@/app/dashboard/profile/page";
+
+export default function ClientProfile() {
+  return <ProfilePage />;
 }

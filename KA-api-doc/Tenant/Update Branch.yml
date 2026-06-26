@@ -1,0 +1,92 @@
+info:
+  name: Update Branch
+  type: http
+  seq: 6
+
+http:
+  method: PATCH
+  url: "{{base-url}}/training/branches/{{branchId}}"
+  headers:
+    - name: Authorization
+      value: Bearer {{token}}
+  body:
+    type: json
+    data: |-
+      {
+        "name": "gama academy",
+        "phone": "8838121130",
+        "city": "Coimbatore"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+examples:
+  - name: SUCCESS 200
+    request:
+      url: "{{base-url}}/training/branches/<branch-id>"
+      method: PATCH
+      headers:
+        - name: Authorization
+          value: Bearer <access-token>
+      body:
+        type: json
+        data: |-
+          {
+            "name": "Downtown Branch Updated",
+            "phone": "9988776655",
+            "city": "Coimbatore"
+          }
+    response:
+      status: 200
+      statusText: OK
+      body:
+        type: json
+        data: |-
+          {
+            "httpStatusCode": 200,
+            "message": "Branch updated successfully",
+            "data": {
+              "id": "<branch-id>",
+              "tenantId": "<tenant-id>",
+              "name": "Downtown Branch Updated",
+              "code": "DT-001",
+              "address": "123 Main Street",
+              "city": "Coimbatore",
+              "state": "Tamil Nadu",
+              "pincode": "600001",
+              "phone": "9988776655",
+              "email": "downtown@branch.com",
+              "isDefault": false,
+              "isActive": true,
+              "createdAt": "",
+              "updatedAt": ""
+            },
+            "timestamp": ""
+          }
+  - name: UNAUTHORIZED 401
+    request:
+      url: "{{base-url}}/training/branches/<branch-id>"
+      method: PATCH
+      body:
+        type: json
+        data: |-
+          {
+            "name": "Updated Name"
+          }
+    response:
+      status: 401
+      statusText: Unauthorized
+      body:
+        type: json
+        data: |-
+          {
+            "httpStatusCode": 401,
+            "message": "Unauthorized",
+            "data": null,
+            "timestamp": ""
+          }

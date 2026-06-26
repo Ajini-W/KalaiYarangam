@@ -19,7 +19,7 @@ export interface Notification {
 }
 
 const typeConfig: Record<NotificationType, { icon: React.ElementType; color: string }> = {
-  lead:     { icon: Users,        color: "text-brand-500 bg-brand-50" },
+  lead:     { icon: Users,        color: "text-primary bg-primary/10" },
   payment:  { icon: CreditCard,   color: "text-success bg-success-light" },
   booking:  { icon: BookOpen,     color: "text-info bg-info-light" },
   reminder: { icon: Calendar,     color: "text-warning bg-warning-light" },
@@ -47,7 +47,7 @@ export function NotificationItem({ notification: n, onMarkRead, className }: Not
   return (
     <div className={cn(
       "flex gap-3 px-4 py-3 transition-colors hover:bg-surface-raised",
-      !n.read && "bg-brand-50/50",
+      !n.read && "bg-primary/5",
       className,
     )}>
       <span className={cn("mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm", color)}>
@@ -59,7 +59,7 @@ export function NotificationItem({ notification: n, onMarkRead, className }: Not
         <div className="mt-1 flex items-center gap-3">
           <span className="text-xs text-text-disabled">{formatRelative(n.timestamp)}</span>
           {n.actionLabel && (
-            <button onClick={n.onAction} className="text-xs font-medium text-brand-600 hover:underline">{n.actionLabel}</button>
+            <button onClick={n.onAction} className="text-xs font-medium text-primary hover:underline">{n.actionLabel}</button>
           )}
         </div>
       </div>
@@ -125,7 +125,7 @@ export function NotificationBell({ notifications, onMarkRead, onMarkAllRead, onV
               {unread > 0 && <Badge variant="danger" size="sm">{unread}</Badge>}
             </div>
             {unread > 0 && (
-              <button onClick={onMarkAllRead} className="text-xs text-brand-600 hover:underline">Mark all read</button>
+              <button onClick={onMarkAllRead} className="text-xs text-primary hover:underline">Mark all read</button>
             )}
           </div>
 
@@ -142,7 +142,7 @@ export function NotificationBell({ notifications, onMarkRead, onMarkAllRead, onV
 
           {/* Footer */}
           <div className="border-t border-border px-4 py-2.5 text-center">
-            <button onClick={() => { setOpen(false); onViewAll?.(); }} className="text-xs font-medium text-brand-600 hover:underline">
+            <button onClick={() => { setOpen(false); onViewAll?.(); }} className="text-xs font-medium text-primary hover:underline">
               View all notifications
             </button>
           </div>

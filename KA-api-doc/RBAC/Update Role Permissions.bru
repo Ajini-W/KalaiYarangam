@@ -1,0 +1,26 @@
+meta {
+  name: Update Role Permissions
+  type: http
+  seq: 6
+}
+
+put {
+  url: {{base-url}}/rbac/roles/SUPER_ADMIN
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: bearer {{accessToken}}
+}
+
+body:json {
+  {
+    "permissionIds": ["uuid-1", "uuid-2", "uuid-3"]
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

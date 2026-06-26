@@ -5,6 +5,7 @@ const isProd = process.env.NODE_ENV === "production";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  allowedDevOrigins: ["192.168.0.111"],
   turbopack: {},
   async headers() {
     return [

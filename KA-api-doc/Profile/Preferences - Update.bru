@@ -1,0 +1,25 @@
+meta {
+  name: Preferences - Update
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{base-url}}/auth/preferences
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+body:json {
+  {
+    "preferences": {
+      "theme": "dark",
+      "notificationsEnabled": true,
+      "pushNotifications": true
+    }
+  }
+}

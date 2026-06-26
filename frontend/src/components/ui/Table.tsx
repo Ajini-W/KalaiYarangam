@@ -49,7 +49,7 @@ export function Table<T extends { id?: string | number }>({
                   type="checkbox"
                   checked={allSelected}
                   onChange={(e) => onSelectAll?.(e.target.checked)}
-                  className="accent-brand-500"
+                  className="accent-primary"
                   aria-label="Select all"
                 />
               </th>
@@ -100,7 +100,7 @@ export function Table<T extends { id?: string | number }>({
                 key={row.id ?? ri}
                 className={cn(
                   "border-b border-border-subtle transition-colors last:border-0 hover:bg-surface-raised",
-                  row.id != null && selectedIds?.has(row.id) && "bg-brand-50",
+                  row.id != null && selectedIds?.has(row.id) && "bg-primary/5",
                 )}
               >
                 {selectable && (
@@ -109,7 +109,7 @@ export function Table<T extends { id?: string | number }>({
                       type="checkbox"
                       checked={row.id != null && (selectedIds?.has(row.id) ?? false)}
                       onChange={(e) => row.id != null && onSelectRow?.(row.id, e.target.checked)}
-                      className="accent-brand-500"
+                      className="accent-primary"
                       aria-label="Select row"
                     />
                   </td>

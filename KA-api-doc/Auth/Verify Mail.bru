@@ -1,0 +1,140 @@
+meta {
+  name: Verify Mail
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{base-url}}/auth/verify-email
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "token":"f66a9fb34d4f2614b7fa20d96ce3928b5c5ab3ae4300f5361abec0a456f3d5bf"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
+
+example {
+  name: 400
+  
+  request: {
+    url: {{base-url}}/auth/verify-email
+    method: POST
+    mode: json
+    body:json: {
+      {
+        "token":"4c522e0f767cc72edb6fcbca09ec591a1bc69607257c794370e9cc6c520da40d"
+      }
+    }
+  }
+  
+  response: {
+    headers: {
+      content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+      cross-origin-opener-policy: same-origin
+      cross-origin-resource-policy: same-origin
+      origin-agent-cluster: ?1
+      referrer-policy: no-referrer
+      strict-transport-security: max-age=31536000; includeSubDomains
+      x-content-type-options: nosniff
+      x-dns-prefetch-control: off
+      x-download-options: noopen
+      x-frame-options: SAMEORIGIN
+      x-permitted-cross-domain-policies: none
+      x-xss-protection: 0
+      access-control-allow-origin: http://localhost:3000
+      vary: Origin, Accept-Encoding
+      access-control-allow-credentials: true
+      content-type: application/json; charset=utf-8
+      content-length: 112
+      etag: W/"70-UE1Vsyl0LPkq31xJ02+n/1v+MHI"
+      date: Sun, 21 Jun 2026 12:24:51 GMT
+      connection: keep-alive
+      keep-alive: timeout=5
+    }
+  
+    status: {
+      code: 400
+      text: Bad Request
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "httpStatusCode": 400,
+          "message": "Invalid verification token",
+          "data": null,
+          "timestamp": "2026-06-21T12:24:51.077Z"
+        }
+      '''
+    }
+  }
+}
+
+example {
+  name: 200
+  
+  request: {
+    url: {{base-url}}/auth/verify-email
+    method: POST
+    mode: json
+    body:json: {
+      {
+        "token":"f66a9fb34d4f2614b7fa20d96ce3928b5c5ab3ae4300f5361abec0a456f3d5bf"
+      }
+    }
+  }
+  
+  response: {
+    headers: {
+      content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+      cross-origin-opener-policy: same-origin
+      cross-origin-resource-policy: same-origin
+      origin-agent-cluster: ?1
+      referrer-policy: no-referrer
+      strict-transport-security: max-age=31536000; includeSubDomains
+      x-content-type-options: nosniff
+      x-dns-prefetch-control: off
+      x-download-options: noopen
+      x-frame-options: SAMEORIGIN
+      x-permitted-cross-domain-policies: none
+      x-xss-protection: 0
+      access-control-allow-origin: http://localhost:3000
+      vary: Origin, Accept-Encoding
+      access-control-allow-credentials: true
+      content-type: application/json; charset=utf-8
+      content-length: 131
+      etag: W/"83-3YNipRDW3x4NvkpwmaS4qt7231I"
+      date: Sun, 21 Jun 2026 12:37:09 GMT
+      connection: keep-alive
+      keep-alive: timeout=5
+    }
+  
+    status: {
+      code: 200
+      text: OK
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "httpStatusCode": 200,
+          "message": "Email verified successfully",
+          "data": {
+            "emailVerified": true
+          },
+          "timestamp": "2026-06-21T12:37:09.662Z"
+        }
+      '''
+    }
+  }
+}

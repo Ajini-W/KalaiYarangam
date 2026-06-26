@@ -1,0 +1,77 @@
+meta {
+  name: Security Events
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{base-url}}/security/security-events?page=1&pageSize=20
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: bearer {{accessToken}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
+
+example {
+  name: 200
+  
+  request: {
+    url: {{base-url}}/security/security-events?page=1&pageSize=20&severity=CRITICAL
+    method: GET
+    mode: none
+    headers: {
+      Authorization: bearer {{accessToken}}
+    }
+  }
+  
+  response: {
+    status: {
+      code: 200
+      text: OK
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "httpStatusCode": 200,
+          "message": "Security events fetched",
+          "data": [
+            {
+              "id": "uuid-1",
+              "userId": "uuid-2",
+              "tenantId": null,
+              "eventType": "BRUTE_FORCE_ATTEMPT",
+              "severity": "CRITICAL",
+              "message": "Multiple failed login attempts detected for user john@example.com",
+              "ipAddress": "10.0.0.5",
+              "userAgent": "Mozilla/5.0...",
+              "metadata": {"attempts": 15, "windowMinutes": 5},
+              "createdAt": "2026-06-24T10:30:00.000Z",
+              "user": {
+                "id": "uuid-2",
+                "name": "John Doe",
+                "email": "john@example.com",
+                "role": "STAFF"
+              },
+              "tenant": null
+            }
+          ],
+          "meta": {
+            "page": 1,
+            "pageSize": 20,
+            "total": 5,
+            "totalPages": 1
+          }
+        }
+      '''
+    }
+  }
+}

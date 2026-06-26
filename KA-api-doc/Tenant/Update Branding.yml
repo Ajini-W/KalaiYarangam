@@ -1,0 +1,93 @@
+info:
+  name: Update Branding
+  type: http
+  seq: 12
+
+http:
+  method: PATCH
+  url: "{{base-url}}/training/branding"
+  headers:
+    - name: Authorization
+      value: Bearer {{token}}
+  body:
+    type: json
+    data: |-
+      {
+        "logoUrl": "https://storage.example.com/logo.png",
+        "faviconUrl": "https://storage.example.com/favicon.ico",
+        "primaryColor": "#4F46E5",
+        "secondaryColor": "#7C3AED",
+        "tagline": "Empowering Education",
+        "customDomain": "academy.example.com"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+examples:
+  - name: SUCCESS 200
+    request:
+      url: "{{base-url}}/training/branding"
+      method: PATCH
+      headers:
+        - name: Authorization
+          value: Bearer <access-token>
+      body:
+        type: json
+        data: |-
+          {
+            "logoUrl": "https://storage.example.com/logo.png",
+            "faviconUrl": "https://storage.example.com/favicon.ico",
+            "primaryColor": "#4F46E5",
+            "secondaryColor": "#7C3AED",
+            "tagline": "Empowering Education",
+            "customDomain": "academy.example.com"
+          }
+    response:
+      status: 200
+      statusText: OK
+      body:
+        type: json
+        data: |-
+          {
+            "httpStatusCode": 200,
+            "message": "Branding updated successfully",
+            "data": {
+              "logoUrl": "https://storage.example.com/logo.png",
+              "faviconUrl": "https://storage.example.com/favicon.ico",
+              "primaryColor": "#4F46E5",
+              "secondaryColor": "#7C3AED",
+              "tagline": "Empowering Education",
+              "customDomain": "academy.example.com"
+            },
+            "timestamp": ""
+          }
+  - name: INVALID COLOR 400
+    request:
+      url: "{{base-url}}/training/branding"
+      method: PATCH
+      headers:
+        - name: Authorization
+          value: Bearer <access-token>
+      body:
+        type: json
+        data: |-
+          {
+            "primaryColor": "invalid-color"
+          }
+    response:
+      status: 400
+      statusText: Bad Request
+      body:
+        type: json
+        data: |-
+          {
+            "httpStatusCode": 400,
+            "message": "primaryColor must match /^#[0-9A-Fa-f]{6}$/",
+            "data": null,
+            "timestamp": ""
+          }

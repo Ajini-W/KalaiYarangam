@@ -1,10 +1,12 @@
 import { BadGatewayException, Injectable, NotFoundException } from '@nestjs/common';
 import { env } from '@/config';
 import { SendMailDto } from './dto/mail.dto';
-import { welcomeTemplate, TemplateVariables } from './templates';
+import { welcomeTemplate, verifyEmailTemplate, resetPasswordTemplate } from './templates';
 
-const templates: Record<string, (vars: TemplateVariables) => { subject: string; html: string }> = {
+const templates: Record<string, (vars: Record<string, unknown>) => { subject: string; html: string }> = {
   welcome: welcomeTemplate,
+  'verify-email': verifyEmailTemplate,
+  'reset-password': resetPasswordTemplate,
 };
 
 @Injectable()
@@ -17,7 +19,7 @@ export class MailService {
       throw new NotFoundException(`Template "${dto.template}" not found`);
     }
 
-    const { subject, html } = compile((dto.variables as TemplateVariables) || {});
+    const { subject, html } = compile((dto.variables as Record<string, unknown>) || {});
 
     const response = await fetch(this.apiUrl, {
       method: 'POST',

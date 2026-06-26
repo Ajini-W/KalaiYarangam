@@ -27,10 +27,42 @@ enum UserRole {
 }
 
 enum UserStatus {
+  NEW_USER
+  REGISTERED
+  PROFILE_COMPLETED
+  ACCESS_REQUESTED
+  PENDING_APPROVAL
+  APPROVED
   ACTIVE
   INACTIVE
   SUSPENDED
   PENDING
+}
+
+enum AuthProviderType {
+  EMAIL
+  GOOGLE
+}
+
+enum AccessRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  BLOCKED
+}
+
+enum OnboardingStep {
+  ROLE_SELECTION
+  PROFILE_SETUP
+  TENANT_SETUP
+  BRANCH_SETUP
+  MODULE_SELECTION
+  SUBSCRIPTION
+  SEARCH_TENANT
+  SELECT_BRANCH
+  SKILLS_SETUP
+  COURSE_SELECTION
+  COMPLETED
 }
 
 enum Gender {
@@ -192,6 +224,14 @@ enum AuditAction {
   LOGOUT
   EXPORT
   IMPORT
+  SESSION_REVOKE
+  PASSWORD_CHANGE
+  ROLE_CHANGE
+  STATUS_CHANGE
+  PERMISSION_CHANGE
+  SECURITY_EVENT
+  TWO_FACTOR_ENABLE
+  TWO_FACTOR_DISABLE
 }
 
 enum HealthStatus {
@@ -217,34 +257,51 @@ enum DayOfWeek {
 model User {
   id           String     @id @default(uuid()) @db.Uuid
   tenantId     String?    @map("tenant_id") @db.Uuid
-  email        String     @db.VarChar(255)
+  email        String     @unique @db.VarChar(255)
   passwordHash String     @map("password_hash") @db.VarChar(255)
+  passwordSet  Boolean    @default(false) @map("password_set")
   name         String     @db.VarChar(150)
-  phone        String?    @db.VarChar(20)
+  phone        String?    @unique @db.VarChar(20)
   role         UserRole   @default(STAFF)
-  status       UserStatus @default(PENDING)
-  avatarUrl    String?    @map("avatar_url") @db.VarChar(500)
-  lastLoginAt  DateTime?  @map("last_login_at")
+  status            UserStatus @default(PENDING)
+  verificationToken           String?   @unique @map("verification_token") @db.VarChar(255)
+  verificationTokenExpiresAt  DateTime? @map("verification_token_expires_at")
+  verifiedAt                  DateTime? @map("verified_at")
+  resetPasswordToken          String?   @map("reset_password_token") @db.VarChar(255)
+  resetPasswordExpiresAt      DateTime? @map("reset_password_expires_at")
+  avatarUrl         String?   @map("avatar_url") @db.VarChar(500)
+  lastLoginAt       DateTime? @map("last_login_at")
+  preferences       Json?     @default("{}")
   createdAt    DateTime   @default(now()) @map("created_at")
   updatedAt    DateTime   @updatedAt @map("updated_at")
 
-  tenant          Tenant?          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  profile         UserProfile?
-  userBranches    UserBranch[]
-  loginLogs       UserLoginLog[]
-  userRoles       UserRoleMapping[]
-  leadFollowups   LeadFollowup[]
-  batchTrainers   BatchTrainer[]
-  studentProgress StudentProgress[]
-  notifications   Notification[]
-  auditLogs       AuditLog[]
-  activityLogs    ActivityLog[]
+  tenant            Tenant?          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  profile           UserProfile?
+  userBranches      UserBranch[]
+  loginLogs         UserLoginLog[]
+  refreshTokens     RefreshToken[]
+  authProviders     AuthProvider[]
+  userRoles         UserRoleMapping[]
+  accessRequests    TenantAccessRequest[]
+  reviewedRequests  TenantAccessRequest[] @relation("reviewer")
+  staffMappings     StaffBranchMapping[]
+  onboarding        OnboardingProgress?
+  leadFollowups     LeadFollowup[]
+  batchTrainers     BatchTrainer[]
+  studentProgress   StudentProgress[]
+  notifications     Notification[]
+  devices           UserDevice[]
+  sessions          Session[]
+  securityEvents    SecurityEvent[]
+  auditLogs         AuditLog[]
+  activityLogs      ActivityLog[]
 
-  @@unique([tenantId, email])
   @@index([tenantId])
   @@index([email])
+  @@index([phone])
   @@index([role])
   @@index([status])
+  @@index([resetPasswordToken])
   @@map("users")
 }
 
@@ -284,18 +341,138 @@ model UserBranch {
 }
 
 model UserLoginLog {
-  id        String   @id @default(uuid()) @db.Uuid
-  userId    String   @map("user_id") @db.Uuid
-  ipAddress String?  @map("ip_address") @db.VarChar(45)
-  userAgent String?  @map("user_agent") @db.VarChar(500)
-  loginAt   DateTime @default(now()) @map("login_at")
-  success   Boolean  @default(true)
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  ipAddress    String?  @map("ip_address") @db.VarChar(45)
+  userAgent    String?  @map("user_agent") @db.VarChar(500)
+  accessToken  String?  @map("access_token") @db.Text
+  refreshToken String?  @map("refresh_token") @db.Text
+  loginAt      DateTime @default(now()) @map("login_at")
+  success      Boolean  @default(true)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([loginAt])
+  @@index([ipAddress])
   @@map("user_login_log")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  token     String   @unique @db.VarChar(500)
+  expiresAt DateTime @map("expires_at")
+  revokedAt DateTime? @map("revoked_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model AuthProvider {
+  id             String          @id @default(uuid()) @db.Uuid
+  userId         String          @map("user_id") @db.Uuid
+  provider       AuthProviderType
+  providerId     String?         @map("provider_id") @db.VarChar(255)
+  email          String?         @db.VarChar(255)
+  linkedAt       DateTime        @default(now()) @map("linked_at")
+  createdAt      DateTime        @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, provider])
+  @@index([provider, providerId])
+  @@map("auth_providers")
+}
+
+model AuthErrorLog {
+  id          String   @id @default(uuid()) @db.Uuid
+  errorCode   String   @map("error_code") @db.VarChar(100)
+  errorMessage String  @map("error_message") @db.Text
+  provider    String?  @db.VarChar(50)
+  userId      String?  @map("user_id") @db.Uuid
+  timestamp   DateTime @default(now())
+  metadata    Json?
+
+  @@map("auth_error_logs")
+}
+
+model TenantModule {
+  id        String   @id @default(uuid()) @db.Uuid
+  tenantId  String   @map("tenant_id") @db.Uuid
+  module    IndustryType
+  isEnabled Boolean  @default(false) @map("is_enabled")
+  enabledAt DateTime? @map("enabled_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, module])
+  @@map("tenant_modules")
+}
+
+model TenantAccessRequest {
+  id             String             @id @default(uuid()) @db.Uuid
+  tenantId       String?            @map("tenant_id") @db.Uuid
+  branchId       String?            @map("branch_id") @db.Uuid
+  userId         String             @map("user_id") @db.Uuid
+  role           UserRole
+  status         AccessRequestStatus @default(PENDING)
+  notes          String?            @db.Text
+  preferredBranchId String?         @map("preferred_branch_id") @db.Uuid
+  skills         String[]           @db.VarChar(100)
+  specialization String?            @map("specialization") @db.VarChar(200)
+  courseId       String?            @map("course_id") @db.Uuid
+  reviewedBy     String?            @map("reviewed_by") @db.Uuid
+  reviewedAt     DateTime?          @map("reviewed_at")
+  rejectionReason String?           @map("rejection_reason") @db.Text
+  createdAt      DateTime           @default(now()) @map("created_at")
+  updatedAt      DateTime           @updatedAt @map("updated_at")
+
+  tenant   Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  branch   Branch?  @relation(fields: [branchId], references: [id])
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviewer User?    @relation("reviewer", fields: [reviewedBy], references: [id])
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([status])
+  @@map("tenant_access_requests")
+}
+
+model StaffBranchMapping {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  branchId  String?  @map("branch_id") @db.Uuid
+  tenantId  String?  @map("tenant_id") @db.Uuid
+  isPrimary Boolean  @default(false) @map("is_primary")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  branch Branch? @relation(fields: [branchId], references: [id])
+  tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, branchId])
+  @@map("staff_branch_mappings")
+}
+
+model OnboardingProgress {
+  id              String         @id @default(uuid()) @db.Uuid
+  userId          String         @unique @map("user_id") @db.Uuid
+  selectedRole    UserRole?
+  currentStep     OnboardingStep @default(ROLE_SELECTION)
+  isCompleted     Boolean        @default(false) @map("is_completed")
+  completedAt     DateTime?      @map("completed_at")
+  metadata        Json?
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("onboarding_progress")
 }
 
 model Permission {
@@ -344,7 +521,7 @@ model UserRoleMapping {
 
 model Tenant {
   id        String       @id @default(uuid()) @db.Uuid
-  name      String       @db.VarChar(200)
+  name      String       @unique @db.VarChar(200)
   slug      String       @unique @db.VarChar(100)
   industry  IndustryType @default(TRAINING)
   status    TenantStatus @default(TRIAL)
@@ -360,6 +537,7 @@ model Tenant {
   brand             TenantBrand?
   invitations       TenantInvitation[]
   settings          TenantSetting[]
+  tenantModules     TenantModule[]
   branches          Branch[]
   subscriptions     Subscription[]
   subscriptionUsage SubscriptionUsage[]
@@ -380,6 +558,9 @@ model Tenant {
   dashboardWidgets  DashboardWidget[]
   analyticsSnapshots AnalyticsSnapshot[]
   notifications     Notification[]
+  accessRequests    TenantAccessRequest[]
+  staffMappings     StaffBranchMapping[]
+  securityEvents    SecurityEvent[]
 
   @@index([slug])
   @@index([status])
@@ -450,12 +631,14 @@ model Branch {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  tenant           Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  userBranches     UserBranch[]
-  leads            Lead[]
-  batches          Batch[]
-  attendanceSessions AttendanceSession[]
-  invoices         Invoice[]
+  tenant              Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userBranches        UserBranch[]
+  accessRequests      TenantAccessRequest[]
+  staffMappings       StaffBranchMapping[]
+  leads               Lead[]
+  batches             Batch[]
+  attendanceSessions  AttendanceSession[]
+  invoices            Invoice[]
 
   @@unique([tenantId, code])
   @@index([tenantId])
@@ -1216,9 +1399,70 @@ model NotificationLog {
   @@map("notification_logs")
 }
 
+model UserDevice {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  token     String   @db.Text
+  platform  String?  @db.VarChar(20)
+  userAgent String?  @map("user_agent") @db.VarChar(500)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, token])
+  @@index([userId])
+  @@map("user_devices")
+}
+
 // ═══════════════════════════════════════════════════════════════
 // SUPER ADMIN — 2. AUDIT & SECURITY
 // ═══════════════════════════════════════════════════════════════
+
+model Session {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  token        String   @unique @db.Text
+  refreshToken String?  @map("refresh_token") @db.Text
+  ipAddress    String?  @map("ip_address") @db.VarChar(45)
+  userAgent    String?  @map("user_agent") @db.VarChar(500)
+  deviceInfo   String?  @map("device_info") @db.VarChar(500)
+  isActive     Boolean  @default(true) @map("is_active")
+  lastActivity DateTime @default(now()) @map("last_activity")
+  expiresAt    DateTime @map("expires_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+  revokedAt    DateTime? @map("revoked_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@index([isActive])
+  @@map("sessions")
+}
+
+model SecurityEvent {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String?  @map("user_id") @db.Uuid
+  tenantId  String?  @map("tenant_id") @db.Uuid
+  eventType String   @map("event_type") @db.VarChar(100)
+  severity  String   @default("INFO") @db.VarChar(20)
+  message   String   @db.Text
+  ipAddress String?  @map("ip_address") @db.VarChar(45)
+  userAgent String?  @map("user_agent") @db.VarChar(500)
+  metadata  Json?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tenantId])
+  @@index([eventType])
+  @@index([severity])
+  @@index([createdAt])
+  @@map("security_events")
+}
 
 model AuditLog {
   id         String      @id @default(uuid()) @db.Uuid

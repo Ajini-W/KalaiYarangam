@@ -1,0 +1,28 @@
+meta {
+  name:  Setup Branch
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{base-url}}/onboarding/branch
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+body:json {
+  {
+    "branchName": "Main Branch",
+    "address": "123 Business Centre, Chennai",
+    "contactNumber": "9876543210"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

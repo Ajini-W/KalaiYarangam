@@ -1,0 +1,20 @@
+meta {
+  name: Tenant - Get Modules
+  type: http
+  seq: 13
+}
+
+get {
+  url: {{base-url}}/training/modules
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

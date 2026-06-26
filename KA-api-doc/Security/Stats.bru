@@ -1,0 +1,56 @@
+meta {
+  name: Stats
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{base-url}}/security/stats
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: bearer {{accessToken}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
+
+example {
+  name: 200
+  
+  request: {
+    url: {{base-url}}/security/stats
+    method: GET
+    mode: none
+    headers: {
+      Authorization: bearer {{accessToken}}
+    }
+  }
+  
+  response: {
+    status: {
+      code: 200
+      text: OK
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "httpStatusCode": 200,
+          "message": "Security dashboard stats",
+          "data": {
+            "activeSessions": 42,
+            "failedLoginsLast24h": 3,
+            "criticalEventsLast7d": 0,
+            "totalAuditLogs": 1250
+          }
+        }
+      '''
+    }
+  }
+}

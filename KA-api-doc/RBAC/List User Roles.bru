@@ -1,0 +1,20 @@
+meta {
+  name: List User Roles
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{base-url}}/rbac/user-roles
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: bearer {{accessToken}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

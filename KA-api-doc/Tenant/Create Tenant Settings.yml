@@ -1,0 +1,93 @@
+info:
+  name: Create Tenant Settings
+  type: http
+  seq: 8
+
+http:
+  method: POST
+  url: "{{base-url}}/training/settings"
+  headers:
+    - name: Authorization
+      value: Bearer {{token}}
+  body:
+    type: json
+    data: |-
+      {
+        "timezone": "Asia/Kolkata",
+        "dateFormat": "13/03/2026",
+        "currency": "INR",
+        "language": "en",
+        "timeFormat": "12h",
+        "weekStartDay": "wednesday"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+examples:
+  - name: SUCCESS 201
+    request:
+      url: "{{base-url}}/training/settings"
+      method: POST
+      headers:
+        - name: Authorization
+          value: Bearer <access-token>
+      body:
+        type: json
+        data: |-
+          {
+            "timezone": "Asia/Kolkata",
+            "dateFormat": "DD/MM/YYYY",
+            "currency": "INR",
+            "language": "en",
+            "timeFormat": "12h",
+            "weekStartDay": "monday"
+          }
+    response:
+      status: 201
+      statusText: Created
+      body:
+        type: json
+        data: |-
+          {
+            "httpStatusCode": 201,
+            "message": "Settings created successfully",
+            "data": {
+              "timezone": "Asia/Kolkata",
+              "dateFormat": "DD/MM/YYYY",
+              "currency": "INR",
+              "language": "en",
+              "timeFormat": "12h",
+              "weekStartDay": "monday"
+            },
+            "timestamp": ""
+          }
+  - name: CONFLICT 409
+    request:
+      url: "{{base-url}}/training/settings"
+      method: POST
+      headers:
+        - name: Authorization
+          value: Bearer <access-token>
+      body:
+        type: json
+        data: |-
+          {
+            "timezone": "Asia/Kolkata"
+          }
+    response:
+      status: 409
+      statusText: Conflict
+      body:
+        type: json
+        data: |-
+          {
+            "httpStatusCode": 409,
+            "message": "Settings already exist for: timezone",
+            "data": null,
+            "timestamp": ""
+          }

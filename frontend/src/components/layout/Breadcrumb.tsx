@@ -4,6 +4,27 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronRight, Home } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { useAuthStore } from "@/store/auth.store";
+
+const roleLabels: Record<string, string> = {
+  OWNER: "Owner",
+  BRANCH_MANAGER: "Branch Manager",
+  TRAINER: "Staff",
+  STAFF: "Staff",
+  STUDENT: "Student",
+  CLIENT: "Client",
+  SUPER_ADMIN: "Super Admin",
+};
+
+const roleSegments: Record<string, string> = {
+  owner: "OWNER",
+  "branch-manager": "BRANCH_MANAGER",
+  trainer: "STAFF",
+  staff: "STAFF",
+  student: "STUDENT",
+  client: "CLIENT",
+  "super-admin": "SUPER_ADMIN",
+};
 
 function toLabel(segment: string) {
   return segment.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
@@ -13,15 +34,22 @@ export interface BreadcrumbProps { className?: string }
 
 export function Breadcrumb({ className }: BreadcrumbProps) {
   const pathname = usePathname();
+  const user = useAuthStore((s) => s.user);
   const segments = pathname.split("/").filter(Boolean);
 
   if (segments.length === 0) return null;
 
-  const crumbs = segments.map((seg, i) => ({
-    label: toLabel(seg),
-    href: "/" + segments.slice(0, i + 1).join("/"),
-    isLast: i === segments.length - 1,
-  }));
+  const crumbs = segments.map((seg, i) => {
+    const isRoleSegment = i === 0 && roleSegments[seg];
+    const label = isRoleSegment
+      ? (user ? roleLabels[user.role] : toLabel(seg)) + " Dashboard"
+      : toLabel(seg);
+    return {
+      label,
+      href: "/" + segments.slice(0, i + 1).join("/"),
+      isLast: i === segments.length - 1,
+    };
+  });
 
   return (
     <nav aria-label="Breadcrumb" className={cn("flex items-center gap-1 text-sm", className)}>

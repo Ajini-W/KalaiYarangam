@@ -1,0 +1,20 @@
+meta {
+  name: List Users
+  type: http
+  seq: 10
+}
+
+get {
+  url: {{base-url}}/rbac/users?page=1&pageSize=10
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: bearer {{accessToken}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -1,0 +1,18 @@
+import { Module } from '@nestjs/common';
+import { JwtModule } from '@nestjs/jwt';
+import { env } from '@/config';
+import { OnboardingController } from './onboarding.controller';
+import { OnboardingService } from './onboarding.service';
+
+@Module({
+  imports: [
+    JwtModule.register({
+      secret: env.JWT_SECRET,
+      signOptions: { expiresIn: env.JWT_EXPIRES_IN as any },
+    }),
+  ],
+  controllers: [OnboardingController],
+  providers: [OnboardingService],
+  exports: [OnboardingService],
+})
+export class OnboardingModule {}

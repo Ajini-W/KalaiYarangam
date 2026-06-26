@@ -1,0 +1,26 @@
+meta {
+  name: Update User Role
+  type: http
+  seq: 13
+}
+
+put {
+  url: {{base-url}}/rbac/users/{{userId}}/role
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: bearer {{accessToken}}
+}
+
+body:json {
+  {
+    "role": "TRAINER"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

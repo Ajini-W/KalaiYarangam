@@ -1,0 +1,20 @@
+meta {
+  name: Subscriptions - Get Current
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{base-url}}/subscriptions/current
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
