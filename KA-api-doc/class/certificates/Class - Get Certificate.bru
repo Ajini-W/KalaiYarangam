@@ -1,0 +1,20 @@
+meta {
+  name: Class - Get Certificate
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{base-url}}/class/certificates/{{certificateId}}
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
