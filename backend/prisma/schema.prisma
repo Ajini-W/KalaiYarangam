@@ -1177,7 +1177,7 @@ model Task {
   allowLateSubmission Boolean   @default(false) @map("allow_late_submission")
   createdAt          DateTime   @default(now()) @map("created_at")
   updatedAt          DateTime   @updatedAt @map("updated_at")
-
+  isArchived         Boolean    @default(false) @map("is_archived")
   tenant       Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   batch        Batch               @relation(fields: [batchId], references: [id], onDelete: Cascade)
   createdByUser User               @relation("UserCreatedTask", fields: [createdBy], references: [id])
