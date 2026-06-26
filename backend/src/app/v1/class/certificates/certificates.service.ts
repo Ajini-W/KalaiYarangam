@@ -2,14 +2,12 @@ import { BadRequestException, Injectable, NotFoundException, InternalServerError
 import { PrismaService } from '@/database';
 import { AuthenticatedUser } from '@/common/interfaces';
 import { paginate, paginationArgs } from '@/common/utils';
-import { CertificatePdfService } from './certificate-pdf.service';
 import { CertificateStatusFilter, CreateCertificateDto, GenerateBulkCertificateDto, QueryCertificateDto, RevokeCertificateDto } from './dto/certificate.dto';
 
 @Injectable()
 export class CertificatesService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly certificatePdfService: CertificatePdfService,
   ) {}
 
   async create(user: AuthenticatedUser, dto: CreateCertificateDto) {
@@ -32,14 +30,16 @@ export class CertificatesService {
     }
 
     let courseName: string;
+    let batch: Record<string, unknown> | null = null;
     if (dto.batchId) {
-      const batch = await this.prisma.batch.findFirst({
+      const found = await this.prisma.batch.findFirst({
         where: { id: dto.batchId, tenantId: user.tenantId },
       });
-      if (!batch) {
+      if (!found) {
         throw new NotFoundException('Batch not found');
       }
-      courseName = batch.name;
+      batch = found;
+      courseName = found.name;
     } else if (dto.courseName) {
       courseName = dto.courseName;
     } else {
@@ -57,52 +57,27 @@ export class CertificatesService {
         certNumber,
         courseName,
         issuedDate,
-        data: (dto.data ?? {}) as any,
+        data: {},
       },
     });
 
-    this.generatePdfBackground(certificate, template, student.name);
-
-    return { message: 'Certificate created successfully', data: certificate };
-  }
-
-  private async generatePdfBackground(
-    certificate: { id: string; tenantId: string; courseName: string; certNumber: string; issuedDate: Date; data: unknown },
-    template: { htmlContent: string; cssStyles: string | null; variables: unknown },
-    studentName: string,
-  ) {
-    try {
-      const renderedHtml = this.renderTemplate(template.htmlContent, {
-        studentName,
-        courseName: certificate.courseName,
-        certNumber: certificate.certNumber,
-        issuedDate: certificate.issuedDate.toISOString().split('T')[0],
-        ...((certificate.data ?? {}) as Record<string, unknown>),
-      });
-
-      const pdfUrl = await this.certificatePdfService.generateAndUpload(
-        certificate.id,
-        certificate.tenantId,
-        renderedHtml,
-        template.cssStyles,
-      );
-
-      if (pdfUrl) {
-        await this.prisma.certificate.update({
-          where: { id: certificate.id },
-          data: { pdfUrl },
-        });
-      }
-    } catch (error) {
-      console.error('PDF generation failed:', (error as Error).message);
-    }
-  }
-
-  private renderTemplate(htmlContent: string, vars: Record<string, unknown>): string {
-    return htmlContent.replace(/\{\{(\w+)\}\}/g, (_, key) => {
-      const val = vars[key];
-      return val !== undefined ? String(val) : '';
+    const snapshot = this.buildSnapshot({
+      certificateId: certificate.id,
+      student,
+      template,
+      batch,
+      courseName,
+      certNumber,
+      issuedDate,
+      metadata: dto.data ?? {},
     });
+
+    await this.prisma.certificate.update({
+      where: { id: certificate.id },
+      data: { data: snapshot as any },
+    });
+
+    return { message: 'Certificate created successfully', data: { ...certificate, data: snapshot } };
   }
 
   async findAll(user: AuthenticatedUser, query: QueryCertificateDto) {
@@ -170,8 +145,8 @@ export class CertificatesService {
     const certificate = await this.prisma.certificate.findFirst({
       where: { id, tenantId: user.tenantId },
       include: {
-        student: { select: { name: true } },
-        template: { select: { htmlContent: true, cssStyles: true } },
+        student: { select: { id: true, name: true, phone: true, email: true } },
+        template: { select: { id: true, name: true, orientation: true, paperSize: true } },
       },
     });
 
@@ -179,34 +154,20 @@ export class CertificatesService {
       throw new NotFoundException('Certificate not found');
     }
 
-    if (certificate.pdfUrl) {
-      return { message: 'Download URL retrieved successfully', data: { pdfUrl: certificate.pdfUrl } };
-    }
-
-    const renderedHtml = this.renderTemplate(certificate.template.htmlContent, {
-      studentName: certificate.student.name,
-      courseName: certificate.courseName,
-      certNumber: certificate.certNumber,
-      issuedDate: certificate.issuedDate.toISOString().split('T')[0],
-      ...((certificate.data ?? {}) as Record<string, unknown>),
-    });
-
-    const pdfUrl = await this.certificatePdfService.generateAndUpload(
-      certificate.id,
-      certificate.tenantId,
-      renderedHtml,
-      certificate.template.cssStyles,
-    );
-
-    if (pdfUrl) {
-      await this.prisma.certificate.update({
-        where: { id },
-        data: { pdfUrl },
-      });
-      return { message: 'Download URL retrieved successfully', data: { pdfUrl } };
-    }
-
-    return { message: 'PDF generation failed', data: null };
+    return {
+      message: 'Certificate download data retrieved successfully',
+      data: {
+        certificate: {
+          id: certificate.id,
+          certNumber: certificate.certNumber,
+          courseName: certificate.courseName,
+          issuedDate: certificate.issuedDate,
+          student: certificate.student,
+          template: certificate.template,
+        },
+        snapshot: certificate.data,
+      },
+    };
   }
 
   async verify(certificateNo: string) {
@@ -281,12 +242,21 @@ export class CertificatesService {
       targetStudentIds = enrollments.map((e) => e.studentId);
     }
 
+    const students = await this.prisma.student.findMany({
+      where: { id: { in: targetStudentIds }, tenantId: user.tenantId },
+    });
+    const studentMap = new Map(students.map((s) => [s.id, s]));
+
     const issuedDate = dto.issuedDate ?? new Date();
 
     const certificates = await this.prisma.$transaction(async (tx) => {
       const results: Record<string, unknown>[] = [];
       for (const studentId of targetStudentIds) {
+        const student = studentMap.get(studentId);
+        if (!student) continue;
+
         const certNumber = await this.generateCertNumber();
+
         const certificate = await tx.certificate.create({
           data: {
             tenantId: user.tenantId,
@@ -298,56 +268,29 @@ export class CertificatesService {
             data: {},
           },
         });
-        results.push(certificate);
+
+        const snapshot = this.buildSnapshot({
+          certificateId: certificate.id,
+          student,
+          template,
+          batch,
+          courseName: batch.name,
+          certNumber,
+          issuedDate,
+          metadata: {},
+        });
+
+        await tx.certificate.update({
+          where: { id: certificate.id },
+          data: { data: snapshot as any },
+        });
+
+        results.push({ ...certificate, data: snapshot });
       }
       return results;
     });
 
-    this.generateBulkPdfs(certificates, template, user.tenantId);
-
     return { message: 'Bulk certificates generated successfully', data: certificates };
-  }
-
-  private async generateBulkPdfs(
-    certificates: Record<string, unknown>[],
-    template: { htmlContent: string; cssStyles: string | null },
-    tenantId: string,
-  ) {
-    try {
-      const studentIds = [...new Set(certificates.map((c: any) => c.studentId))];
-      const students = await this.prisma.student.findMany({
-        where: { id: { in: studentIds }, tenantId },
-        select: { id: true, name: true },
-      });
-      const studentMap = new Map(students.map((s) => [s.id, s.name]));
-
-      for (const cert of certificates as any[]) {
-        const studentName = studentMap.get(cert.studentId) ?? 'Student';
-        const renderedHtml = this.renderTemplate(template.htmlContent, {
-          studentName,
-          courseName: cert.courseName,
-          certNumber: cert.certNumber,
-          issuedDate: new Date(cert.issuedDate).toISOString().split('T')[0],
-          ...((cert.data ?? {}) as Record<string, unknown>),
-        });
-
-        const pdfUrl = await this.certificatePdfService.generateAndUpload(
-          cert.id,
-          cert.tenantId,
-          renderedHtml,
-          template.cssStyles,
-        );
-
-        if (pdfUrl) {
-          await this.prisma.certificate.update({
-            where: { id: cert.id },
-            data: { pdfUrl },
-          });
-        }
-      }
-    } catch (error) {
-      // Best-effort
-    }
   }
 
   async reissue(user: AuthenticatedUser, id: string) {
@@ -368,27 +311,28 @@ export class CertificatesService {
     }
 
     const newCertNumber = await this.generateCertNumber();
+    const newIssuedDate = new Date();
+
+    const existingData = (certificate.data ?? {}) as Record<string, unknown>;
+    const updatedSnapshot = {
+      ...existingData,
+      certNumber: newCertNumber,
+      issuedDate: newIssuedDate.toISOString().split('T')[0],
+      previousCertNumber: certificate.certNumber,
+    };
 
     const updated = await this.prisma.certificate.update({
       where: { id },
       data: {
         certNumber: newCertNumber,
         revokedAt: null,
-        issuedDate: new Date(),
+        issuedDate: newIssuedDate,
         pdfUrl: null,
+        data: updatedSnapshot as any,
       },
     });
 
-    const pdfTemplate = await this.prisma.certificateTemplate.findFirst({ where: { id: certificate.templateId } });
-    if (pdfTemplate) {
-      this.generatePdfBackground(
-        { ...certificate, id, certNumber: newCertNumber, issuedDate: new Date(), data: certificate.data },
-        pdfTemplate,
-        (await this.prisma.student.findFirst({ where: { id: certificate.studentId } }))?.name ?? 'Student',
-      );
-    }
-
-    return { message: 'Certificate reissued successfully', data: updated };
+    return { message: 'Certificate reissued successfully', data: { ...updated, data: updatedSnapshot } };
   }
 
   async revoke(user: AuthenticatedUser, id: string, dto: RevokeCertificateDto) {
@@ -408,10 +352,11 @@ export class CertificatesService {
       throw new BadRequestException('Certificate is already revoked');
     }
 
+    const existingData = (certificate.data ?? {}) as Record<string, unknown>;
     const updateData: Record<string, unknown> = { revokedAt: new Date() };
 
     if (dto.reason) {
-      updateData.data = { ...((certificate.data ?? {}) as Record<string, unknown>), revokeReason: dto.reason } as any;
+      updateData.data = { ...existingData, revokeReason: dto.reason } as any;
     }
 
     const updated = await this.prisma.certificate.update({
@@ -420,6 +365,39 @@ export class CertificatesService {
     });
 
     return { message: 'Certificate revoked successfully', data: updated };
+  }
+
+  private buildSnapshot(params: {
+    certificateId: string;
+    student: { id: string; name: string; phone: string; email?: string | null };
+    template: { id: string; name: string };
+    batch: Record<string, unknown> | null;
+    courseName: string;
+    certNumber: string;
+    issuedDate: Date;
+    metadata: Record<string, unknown>;
+  }) {
+    return {
+      certificateId: params.certificateId,
+      certNumber: params.certNumber,
+      templateId: params.template.id,
+      issuedDate: params.issuedDate.toISOString().split('T')[0],
+      courseName: params.courseName,
+      student: {
+        id: params.student.id,
+        name: params.student.name,
+        phone: params.student.phone,
+        ...(params.student.email ? { email: params.student.email } : {}),
+      },
+      batch: params.batch
+        ? { id: params.batch.id, name: params.batch.name, code: (params.batch as any).code ?? null }
+        : null,
+      template: {
+        id: params.template.id,
+        name: params.template.name,
+      },
+      ...params.metadata,
+    };
   }
 
   private async generateCertNumber(): Promise<string> {

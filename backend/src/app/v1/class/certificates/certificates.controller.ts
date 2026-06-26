@@ -1,5 +1,4 @@
-import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Query, Res } from '@nestjs/common';
-import { Response } from 'express';
+import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from '@/common/decorators';
 import { Public } from '@/common/decorators';
@@ -35,16 +34,8 @@ export class CertificatesController {
   }
 
   @Get(':id/download')
-  async download(
-    @CurrentUser() user: AuthenticatedUser,
-    @Param('id', ParseUUIDPipe) id: string,
-    @Res() res: Response,
-  ) {
-    const result = await this.certificatesService.download(user, id);
-    if (result.data?.pdfUrl) {
-      return res.redirect(302, result.data.pdfUrl as string);
-    }
-    return res.status(404).json({ httpStatusCode: 404, message: result.message, data: null, timestamp: new Date().toISOString() });
+  download(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string) {
+    return this.certificatesService.download(user, id);
   }
 
   @Post('generate-bulk')
