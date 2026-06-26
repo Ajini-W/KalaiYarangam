@@ -1,0 +1,24 @@
+meta {
+  name: Class - Get Attendances
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{base-url}}/class/attendance?page=1&pageSize=10&batchId={{batchId}}&dateFrom=2026-06-01&dateTo=2026-06-30
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+vars:pre-request {
+  batchId: 69eaa17e-1903-4de4-a9a0-e6552aa397b2
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
