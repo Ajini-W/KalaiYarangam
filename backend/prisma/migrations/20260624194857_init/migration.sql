@@ -2,7 +2,16 @@
 CREATE TYPE "UserRole" AS ENUM ('SUPER_ADMIN', 'OWNER', 'BRANCH_MANAGER', 'TRAINER', 'STAFF', 'STUDENT', 'CLIENT');
 
 -- CreateEnum
-CREATE TYPE "UserStatus" AS ENUM ('ACTIVE', 'INACTIVE', 'SUSPENDED', 'PENDING');
+CREATE TYPE "UserStatus" AS ENUM ('NEW_USER', 'REGISTERED', 'PROFILE_COMPLETED', 'ACCESS_REQUESTED', 'PENDING_APPROVAL', 'APPROVED', 'ACTIVE', 'INACTIVE', 'SUSPENDED', 'PENDING');
+
+-- CreateEnum
+CREATE TYPE "AuthProviderType" AS ENUM ('EMAIL', 'GOOGLE');
+
+-- CreateEnum
+CREATE TYPE "AccessRequestStatus" AS ENUM ('PENDING', 'APPROVED', 'REJECTED', 'BLOCKED');
+
+-- CreateEnum
+CREATE TYPE "OnboardingStep" AS ENUM ('ROLE_SELECTION', 'PROFILE_SETUP', 'TENANT_SETUP', 'BRANCH_SETUP', 'MODULE_SELECTION', 'SUBSCRIPTION', 'SEARCH_TENANT', 'SELECT_BRANCH', 'SKILLS_SETUP', 'COURSE_SELECTION', 'COMPLETED');
 
 -- CreateEnum
 CREATE TYPE "Gender" AS ENUM ('MALE', 'FEMALE', 'OTHER');
@@ -65,7 +74,7 @@ CREATE TYPE "TicketStatus" AS ENUM ('OPEN', 'IN_PROGRESS', 'WAITING', 'RESOLVED'
 CREATE TYPE "TicketPriority" AS ENUM ('LOW', 'MEDIUM', 'HIGH', 'URGENT');
 
 -- CreateEnum
-CREATE TYPE "AuditAction" AS ENUM ('CREATE', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT', 'EXPORT', 'IMPORT');
+CREATE TYPE "AuditAction" AS ENUM ('CREATE', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT', 'EXPORT', 'IMPORT', 'SESSION_REVOKE', 'PASSWORD_CHANGE', 'ROLE_CHANGE', 'STATUS_CHANGE', 'PERMISSION_CHANGE', 'SECURITY_EVENT', 'TWO_FACTOR_ENABLE', 'TWO_FACTOR_DISABLE');
 
 -- CreateEnum
 CREATE TYPE "HealthStatus" AS ENUM ('HEALTHY', 'AT_RISK', 'CRITICAL', 'CHURNED');
@@ -79,6 +88,7 @@ CREATE TABLE "users" (
     "tenant_id" UUID,
     "email" VARCHAR(255) NOT NULL,
     "password_hash" VARCHAR(255) NOT NULL,
+    "password_set" BOOLEAN NOT NULL DEFAULT false,
     "name" VARCHAR(150) NOT NULL,
     "phone" VARCHAR(20),
     "role" "UserRole" NOT NULL DEFAULT 'STAFF',
@@ -90,6 +100,7 @@ CREATE TABLE "users" (
     "reset_password_expires_at" TIMESTAMP(3),
     "avatar_url" VARCHAR(500),
     "last_login_at" TIMESTAMP(3),
+    "preferences" JSONB DEFAULT '{}',
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
@@ -151,6 +162,93 @@ CREATE TABLE "refresh_tokens" (
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "refresh_tokens_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "auth_providers" (
+    "id" UUID NOT NULL,
+    "user_id" UUID NOT NULL,
+    "provider" "AuthProviderType" NOT NULL,
+    "provider_id" VARCHAR(255),
+    "email" VARCHAR(255),
+    "linked_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "auth_providers_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "auth_error_logs" (
+    "id" UUID NOT NULL,
+    "error_code" VARCHAR(100) NOT NULL,
+    "error_message" TEXT NOT NULL,
+    "provider" VARCHAR(50),
+    "user_id" UUID,
+    "timestamp" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "metadata" JSONB,
+
+    CONSTRAINT "auth_error_logs_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "tenant_modules" (
+    "id" UUID NOT NULL,
+    "tenant_id" UUID NOT NULL,
+    "module" "IndustryType" NOT NULL,
+    "is_enabled" BOOLEAN NOT NULL DEFAULT false,
+    "enabled_at" TIMESTAMP(3),
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "tenant_modules_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "tenant_access_requests" (
+    "id" UUID NOT NULL,
+    "tenant_id" UUID,
+    "branch_id" UUID,
+    "user_id" UUID NOT NULL,
+    "role" "UserRole" NOT NULL,
+    "status" "AccessRequestStatus" NOT NULL DEFAULT 'PENDING',
+    "notes" TEXT,
+    "preferred_branch_id" UUID,
+    "skills" VARCHAR(100)[],
+    "specialization" VARCHAR(200),
+    "course_id" UUID,
+    "reviewed_by" UUID,
+    "reviewed_at" TIMESTAMP(3),
+    "rejection_reason" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "tenant_access_requests_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "staff_branch_mappings" (
+    "id" UUID NOT NULL,
+    "user_id" UUID NOT NULL,
+    "branch_id" UUID,
+    "tenant_id" UUID,
+    "is_primary" BOOLEAN NOT NULL DEFAULT false,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "staff_branch_mappings_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "onboarding_progress" (
+    "id" UUID NOT NULL,
+    "user_id" UUID NOT NULL,
+    "selectedRole" "UserRole",
+    "currentStep" "OnboardingStep" NOT NULL DEFAULT 'ROLE_SELECTION',
+    "is_completed" BOOLEAN NOT NULL DEFAULT false,
+    "completed_at" TIMESTAMP(3),
+    "metadata" JSONB,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "onboarding_progress_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -853,6 +951,53 @@ CREATE TABLE "notification_logs" (
 );
 
 -- CreateTable
+CREATE TABLE "user_devices" (
+    "id" UUID NOT NULL,
+    "user_id" UUID NOT NULL,
+    "token" TEXT NOT NULL,
+    "platform" VARCHAR(20),
+    "user_agent" VARCHAR(500),
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "user_devices_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "sessions" (
+    "id" UUID NOT NULL,
+    "user_id" UUID NOT NULL,
+    "token" TEXT NOT NULL,
+    "refresh_token" TEXT,
+    "ip_address" VARCHAR(45),
+    "user_agent" VARCHAR(500),
+    "device_info" VARCHAR(500),
+    "is_active" BOOLEAN NOT NULL DEFAULT true,
+    "last_activity" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "expires_at" TIMESTAMP(3) NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "revoked_at" TIMESTAMP(3),
+
+    CONSTRAINT "sessions_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "security_events" (
+    "id" UUID NOT NULL,
+    "user_id" UUID,
+    "tenant_id" UUID,
+    "event_type" VARCHAR(100) NOT NULL,
+    "severity" VARCHAR(20) NOT NULL DEFAULT 'INFO',
+    "message" TEXT NOT NULL,
+    "ip_address" VARCHAR(45),
+    "user_agent" VARCHAR(500),
+    "metadata" JSONB,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "security_events_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "audit_logs" (
     "id" UUID NOT NULL,
     "user_id" UUID,
@@ -1246,6 +1391,30 @@ CREATE UNIQUE INDEX "refresh_tokens_token_key" ON "refresh_tokens"("token");
 CREATE INDEX "refresh_tokens_user_id_idx" ON "refresh_tokens"("user_id");
 
 -- CreateIndex
+CREATE INDEX "auth_providers_provider_provider_id_idx" ON "auth_providers"("provider", "provider_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "auth_providers_user_id_provider_key" ON "auth_providers"("user_id", "provider");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "tenant_modules_tenant_id_module_key" ON "tenant_modules"("tenant_id", "module");
+
+-- CreateIndex
+CREATE INDEX "tenant_access_requests_tenant_id_idx" ON "tenant_access_requests"("tenant_id");
+
+-- CreateIndex
+CREATE INDEX "tenant_access_requests_user_id_idx" ON "tenant_access_requests"("user_id");
+
+-- CreateIndex
+CREATE INDEX "tenant_access_requests_status_idx" ON "tenant_access_requests"("status");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "staff_branch_mappings_user_id_branch_id_key" ON "staff_branch_mappings"("user_id", "branch_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "onboarding_progress_user_id_key" ON "onboarding_progress"("user_id");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "permissions_module_action_key" ON "permissions"("module", "action");
 
 -- CreateIndex
@@ -1459,6 +1628,39 @@ CREATE INDEX "notification_logs_sent_at_idx" ON "notification_logs"("sent_at");
 CREATE INDEX "notification_logs_channel_idx" ON "notification_logs"("channel");
 
 -- CreateIndex
+CREATE INDEX "user_devices_user_id_idx" ON "user_devices"("user_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "user_devices_user_id_token_key" ON "user_devices"("user_id", "token");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "sessions_token_key" ON "sessions"("token");
+
+-- CreateIndex
+CREATE INDEX "sessions_user_id_idx" ON "sessions"("user_id");
+
+-- CreateIndex
+CREATE INDEX "sessions_token_idx" ON "sessions"("token");
+
+-- CreateIndex
+CREATE INDEX "sessions_is_active_idx" ON "sessions"("is_active");
+
+-- CreateIndex
+CREATE INDEX "security_events_user_id_idx" ON "security_events"("user_id");
+
+-- CreateIndex
+CREATE INDEX "security_events_tenant_id_idx" ON "security_events"("tenant_id");
+
+-- CreateIndex
+CREATE INDEX "security_events_event_type_idx" ON "security_events"("event_type");
+
+-- CreateIndex
+CREATE INDEX "security_events_severity_idx" ON "security_events"("severity");
+
+-- CreateIndex
+CREATE INDEX "security_events_created_at_idx" ON "security_events"("created_at");
+
+-- CreateIndex
 CREATE INDEX "audit_logs_entity_entity_id_idx" ON "audit_logs"("entity", "entity_id");
 
 -- CreateIndex
@@ -1568,6 +1770,36 @@ ALTER TABLE "user_login_log" ADD CONSTRAINT "user_login_log_user_id_fkey" FOREIG
 
 -- AddForeignKey
 ALTER TABLE "refresh_tokens" ADD CONSTRAINT "refresh_tokens_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "auth_providers" ADD CONSTRAINT "auth_providers_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "tenant_modules" ADD CONSTRAINT "tenant_modules_tenant_id_fkey" FOREIGN KEY ("tenant_id") REFERENCES "tenants"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "tenant_access_requests" ADD CONSTRAINT "tenant_access_requests_tenant_id_fkey" FOREIGN KEY ("tenant_id") REFERENCES "tenants"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "tenant_access_requests" ADD CONSTRAINT "tenant_access_requests_branch_id_fkey" FOREIGN KEY ("branch_id") REFERENCES "branches"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "tenant_access_requests" ADD CONSTRAINT "tenant_access_requests_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "tenant_access_requests" ADD CONSTRAINT "tenant_access_requests_reviewed_by_fkey" FOREIGN KEY ("reviewed_by") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "staff_branch_mappings" ADD CONSTRAINT "staff_branch_mappings_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "staff_branch_mappings" ADD CONSTRAINT "staff_branch_mappings_branch_id_fkey" FOREIGN KEY ("branch_id") REFERENCES "branches"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "staff_branch_mappings" ADD CONSTRAINT "staff_branch_mappings_tenant_id_fkey" FOREIGN KEY ("tenant_id") REFERENCES "tenants"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "onboarding_progress" ADD CONSTRAINT "onboarding_progress_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "role_permissions" ADD CONSTRAINT "role_permissions_permission_id_fkey" FOREIGN KEY ("permission_id") REFERENCES "permissions"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -1757,6 +1989,18 @@ ALTER TABLE "notifications" ADD CONSTRAINT "notifications_tenant_id_fkey" FOREIG
 
 -- AddForeignKey
 ALTER TABLE "notifications" ADD CONSTRAINT "notifications_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "user_devices" ADD CONSTRAINT "user_devices_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "sessions" ADD CONSTRAINT "sessions_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "security_events" ADD CONSTRAINT "security_events_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "security_events" ADD CONSTRAINT "security_events_tenant_id_fkey" FOREIGN KEY ("tenant_id") REFERENCES "tenants"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "audit_logs" ADD CONSTRAINT "audit_logs_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
