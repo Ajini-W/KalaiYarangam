@@ -250,6 +250,31 @@ enum DayOfWeek {
   SATURDAY
   SUNDAY
 }
+
+enum TaskType {
+  HOMEWORK
+  ASSIGNMENT
+  QUIZ
+  PROJECT
+  EXAM
+}
+
+enum TaskStatus {
+  PENDING
+  ACTIVE
+  SUBMISSION_CLOSED
+  GRADED
+  CANCELLED
+}
+
+enum SubmissionStatus {
+  NOT_SUBMITTED
+  SUBMITTED
+  LATE
+  GRADED
+  RETURNED
+}
+
 // ═══════════════════════════════════════════════════════════════
 // 1. AUTHENTICATION & USER MANAGEMENT
 // ═══════════════════════════════════════════════════════════════
@@ -295,6 +320,8 @@ model User {
   securityEvents    SecurityEvent[]
   auditLogs         AuditLog[]
   activityLogs      ActivityLog[]
+  createdTasks      Task[]              @relation("UserCreatedTask")
+  gradedSubmissions StudentTaskSubmission[] @relation("SubmissionGradedBy")
 
   @@index([tenantId])
   @@index([email])
@@ -561,6 +588,8 @@ model Tenant {
   accessRequests    TenantAccessRequest[]
   staffMappings     StaffBranchMapping[]
   securityEvents    SecurityEvent[]
+  tasks             Task[]
+  studentProgress   StudentProgress[]
 
   @@index([slug])
   @@index([status])
@@ -836,9 +865,10 @@ model Student {
   tenant       Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   enrollments  Enrollment[]
   attendance   StudentAttendance[]
-  progress     StudentProgress[]
-  certificates Certificate[]
-  invoices     Invoice[]
+  progress        StudentProgress[]
+  certificates    Certificate[]
+  invoices        Invoice[]
+  taskSubmissions StudentTaskSubmission[]
 
   @@unique([tenantId, phone])
   @@index([tenantId])
@@ -991,7 +1021,9 @@ model Batch {
   trainers     BatchTrainer[]
   schedules    BatchSchedule[]
   enrollments  Enrollment[]
-  sessions     ClassSession[]
+  sessions         ClassSession[]
+  tasks            Task[]
+  studentProgress  StudentProgress[]
 
   @@unique([tenantId, code])
   @@index([tenantId])
@@ -1067,6 +1099,7 @@ model ClassSession {
 
 model StudentProgress {
   id         String   @id @default(uuid()) @db.Uuid
+  tenantId   String   @map("tenant_id") @db.Uuid
   studentId  String   @map("student_id") @db.Uuid
   batchId    String?  @map("batch_id") @db.Uuid
   trainerId  String?  @map("trainer_id") @db.Uuid
@@ -1076,11 +1109,18 @@ model StudentProgress {
   remarks    String?  @db.Text
   assessedAt DateTime @default(now()) @map("assessed_at")
   createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
 
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  batch   Batch?  @relation(fields: [batchId], references: [id])
   trainer User?   @relation(fields: [trainerId], references: [id])
 
+  @@index([tenantId])
   @@index([studentId])
+  @@index([batchId])
+  @@index([trainerId])
+  @@index([studentId, batchId])
   @@map("student_progress")
 }
 
@@ -1117,6 +1157,63 @@ model StudentAttendance {
 
   @@unique([attendanceSessionId, studentId])
   @@map("student_attendance")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 12. TASK & SUBMISSION MANAGEMENT
+// ═══════════════════════════════════════════════════════════════
+
+model Task {
+  id                 String     @id @default(uuid()) @db.Uuid
+  tenantId           String     @map("tenant_id") @db.Uuid
+  batchId            String     @map("batch_id") @db.Uuid
+  createdBy          String     @map("created_by") @db.Uuid
+  title              String     @db.VarChar(200)
+  description        String?    @db.Text
+  type               TaskType
+  status             TaskStatus @default(PENDING)
+  dueDate            DateTime?  @map("due_date") @db.Date
+  maxScore           Int?       @map("max_score")
+  allowLateSubmission Boolean   @default(false) @map("allow_late_submission")
+  createdAt          DateTime   @default(now()) @map("created_at")
+  updatedAt          DateTime   @updatedAt @map("updated_at")
+
+  tenant       Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  batch        Batch               @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  createdByUser User               @relation("UserCreatedTask", fields: [createdBy], references: [id])
+  submissions  StudentTaskSubmission[]
+
+  @@index([tenantId])
+  @@index([batchId])
+  @@index([batchId, status])
+  @@index([dueDate])
+  @@map("tasks")
+}
+
+model StudentTaskSubmission {
+  id          String           @id @default(uuid()) @db.Uuid
+  taskId      String           @map("task_id") @db.Uuid
+  studentId   String           @map("student_id") @db.Uuid
+  submittedAt DateTime?        @map("submitted_at")
+  content     String?          @db.Text
+  fileUrl     String?          @map("file_url") @db.VarChar(500)
+  score       Int?
+  feedback    String?          @db.Text
+  status      SubmissionStatus @default(NOT_SUBMITTED)
+  gradedBy    String?          @map("graded_by") @db.Uuid
+  gradedAt    DateTime?        @map("graded_at")
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+
+  task          Task    @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  student       Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  gradedByUser  User?   @relation("SubmissionGradedBy", fields: [gradedBy], references: [id])
+
+  @@unique([taskId, studentId])
+  @@index([taskId])
+  @@index([studentId])
+  @@index([status])
+  @@map("student_task_submissions")
 }
 
 // ═══════════════════════════════════════════════════════════════
