@@ -1,45 +1,46 @@
-import type { Metadata } from 'next'
-import Link from 'next/link'
-import { Clock, Tag, ArrowRight, BookOpen } from 'lucide-react'
-import { SiteHeader } from '@/components/site-header'
-import { SiteFooter } from '@/components/site-footer'
-import { Breadcrumbs } from '@/components/content/breadcrumbs'
-import { ContentSearch } from '@/components/content/search'
-import { getAllTutorials, getAllTutorialCategories } from '@/lib/content'
-import { generateMetadata as genMeta } from '@/lib/seo'
-import { cn } from '@/lib/utils'
-import { Suspense } from 'react'
+import type { Metadata } from "next";
+import Link from "next/link";
+import { Clock, Tag, ArrowRight, BookOpen } from "lucide-react";
+import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
+import { Breadcrumbs } from "@/components/content/breadcrumbs";
+import { ContentSearch } from "@/components/content/search";
+import { getAllTutorials, getAllTutorialCategories } from "@/lib/content";
+import { generateMetadata as genMeta } from "@/lib/seo";
+import { cn } from "@/lib/utils";
+import { Suspense } from "react";
 
 export const metadata: Metadata = genMeta({
-  title: 'Tutorials — Step-by-Step Guides',
+  title: "Tutorials - Step-by-Step Guides",
   description:
-    'Learn how to set up and use KalaiYarangam with step-by-step tutorials for training management, rental operations, and event planning.',
-  url: 'https://kalaiyarangam.com/tutorials',
-})
+    "Learn how to set up and use KalaiYarangam with step-by-step tutorials for training management, rental operations, and event planning.",
+  url: "https://kalaiyarangam.com/tutorials",
+});
 
 const difficultyColors = {
-  beginner: 'bg-success/10 text-success',
-  intermediate: 'bg-amber-500/10 text-amber-600',
-  advanced: 'bg-destructive/10 text-destructive',
-}
+  beginner: "bg-success/10 text-success",
+  intermediate: "bg-amber-500/10 text-amber-600",
+  advanced: "bg-destructive/10 text-destructive",
+};
 
 export default function TutorialsPage() {
-  const tutorials = getAllTutorials()
-  const categories = getAllTutorialCategories()
+  const tutorials = getAllTutorials();
+  const categories = getAllTutorialCategories();
 
   return (
     <div className="min-h-dvh bg-background">
       <SiteHeader />
       <main className="px-4 pb-24 pt-28">
         <div className="mx-auto max-w-6xl">
-          <Breadcrumbs items={[{ label: 'Tutorials' }]} />
+          <Breadcrumbs items={[{ label: "Tutorials" }]} />
 
           <div className="mb-10">
             <h1 className="font-heading text-4xl font-bold tracking-tight sm:text-5xl">
               Tutorials
             </h1>
             <p className="mt-3 max-w-2xl text-lg text-muted-foreground">
-              Step-by-step guides to help you master every feature of KalaiYarangam.
+              Step-by-step guides to help you master every feature of
+              KalaiYarangam.
             </p>
           </div>
 
@@ -82,7 +83,12 @@ export default function TutorialsPage() {
                   <span className="rounded-full bg-brand/10 px-2.5 py-0.5 text-[10px] font-medium text-brand">
                     {tutorial.category}
                   </span>
-                  <span className={cn('rounded-full px-2.5 py-0.5 text-[10px] font-medium', difficultyColors[tutorial.difficulty])}>
+                  <span
+                    className={cn(
+                      "rounded-full px-2.5 py-0.5 text-[10px] font-medium",
+                      difficultyColors[tutorial.difficulty],
+                    )}
+                  >
                     {tutorial.difficulty}
                   </span>
                 </div>
@@ -114,5 +120,5 @@ export default function TutorialsPage() {
       </main>
       <SiteFooter />
     </div>
-  )
+  );
 }

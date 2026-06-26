@@ -19,10 +19,9 @@ export function NewsletterCta() {
             </p>
           </div>
         </div>
-        <Button asChild className="shrink-0 bg-brand text-brand-foreground hover:bg-brand/90">
+        <Button asChild className="shrink-0 p-4 bg-brand text-brand-foreground hover:bg-brand/90">
           <a href="#newsletter">
             Subscribe
-            <ArrowRight className="size-4" />
           </a>
         </Button>
       </div>

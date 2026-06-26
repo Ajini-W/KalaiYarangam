@@ -1,124 +1,126 @@
-'use client'
+"use client";
 
-import { ArrowRight, Check, Sparkles } from 'lucide-react'
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { SectionHeading } from '@/components/section-heading'
-import { Reveal } from '@/components/reveal'
-import { cn } from '@/lib/utils'
+import { ArrowRight, Check, Sparkles } from "lucide-react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { SectionHeading } from "@/components/section-heading";
+import { Reveal } from "@/components/reveal";
+import { cn } from "@/lib/utils";
 
-type Billing = 'monthly' | 'half' | 'annual'
+type Billing = "monthly" | "half" | "annual";
 
 const billingOptions: { id: Billing; label: string; note?: string }[] = [
-  { id: 'monthly', label: 'Monthly' },
-  { id: 'half', label: '6 Months', note: 'Save 10%' },
-  { id: 'annual', label: '12 Months', note: 'Save 20%' },
-]
+  { id: "monthly", label: "Monthly" },
+  { id: "half", label: "6 Months", note: "Save 10%" },
+  { id: "annual", label: "12 Months", note: "Save 20%" },
+];
 
 const discount: Record<Billing, number> = {
   monthly: 1,
   half: 0.9,
   annual: 0.8,
-}
+};
 
 const plans = [
   {
-    name: 'Solo Module',
-    subtitle: 'Choose Any One Module',
+    name: "Solo Module",
+    subtitle: "Choose Any One Module",
     price: 999,
-    description: 'Training Management, Rental Management, or Event Management.',
+    description: "Training Management, Rental Management, or Event Management.",
     features: [
-      'Lead Management',
-      'Customer Management',
-      'Payment Tracking',
-      'Notifications',
-      'Dashboard',
-      'Reports',
-      'Export (PDF, Excel, CSV)',
+      "Lead Management",
+      "Customer Management",
+      "Payment Tracking",
+      "Notifications",
+      "Dashboard",
+      "Reports",
+      "Export (PDF, Excel, CSV)",
     ],
-    limits: [
-      'Staff Users: 5',
-      'Branches: 1',
-      'Storage: 5 GB',
-      'Records: 500',
-    ],
+    limits: ["Staff Users: 5", "Branches: 1", "Storage: 5 GB", "Records: 500"],
     highlight: false,
+    color: "border-primary/20",
   },
   {
-    name: 'Business Plan',
-    subtitle: 'Choose Any Two Modules',
+    name: "Business Plan",
+    subtitle: "Choose Any Two Modules",
     price: 1899,
-    description: 'Everything in Solo, plus advanced features for growing teams.',
+    description:
+      "Everything in Solo, plus advanced features for growing teams.",
     features: [
-      'Multi Branch Support',
-      'Team Management',
-      'Role Management',
-      'Approval Workflows',
-      'Customer Portal',
-      'Student Portal',
-      'Advanced Reports',
-      'WhatsApp Automation',
+      "Multi Branch Support",
+      "Team Management",
+      "Role Management",
+      "Approval Workflows",
+      "Customer Portal",
+      "Student Portal",
+      "Advanced Reports",
+      "WhatsApp Automation",
     ],
     limits: [
-      'Staff Users: 15',
-      'Branches: 3',
-      'Storage: 25 GB',
-      'Records: 5,000',
+      "Staff Users: 15",
+      "Branches: 3",
+      "Storage: 25 GB",
+      "Records: 5,000",
     ],
     highlight: true,
+    color: "border-primary/30",
   },
   {
-    name: 'Complete Plan',
-    subtitle: 'Includes All Modules',
+    name: "Complete Plan",
+    subtitle: "Includes All Modules",
     price: 2499,
-    description: 'All modules with premium features, AI, and unlimited records.',
+    description:
+      "All modules with premium features, AI, and unlimited records.",
     features: [
-      'All module features included',
-      'AI Insights',
-      'Smart Follow-ups',
-      'Revenue Forecasting',
-      'Advanced Analytics',
-      'Customer / Student / Client Portals',
-      'Workflow Automation',
-      'Priority Support',
+      "All module features included",
+      "AI Insights",
+      "Smart Follow-ups",
+      "Revenue Forecasting",
+      "Advanced Analytics",
+      "Customer / Student / Client Portals",
+      "Workflow Automation",
+      "Priority Support",
     ],
     limits: [
-      'Staff Users: 50',
-      'Branches: 10',
-      'Storage: 100 GB',
-      'Records: Unlimited',
+      "Staff Users: 50",
+      "Branches: 10",
+      "Storage: 100 GB",
+      "Records: Unlimited",
     ],
     highlight: false,
+    color: "border-accent-blue/20",
   },
   {
-    name: 'Enterprise',
-    subtitle: 'Custom Quotation',
+    name: "Enterprise",
+    subtitle: "Custom Quotation",
     price: 0,
-    description: 'For franchise academies, multi-city businesses, and large chains.',
+    description:
+      "For franchise academies, multi-city businesses, and large chains.",
     features: [
-      'Unlimited Users & Branches',
-      'White Label Solution',
-      'Custom Domain',
-      'API Access',
-      'ERP Integrations',
-      'Dedicated Account Manager',
-      'SLA Support',
-      'Single Sign-On (SSO)',
-      'Audit Logs',
-      'Custom Workflows',
+      "Unlimited Users & Branches",
+      "White Label Solution",
+      "Custom Domain",
+      "API Access",
+      "ERP Integrations",
+      "Dedicated Account Manager",
+      "SLA Support",
+      "Single Sign-On (SSO)",
+      "Audit Logs",
+      "Custom Workflows",
     ],
     limits: [],
     highlight: false,
     isEnterprise: true,
+    color: "border-accent-cyan/20",
   },
-]
+];
 
 function formatPrice(base: number, billing: Billing) {
-  return Math.round(base * discount[billing]).toLocaleString('en-IN')
+  return Math.round(base * discount[billing]).toLocaleString("en-IN");
 }
 
 export function Pricing() {
-  const [billing, setBilling] = useState<Billing>('annual')
+  const [billing, setBilling] = useState<Billing>("annual");
 
   return (
     <section id="pricing" className="scroll-mt-24 px-4 py-24">
@@ -126,18 +128,18 @@ export function Pricing() {
         <SectionHeading
           eyebrow="Pricing"
           title="Simple, transparent pricing"
-          description="Start with a 20-day free trial — full access, all modules, no credit card required."
+          description="Start with a 20-day free trial - full access, all modules, no credit card required."
         />
 
         {/* Free trial banner */}
         <Reveal className="mx-auto mt-10 max-w-3xl">
-          <div className="flex flex-col items-center justify-between gap-4 rounded-2xl border border-brand/20 bg-brand/5 p-5 dark:bg-brand/[0.06] sm:flex-row">
+          <div className="flex flex-col items-center justify-between gap-4 rounded-2xl border border-accent-green/20 bg-accent-green/5 p-5 sm:flex-row">
             <div className="flex items-center gap-3">
-              <span className="grid size-10 place-items-center rounded-xl bg-brand/15 text-brand">
+              <span className="grid size-10 place-items-center rounded-xl bg-accent-green/15 text-accent-green">
                 <Sparkles className="size-5" />
               </span>
               <div>
-                <p className="font-heading font-semibold">20-Day Free Trial</p>
+                <p className="font-heading font-bold">20-Day Free Trial</p>
                 <p className="text-sm text-muted-foreground">
                   All Modules · Unlimited Users · Mobile Access · No credit card
                 </p>
@@ -145,7 +147,7 @@ export function Pricing() {
             </div>
             <Button
               asChild
-              className="bg-brand text-brand-foreground hover:bg-brand/90"
+              className="rounded-full bg-accent-green px-5 text-white shadow-md shadow-accent-green/20 hover:bg-accent-green/90 hover:shadow-lg hover:shadow-accent-green/30"
             >
               <a href="#contact">Start Free Trial</a>
             </Button>
@@ -154,7 +156,11 @@ export function Pricing() {
 
         {/* Billing toggle */}
         <div className="mt-10 flex justify-center">
-          <div role="tablist" aria-label="Billing period" className="inline-flex flex-wrap items-center justify-center gap-1 rounded-full border border-border bg-muted p-1.5">
+          <div
+            role="tablist"
+            aria-label="Billing period"
+            className="inline-flex flex-wrap items-center justify-center gap-1 rounded-full border border-border bg-muted p-1.5"
+          >
             {billingOptions.map((option) => (
               <button
                 key={option.id}
@@ -162,20 +168,20 @@ export function Pricing() {
                 aria-selected={billing === option.id}
                 onClick={() => setBilling(option.id)}
                 className={cn(
-                  'flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand',
+                  "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
                   billing === option.id
-                    ? 'bg-brand text-brand-foreground'
-                    : 'text-muted-foreground hover:text-foreground',
+                    ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+                    : "text-muted-foreground hover:text-foreground",
                 )}
               >
                 {option.label}
                 {option.note && (
                   <span
                     className={cn(
-                      'rounded-full px-1.5 py-0.5 text-[10px] font-semibold',
+                      "rounded-full px-1.5 py-0.5 text-[10px] font-semibold",
                       billing === option.id
-                        ? 'bg-brand-foreground/20 text-brand-foreground'
-                        : 'bg-success/15 text-success',
+                        ? "bg-primary-foreground/20 text-primary-foreground"
+                        : "bg-accent-green/15 text-accent-green",
                     )}
                   >
                     {option.note}
@@ -193,21 +199,19 @@ export function Pricing() {
               key={plan.name}
               delay={i * 0.08}
               className={cn(
-                'relative flex h-full flex-col rounded-2xl border p-6 transition-all duration-300 hover:-translate-y-1',
+                "relative flex h-full flex-col rounded-3xl border p-6 transition-all duration-300 hover:-translate-y-1",
                 plan.highlight
-                  ? 'border-brand/30 bg-brand/5 shadow-2xl shadow-brand/10 dark:bg-brand/[0.04] dark:shadow-brand/[0.08] lg:scale-[1.03]'
-                  : 'border-border bg-card hover:border-border/80 hover:shadow-lg',
+                  ? "border-primary/30 bg-gradient-to-b from-primary/5 to-transparent shadow-2xl shadow-primary/10 lg:scale-[1.03]"
+                  : `${plan.color} bg-card hover:shadow-xl hover:shadow-black/5`,
               )}
             >
               {plan.highlight && (
-                <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-brand px-3 py-1 text-xs font-semibold text-brand-foreground">
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-4 py-1 text-xs font-bold text-primary-foreground shadow-md shadow-primary/20">
                   Most Popular
                 </span>
               )}
-              <h3 className="font-heading text-lg font-semibold">
-                {plan.name}
-              </h3>
-              <p className="mt-0.5 text-xs font-medium text-brand">
+              <h3 className="font-heading text-lg font-bold">{plan.name}</h3>
+              <p className="mt-0.5 text-xs font-semibold text-primary">
                 {plan.subtitle}
               </p>
               <p className="mt-2 text-sm text-muted-foreground">
@@ -232,7 +236,7 @@ export function Pricing() {
               <ul className="mt-6 flex-1 space-y-2.5">
                 {plan.features.map((feature) => (
                   <li key={feature} className="flex items-start gap-2 text-sm">
-                    <span className="mt-0.5 grid size-4 shrink-0 place-items-center rounded-full bg-success/15 text-success">
+                    <span className="mt-0.5 grid size-4 shrink-0 place-items-center rounded-full bg-accent-green/15 text-accent-green">
                       <Check className="size-3" />
                     </span>
                     {feature}
@@ -240,8 +244,8 @@ export function Pricing() {
                 ))}
               </ul>
               {plan.limits.length > 0 && (
-                <div className="mt-4 rounded-xl border border-border bg-muted/30 p-3">
-                  <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                <div className="mt-4 rounded-2xl border border-border bg-surface-alt p-3">
+                  <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                     Limits
                   </p>
                   <ul className="space-y-1">
@@ -250,8 +254,10 @@ export function Pricing() {
                         key={limit}
                         className="flex items-center justify-between text-xs text-foreground/70"
                       >
-                        <span>{limit.split(':')[0]}</span>
-                        <span className="font-medium">{limit.split(':')[1]}</span>
+                        <span>{limit.split(":")[0]}</span>
+                        <span className="font-medium">
+                          {limit.split(":")[1]}
+                        </span>
                       </li>
                     ))}
                   </ul>
@@ -259,15 +265,16 @@ export function Pricing() {
               )}
               <Button
                 asChild
-                variant={plan.highlight ? 'default' : 'outline'}
+                variant={plan.highlight ? "default" : "outline"}
                 className={cn(
-                  'mt-6 w-full',
-                  plan.highlight &&
-                    'bg-brand text-brand-foreground hover:bg-brand/90',
+                  "mt-6 w-full rounded-full font-semibold",
+                  plan.highlight
+                    ? "bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/30"
+                    : "border-2 hover:border-primary/40 hover:bg-primary/5 hover:text-primary",
                 )}
               >
                 <a href="#contact">
-                  {plan.isEnterprise ? 'Contact Sales' : 'Get started'}
+                  {plan.isEnterprise ? "Contact Sales" : "Get started"}
                   <ArrowRight className="size-4" />
                 </a>
               </Button>
@@ -276,5 +283,5 @@ export function Pricing() {
         </div>
       </div>
     </section>
-  )
+  );
 }

@@ -3,12 +3,17 @@
     "slug": "replacing-spreadsheets-with-saas-erp",
     "title": "Why Training Academies Should Replace Spreadsheets with a SaaS ERP",
     "description": "Discover how digitizing your academy operations with a cloud ERP can save 10+ hours per week, eliminate double-bookings, and grow revenue by 30%.",
-    "content": "## The Problem with Spreadsheets\n\nMost training academies in India still manage their entire business using Excel sheets, WhatsApp messages, and manual registers. While this approach works in the early days, it quickly becomes unsustainable as the business grows.\n\n### Common Pain Points\n\n- **Double-bookings**: Without a centralized calendar, instructors and rooms get overbooked during peak seasons.\n- **Fee tracking chaos**: Following up on pending fees manually takes hours every week.\n- **No visibility**: Owners have no real-time view of attendance, revenue, or student progress.\n- **Scaling limitations**: Adding a new branch means duplicating all spreadsheets and hoping nothing falls through the cracks.\n\n## What a SaaS ERP Changes\n\nA vertical SaaS ERP like KalaiYarangam is purpose-built for training academies. It replaces spreadsheets with automated workflows that handle the entire student lifecycle.\n\n### Automated Fee Collection\n\nInstead of manually tracking who has paid and who hasn't, the platform sends automated reminders via WhatsApp and SMS. Parents receive payment links, and receipts are generated instantly.\n\n### Real-Time Attendance\n\nTrainers mark attendance from their phones in seconds. Parents get automatic notifications, and the owner sees attendance patterns across all branches in a single dashboard.\n\n### Lead-to-Enrollment Pipeline\n\nEvery enquiry is captured, assigned to a follow-up agent, and tracked through conversion. No more losing leads because someone forgot to reply to a WhatsApp message.\n\n## The Numbers Speak\n\nAcademies that switch from spreadsheets to a cloud ERP typically see:\n\n- **40% reduction** in fee collection time\n- **2x improvement** in lead conversion rates\n- **10+ hours saved** per week on administrative tasks\n- **Zero double-bookings** for classes and events\n\n## Getting Started\n\nThe transition doesn't have to be painful. Modern SaaS platforms offer self-service onboarding where you can set up your organization, import existing data, and start using the system within a day.\n\nThe key is to start with the module that causes the most pain — whether that's fee collection, attendance, or lead management — and expand from there.",
+    "content": "## The Problem with Spreadsheets\n\nMost training academies in India still manage their entire business using Excel sheets, WhatsApp messages, and manual registers. While this approach works in the early days, it quickly becomes unsustainable as the business grows.\n\n### Common Pain Points\n\n- **Double-bookings**: Without a centralized calendar, instructors and rooms get overbooked during peak seasons.\n- **Fee tracking chaos**: Following up on pending fees manually takes hours every week.\n- **No visibility**: Owners have no real-time view of attendance, revenue, or student progress.\n- **Scaling limitations**: Adding a new branch means duplicating all spreadsheets and hoping nothing falls through the cracks.\n\n## What a SaaS ERP Changes\n\nA vertical SaaS ERP like KalaiYarangam is purpose-built for training academies. It replaces spreadsheets with automated workflows that handle the entire student lifecycle.\n\n### Automated Fee Collection\n\nInstead of manually tracking who has paid and who hasn't, the platform sends automated reminders via WhatsApp and SMS. Parents receive payment links, and receipts are generated instantly.\n\n### Real-Time Attendance\n\nTrainers mark attendance from their phones in seconds. Parents get automatic notifications, and the owner sees attendance patterns across all branches in a single dashboard.\n\n### Lead-to-Enrollment Pipeline\n\nEvery enquiry is captured, assigned to a follow-up agent, and tracked through conversion. No more losing leads because someone forgot to reply to a WhatsApp message.\n\n## The Numbers Speak\n\nAcademies that switch from spreadsheets to a cloud ERP typically see:\n\n- **40% reduction** in fee collection time\n- **2x improvement** in lead conversion rates\n- **10+ hours saved** per week on administrative tasks\n- **Zero double-bookings** for classes and events\n\n## Getting Started\n\nThe transition doesn't have to be painful. Modern SaaS platforms offer self-service onboarding where you can set up your organization, import existing data, and start using the system within a day.\n\nThe key is to start with the module that causes the most pain - whether that's fee collection, attendance, or lead management - and expand from there.",
     "author": { "name": "KalaiYarangam Team", "role": "Product Team" },
     "publishedAt": "2025-01-15",
     "readingTime": 5,
     "category": "Industry Insights",
-    "tags": ["training academy", "SaaS ERP", "digital transformation", "spreadsheets"],
+    "tags": [
+      "training academy",
+      "SaaS ERP",
+      "digital transformation",
+      "spreadsheets"
+    ],
     "featured": true
   },
   {
@@ -20,7 +25,12 @@
     "publishedAt": "2025-01-22",
     "readingTime": 4,
     "category": "Industry Insights",
-    "tags": ["rental business", "inventory management", "multi-branch", "cloud ERP"],
+    "tags": [
+      "rental business",
+      "inventory management",
+      "multi-branch",
+      "cloud ERP"
+    ],
     "featured": false
   },
   {
@@ -32,7 +42,12 @@
     "publishedAt": "2025-02-01",
     "readingTime": 4,
     "category": "Product Updates",
-    "tags": ["event management", "budget tracking", "profitability", "team management"],
+    "tags": [
+      "event management",
+      "budget tracking",
+      "profitability",
+      "team management"
+    ],
     "featured": false
   }
 ]

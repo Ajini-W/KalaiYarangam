@@ -152,7 +152,7 @@ Accesses classes, attendance records, fee details, certificates, and progress re
 
 # 6. Product Modules
 
-## Module 1 — Class & Training Management
+## Module 1 - Class & Training Management
 
 Purpose:
 
@@ -181,7 +181,7 @@ Core Features:
 
 ---
 
-## Module 2 — Rental Management
+## Module 2 - Rental Management
 
 Purpose:
 
@@ -210,7 +210,7 @@ Core Features:
 
 ---
 
-## Module 3 — Event Management
+## Module 3 - Event Management
 
 Purpose:
 
@@ -259,11 +259,11 @@ Each module can be purchased independently.
 
 ### Billing Cycles
 
-| Duration | Discount |
-| --- | --- |
-| Monthly | 0% |
-| 6 Months | 10% |
-| 12 Months | 20% |
+| Duration  | Discount |
+| --------- | -------- |
+| Monthly   | 0%       |
+| 6 Months  | 10%      |
+| 12 Months | 20%      |
 
 ---
 
@@ -293,6 +293,7 @@ Each organization receives:
 # Success Definition
 
 KalaiArangam succeeds when a business owner can manage leads, operations, inventory, bookings, payments, teams, customers, and reporting from a single unified platform without requiring multiple disconnected software systems.
+
 # PRD - Product Requirements Document
 
 Version: 1.0
@@ -433,16 +434,16 @@ Restrictions:
 
 # 4. Permission Model
 
-| Feature | Super Admin | Owner | Branch Manager | Staff / Trainer | Student | Client |
-| --- | --- | --- | --- | --- | --- | --- |
-| Tenant Setup | Yes | No | No | No | No | No |
-| User Management | Yes | Yes | Limited | No | No | No |
-| Class Management | Yes | Yes | Yes | Yes | View | No |
-| Rental Management | Yes | Yes | Yes | Yes | No | View |
-| Event Management | Yes | Yes | Yes | Yes | No | View |
-| Financial Reports | Yes | Yes | Branch Only | No | No | No |
-| Subscription Billing | Yes | Yes | No | No | No | No |
-| Analytics | Yes | Yes | Branch Only | Limited | No | No |
+| Feature              | Super Admin | Owner | Branch Manager | Staff / Trainer | Student | Client |
+| -------------------- | ----------- | ----- | -------------- | --------------- | ------- | ------ |
+| Tenant Setup         | Yes         | No    | No             | No              | No      | No     |
+| User Management      | Yes         | Yes   | Limited        | No              | No      | No     |
+| Class Management     | Yes         | Yes   | Yes            | Yes             | View    | No     |
+| Rental Management    | Yes         | Yes   | Yes            | Yes             | No      | View   |
+| Event Management     | Yes         | Yes   | Yes            | Yes             | No      | View   |
+| Financial Reports    | Yes         | Yes   | Branch Only    | No              | No      | No     |
+| Subscription Billing | Yes         | Yes   | No             | No              | No      | No     |
+| Analytics            | Yes         | Yes   | Branch Only    | Limited         | No      | No     |
 
 ---
 
@@ -811,7 +812,7 @@ The platform is considered successful when a business owner can:
 | Attendance Tracking      | Batch ID, Student ID, date, status                         | Attendance record + percentage                      | Daily grid, bulk marking                         | POST /attendance, GET /attendance         | One record per student per session                     | Backdated admin-only, duplicate ignored                  |
 | Progress Tracking        | Student ID, batch ID, module status, remarks               | Progress % updated                                  | Progress bar, checklist, trainer notes           | POST /progress                            | Max 100%, trainer-only update                          | Deleted module preserved in history                      |
 | Certificate / Completion | Student ID, batch ID, template, completion status          | PDF certificate                                     | Generate, preview, download                      | POST /certificates                        | Attendance threshold + full fee required               | Admin override, versioned certificate                    |
-| Reports                  | Date range, branch, course, filters                        | Attendance, revenue, enrollment, conversion reports | Dashboard charts, export PDF/Excel               | GET /reports/*                            | Date range required, max limit enforced                | Large dataset async/paginated, empty structured response |
+| Reports                  | Date range, branch, course, filters                        | Attendance, revenue, enrollment, conversion reports | Dashboard charts, export PDF/Excel               | GET /reports/\*                           | Date range required, max limit enforced                | Large dataset async/paginated, empty structured response |
 
 ---
 
@@ -832,7 +833,7 @@ Item / Inventory Setup, Catalogue Listing (Public), Customer Enquiry, Booking / 
 | Return Processing                    | Booking ID, return condition, returned quantity             | Return record, stock update                   | Return check-in UI                       | POST /returns                            | Must match active booking               | Partial return allowed                        |
 | Damage / Penalty Handling            | Return condition, damage notes, penalty rules               | Penalty invoice                               | Damage assessment form                   | POST /penalties                          | Damage charges mandatory if applicable  | Disputed damage flagged                       |
 | Rental History                       | Customer ID / Item ID                                       | Historical rental logs                        | History timeline view                    | GET /history                             | Immutable records                       | Soft-deleted bookings retained                |
-| Reports                              | Date range, item/category filters                           | Revenue, utilization, damage, booking reports | Dashboard charts, export tools           | GET /reports/*                           | Date range required, max limit enforced | Large datasets paginated/async                |
+| Reports                              | Date range, item/category filters                           | Revenue, utilization, damage, booking reports | Dashboard charts, export tools           | GET /reports/\*                          | Date range required, max limit enforced | Large datasets paginated/async                |
 
 ---
 
@@ -840,22 +841,22 @@ Item / Inventory Setup, Catalogue Listing (Public), Customer Enquiry, Booking / 
 
 Client Enquiry, Event Creation, Proposal / Quotation, Event Confirmation, Team Assignment, Task Management, Timeline / Scheduling, Progress Tracking, Finance Tracking (Budget vs Actual), Vendor / Resource Management, Event Execution, Closure / Billing, Reports
 
-|Feature|Inputs|Outputs|UI|API|Rules|Edge Cases|
-|---|---|---|---|---|---|---|
-|Client Enquiry|Name, contact, event type, date, requirements|Enquiry record|Enquiry form, inquiry inbox|POST /event-enquiries|Contact required, valid event reference|Duplicate enquiry flagged|
-|Event Creation|Event details, venue, date, scope|Event record + ID|Event builder form|POST /events|Mandatory date & client mapping|Missing venue/date blocks creation|
-|Proposal / Quotation|Event scope, resources, pricing rules|Quote document|Quote generator UI|POST /event-quotes|Pricing consistency enforced|Expired quote invalid|
-|Event Confirmation|Quote ID, client approval|Confirmed event status|Confirmation panel|PATCH /events/{id}/confirm|Only approved quotes allowed|Rejection resets to draft|
-|Team Assignment|Event ID, staff list, roles|Assigned team structure|Team allocation UI|POST /event-teams|Role must be valid|Over-allocation flagged|
-|Task Management|Event ID, task list, deadlines|Task board|Kanban/task tracker|POST /event-tasks|Task must belong to event|Missing assignee blocked|
-|Timeline / Scheduling|Event ID, milestones, time slots|Event timeline|Gantt/timeline view|POST /event-timeline|No overlapping critical tasks|Schedule conflict alerts|
-|Progress Tracking|Tasks, completion status, updates|Progress percentage|Progress dashboard|PATCH /event-progress|Task completion required for progress|Skipped tasks flagged|
-|Finance Tracking|Budget, actual spend, category costs|Budget vs actual report|Finance dashboard|POST /event-finance|Budget limits enforced|Overspend alerts|
-|Event Execution|Checklists, real-time updates|Execution status log|Live event dashboard|PATCH /event-execution|All critical tasks must be complete|Emergency override allowed|
-|Closure / Billing|Final costs, adjustments, invoices|Final invoice + closed event|Billing screen|POST /event-close|All payments cleared required|Pending dues block closure|
-|Reports|Date range, event type, status filters|Event analytics report|Reports dashboard|GET /event-reports|Date range required|Large datasets paginated/async|
+| Feature               | Inputs                                        | Outputs                      | UI                          | API                        | Rules                                   | Edge Cases                         |
+| --------------------- | --------------------------------------------- | ---------------------------- | --------------------------- | -------------------------- | --------------------------------------- | ---------------------------------- |
+| Client Enquiry        | Name, contact, event type, date, requirements | Enquiry record               | Enquiry form, inquiry inbox | POST /event-enquiries      | Contact required, valid event reference | Duplicate enquiry flagged          |
+| Event Creation        | Event details, venue, date, scope             | Event record + ID            | Event builder form          | POST /events               | Mandatory date & client mapping         | Missing venue/date blocks creation |
+| Proposal / Quotation  | Event scope, resources, pricing rules         | Quote document               | Quote generator UI          | POST /event-quotes         | Pricing consistency enforced            | Expired quote invalid              |
+| Event Confirmation    | Quote ID, client approval                     | Confirmed event status       | Confirmation panel          | PATCH /events/{id}/confirm | Only approved quotes allowed            | Rejection resets to draft          |
+| Team Assignment       | Event ID, staff list, roles                   | Assigned team structure      | Team allocation UI          | POST /event-teams          | Role must be valid                      | Over-allocation flagged            |
+| Task Management       | Event ID, task list, deadlines                | Task board                   | Kanban/task tracker         | POST /event-tasks          | Task must belong to event               | Missing assignee blocked           |
+| Timeline / Scheduling | Event ID, milestones, time slots              | Event timeline               | Gantt/timeline view         | POST /event-timeline       | No overlapping critical tasks           | Schedule conflict alerts           |
+| Progress Tracking     | Tasks, completion status, updates             | Progress percentage          | Progress dashboard          | PATCH /event-progress      | Task completion required for progress   | Skipped tasks flagged              |
+| Finance Tracking      | Budget, actual spend, category costs          | Budget vs actual report      | Finance dashboard           | POST /event-finance        | Budget limits enforced                  | Overspend alerts                   |
+| Event Execution       | Checklists, real-time updates                 | Execution status log         | Live event dashboard        | PATCH /event-execution     | All critical tasks must be complete     | Emergency override allowed         |
+| Closure / Billing     | Final costs, adjustments, invoices            | Final invoice + closed event | Billing screen              | POST /event-close          | All payments cleared required           | Pending dues block closure         |
+| Reports               | Date range, event type, status filters        | Event analytics report       | Reports dashboard           | GET /event-reports         | Date range required                     | Large datasets paginated/async     |
 
-### Additional Common Features (Cross-Module) — Points
+### Additional Common Features (Cross-Module) - Points
 
 - Authentication & Authorization (RBAC across all modules)
 - User Management (profiles, staff, customers)

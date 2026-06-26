@@ -1,35 +1,41 @@
-import { Check, GraduationCap, Package, PartyPopper } from 'lucide-react'
-import { Reveal } from '@/components/reveal'
-import { SectionHeading } from '@/components/section-heading'
-import { cn } from '@/lib/utils'
+import { Check, GraduationCap, Package, PartyPopper } from "lucide-react";
+import { Reveal } from "@/components/reveal";
+import { SectionHeading } from "@/components/section-heading";
+import { cn } from "@/lib/utils";
 
 const industries = [
   {
     icon: GraduationCap,
-    name: 'Training Institutes',
-    description: 'Manage the student lifecycle from enquiry to certification.',
-    features: ['Leads', 'Enrollments', 'Attendance', 'Fees', 'Certificates'],
-    accent: 'text-brand',
-    glow: 'bg-brand/10',
+    name: "Training Institutes",
+    description: "Manage the student lifecycle from enquiry to certification.",
+    features: ["Leads", "Enrollments", "Attendance", "Fees", "Certificates"],
+    accent: "text-primary",
+    bg: "bg-primary/10",
+    border: "border-primary/20",
+    glow: "bg-primary/5",
   },
   {
     icon: Package,
-    name: 'Rental Businesses',
+    name: "Rental Businesses",
     description:
-      'Manage inventory, bookings, rentals, returns, and maintenance.',
-    features: ['Inventory', 'Booking Calendar', 'Quotations', 'Returns'],
-    accent: 'text-accent-cyan',
-    glow: 'bg-accent-cyan/10',
+      "Manage inventory, bookings, rentals, returns, and maintenance.",
+    features: ["Inventory", "Booking Calendar", "Quotations", "Returns"],
+    accent: "text-accent-blue",
+    bg: "bg-accent-blue/10",
+    border: "border-accent-blue/20",
+    glow: "bg-accent-blue/5",
   },
   {
     icon: PartyPopper,
-    name: 'Event Management',
-    description: 'Manage events from first enquiry to final billing.',
-    features: ['CRM', 'Quotations', 'Planning', 'Budget Tracking'],
-    accent: 'text-success',
-    glow: 'bg-success/10',
+    name: "Event Management",
+    description: "Manage events from first enquiry to final billing.",
+    features: ["CRM", "Quotations", "Planning", "Budget Tracking"],
+    accent: "text-accent-red",
+    bg: "bg-accent-red/10",
+    border: "border-accent-red/20",
+    glow: "bg-accent-red/5",
   },
-]
+];
 
 export function Industries() {
   return (
@@ -38,23 +44,29 @@ export function Industries() {
         <SectionHeading
           eyebrow="Built for your industry"
           title="One platform, three industry-specific workflows"
-          description="KalaiYarangam adapts to how your business actually operates — no generic templates, no compromise."
+          description="KalaiYarangam adapts to how your business actually operates - no generic templates, no compromise."
         />
 
         <div className="mt-14 grid gap-5 md:grid-cols-3">
           {industries.map((industry, i) => (
             <Reveal key={industry.name} delay={i * 0.1}>
-              <div className="group relative h-full overflow-hidden rounded-2xl border border-border bg-card p-6 transition-all duration-300 hover:-translate-y-1 hover:border-border/80 hover:shadow-xl">
+              <div className="group relative h-full overflow-hidden rounded-3xl border border-border bg-card p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/5">
                 <div
                   className={cn(
-                    'absolute -right-8 -top-8 size-36 rounded-full blur-3xl transition-opacity',
+                    "absolute -right-8 -top-8 size-36 rounded-full blur-3xl transition-opacity",
                     industry.glow,
                   )}
                 />
-                <div className="relative grid size-12 place-items-center rounded-xl border border-border bg-background transition-colors group-hover:border-border/80">
-                  <industry.icon className={cn('size-6', industry.accent)} />
+                <div
+                  className={cn(
+                    "relative grid size-12 place-items-center rounded-2xl border",
+                    industry.bg,
+                    industry.border,
+                  )}
+                >
+                  <industry.icon className={cn("size-6", industry.accent)} />
                 </div>
-                <h3 className="mt-5 font-heading text-xl font-semibold">
+                <h3 className="mt-5 font-heading text-xl font-bold">
                   {industry.name}
                 </h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
@@ -66,7 +78,14 @@ export function Industries() {
                       key={feature}
                       className="flex items-center gap-2 text-sm text-foreground/70"
                     >
-                      <Check className={cn('size-4', industry.accent)} />
+                      <span
+                        className={cn(
+                          "grid size-4 place-items-center rounded-full bg-current/10",
+                          industry.accent,
+                        )}
+                      >
+                        <Check className="size-2.5" />
+                      </span>
                       {feature}
                     </li>
                   ))}
@@ -77,5 +96,5 @@ export function Industries() {
         </div>
       </div>
     </section>
-  )
+  );
 }

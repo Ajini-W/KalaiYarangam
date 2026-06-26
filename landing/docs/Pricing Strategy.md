@@ -36,23 +36,23 @@ The pricing model is intentionally designed to:
 
 # Pricing Plans
 
-| Plan | Pricing |
-| --- | --- |
-| Free Trial | 20 Days |
-| Solo Module | ₹999 / Month |
-| Business (2 Modules) | ₹1,899 / Month |
+| Plan                   | Pricing        |
+| ---------------------- | -------------- |
+| Free Trial             | 20 Days        |
+| Solo Module            | ₹999 / Month   |
+| Business (2 Modules)   | ₹1,899 / Month |
 | Complete (All Modules) | ₹2,499 / Month |
-| Enterprise | Custom |
+| Enterprise             | Custom         |
 
 ---
 
 # Annual Billing
 
-| Plan | Monthly Price | Annual Price |
-| --- | --- | --- |
-| Solo Module | ₹999 | ₹9,990 |
-| Business | ₹1,899 | ₹18,990 |
-| Complete | ₹2,499 | ₹24,990 |
+| Plan        | Monthly Price | Annual Price |
+| ----------- | ------------- | ------------ |
+| Solo Module | ₹999          | ₹9,990       |
+| Business    | ₹1,899        | ₹18,990      |
+| Complete    | ₹2,499        | ₹24,990      |
 
 ---
 
@@ -85,7 +85,7 @@ Business starts operational usage.
 
 ---
 
-# Solo Module — ₹999 / Month
+# Solo Module - ₹999 / Month
 
 Choose Any One Module
 
@@ -107,12 +107,12 @@ Choose Any One Module
 
 ### Limits
 
-| Resource | Limit |
-| --- | --- |
-| Staff Users | 5 |
-| Branches | 1 |
-| Storage | 5 GB |
-| Records | 500 |
+| Resource    | Limit |
+| ----------- | ----- |
+| Staff Users | 5     |
+| Branches    | 1     |
+| Storage     | 5 GB  |
+| Records     | 500   |
 
 ### Not Included
 
@@ -125,7 +125,7 @@ Choose Any One Module
 
 ---
 
-# Business Plan — ₹1,899 / Month
+# Business Plan - ₹1,899 / Month
 
 Choose Any Two Modules
 
@@ -148,12 +148,12 @@ Plus
 
 ### Limits
 
-| Resource | Limit |
-| --- | --- |
-| Staff Users | 15 |
-| Branches | 3 |
-| Storage | 25 GB |
-| Records | 5,000 |
+| Resource    | Limit |
+| ----------- | ----- |
+| Staff Users | 15    |
+| Branches    | 3     |
+| Storage     | 25 GB |
+| Records     | 5,000 |
 
 ### Not Included
 
@@ -164,7 +164,7 @@ Plus
 
 ---
 
-# Complete Plan — ₹2,499 / Month
+# Complete Plan - ₹2,499 / Month
 
 Includes All Modules
 
@@ -212,12 +212,12 @@ Includes All Modules
 
 ### Limits
 
-| Resource | Limit |
-| --- | --- |
-| Staff Users | 50 |
-| Branches | 10 |
-| Storage | 100 GB |
-| Records | Unlimited |
+| Resource    | Limit     |
+| ----------- | --------- |
+| Staff Users | 50        |
+| Branches    | 10        |
+| Storage     | 100 GB    |
+| Records     | Unlimited |
 
 ---
 
@@ -254,31 +254,31 @@ Custom Quotation
 
 # Feature Comparison Matrix
 
-| Feature | Trial | Solo | Business | Complete | Enterprise |
-| --- | --- | --- | --- | --- | --- |
-| Training Module | ✓ | Any 1 | Any 2 | ✓ | ✓ |
-| Rental Module | ✓ | Any 1 | Any 2 | ✓ | ✓ |
-| Event Module | ✓ | Any 1 | Any 2 | ✓ | ✓ |
-| Lead Management | ✓ | ✓ | ✓ | ✓ | ✓ |
-| User Management | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Attendance Management | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Certificates | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Inventory Management | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Booking Management | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Event Planning | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Notifications | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Standard Reports | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Multi Branch | ✓ | ✗ | ✓ | ✓ | ✓ |
-| Customer Portal | ✓ | ✗ | ✓ | ✓ | ✓ |
-| Student Portal | ✓ | ✗ | ✓ | ✓ | ✓ |
-| Client Portal | ✓ | ✗ | ✓ | ✓ | ✓ |
-| Approval Workflows | ✓ | ✗ | ✓ | ✓ | ✓ |
-| Advanced Analytics | ✓ | ✗ | ✓ | ✓ | ✓ |
-| AI Features | ✓ | ✗ | ✗ | ✓ | ✓ |
-| Workflow Automation | ✓ | ✗ | ✗ | ✓ | ✓ |
-| API Access | ✓ | ✗ | ✗ | ✗ | ✓ |
-| White Label | ✓ | ✗ | ✗ | ✗ | ✓ |
-| Dedicated Support | ✓ | ✗ | ✗ | ✗ | ✓ |
+| Feature               | Trial | Solo  | Business | Complete | Enterprise |
+| --------------------- | ----- | ----- | -------- | -------- | ---------- |
+| Training Module       | ✓     | Any 1 | Any 2    | ✓        | ✓          |
+| Rental Module         | ✓     | Any 1 | Any 2    | ✓        | ✓          |
+| Event Module          | ✓     | Any 1 | Any 2    | ✓        | ✓          |
+| Lead Management       | ✓     | ✓     | ✓        | ✓        | ✓          |
+| User Management       | ✓     | ✓     | ✓        | ✓        | ✓          |
+| Attendance Management | ✓     | ✓     | ✓        | ✓        | ✓          |
+| Certificates          | ✓     | ✓     | ✓        | ✓        | ✓          |
+| Inventory Management  | ✓     | ✓     | ✓        | ✓        | ✓          |
+| Booking Management    | ✓     | ✓     | ✓        | ✓        | ✓          |
+| Event Planning        | ✓     | ✓     | ✓        | ✓        | ✓          |
+| Notifications         | ✓     | ✓     | ✓        | ✓        | ✓          |
+| Standard Reports      | ✓     | ✓     | ✓        | ✓        | ✓          |
+| Multi Branch          | ✓     | ✗     | ✓        | ✓        | ✓          |
+| Customer Portal       | ✓     | ✗     | ✓        | ✓        | ✓          |
+| Student Portal        | ✓     | ✗     | ✓        | ✓        | ✓          |
+| Client Portal         | ✓     | ✗     | ✓        | ✓        | ✓          |
+| Approval Workflows    | ✓     | ✗     | ✓        | ✓        | ✓          |
+| Advanced Analytics    | ✓     | ✗     | ✓        | ✓        | ✓          |
+| AI Features           | ✓     | ✗     | ✗        | ✓        | ✓          |
+| Workflow Automation   | ✓     | ✗     | ✗        | ✓        | ✓          |
+| API Access            | ✓     | ✗     | ✗        | ✗        | ✓          |
+| White Label           | ✓     | ✗     | ✗        | ✗        | ✓          |
+| Dedicated Support     | ✓     | ✗     | ✗        | ✗        | ✓          |
 
 ---
 
@@ -354,13 +354,13 @@ After SaaS adoption:
 
 Maintain launch pricing:
 
-| Plan | Monthly |
-| --- | --- |
-| Free Trial | 20 Days |
-| Solo Module | ₹999 |
-| Business (2 Modules) | ₹1,899 |
-| Complete (All Modules) | ₹2,499 |
-| Enterprise | Custom |
+| Plan                   | Monthly |
+| ---------------------- | ------- |
+| Free Trial             | 20 Days |
+| Solo Module            | ₹999    |
+| Business (2 Modules)   | ₹1,899  |
+| Complete (All Modules) | ₹2,499  |
+| Enterprise             | Custom  |
 
 Focus differentiation on:
 

@@ -14,6 +14,7 @@ const testimonials = [
     role: 'Founder, Nrithya Bharatanatyam Academy',
     metric: '2x faster fee collection',
     initials: 'PR',
+    color: 'from-primary to-accent-yellow',
   },
   {
     quote:
@@ -22,6 +23,7 @@ const testimonials = [
     role: 'Owner, StageCraft Rentals',
     metric: '0 double-bookings this season',
     initials: 'AK',
+    color: 'from-accent-blue to-accent-cyan',
   },
   {
     quote:
@@ -30,6 +32,7 @@ const testimonials = [
     role: 'Director, Celebr8 Event Planners',
     metric: '30% higher margins',
     initials: 'MN',
+    color: 'from-accent-red to-primary',
   },
 ]
 
@@ -83,9 +86,9 @@ export function Testimonials() {
           role="region"
           aria-roledescription="carousel"
           aria-label="Customer testimonials"
-          className="relative mt-12 overflow-hidden rounded-3xl border border-border bg-card p-8 sm:p-12"
+          className="relative mt-12 overflow-hidden rounded-3xl border border-border bg-card p-8 shadow-xl shadow-black/5 sm:p-12"
         >
-          <Quote className="absolute right-8 top-8 size-16 text-brand/10" aria-hidden="true" />
+          <Quote className="absolute right-8 top-8 size-16 text-primary/10" aria-hidden="true" />
           <AnimatePresence mode="wait">
             <motion.div
               key={index}
@@ -97,7 +100,7 @@ export function Testimonials() {
               aria-roledescription="slide"
               aria-label={`Testimonial ${index + 1} of ${testimonials.length}`}
             >
-              <div className="flex gap-1 text-brand" aria-hidden="true">
+              <div className="flex gap-1 text-primary" aria-hidden="true">
                 {Array.from({ length: 5 }).map((_, i) => (
                   <Star key={i} className="size-4 fill-current" />
                 ))}
@@ -106,14 +109,14 @@ export function Testimonials() {
                 &ldquo;{active.quote}&rdquo;
               </blockquote>
               <div className="mt-8 flex items-center gap-4">
-                <span className="grid size-12 place-items-center rounded-full bg-gradient-to-br from-brand to-accent-cyan text-sm font-semibold text-brand-foreground">
+                <span className={`grid size-12 place-items-center rounded-full bg-gradient-to-br ${active.color} text-sm font-bold text-white`}>
                   {active.initials}
                 </span>
                 <div>
-                  <p className="font-semibold">{active.name}</p>
+                  <p className="font-bold">{active.name}</p>
                   <p className="text-sm text-muted-foreground">{active.role}</p>
                 </div>
-                <span className="ml-auto hidden rounded-full bg-success/10 px-3 py-1.5 text-sm font-medium text-success sm:block">
+                <span className="ml-auto hidden rounded-full bg-accent-green/10 px-3 py-1.5 text-sm font-semibold text-accent-green sm:block">
                   {active.metric}
                 </span>
               </div>
@@ -131,7 +134,7 @@ export function Testimonials() {
                   aria-label={`Go to testimonial ${i + 1}`}
                   className={cn(
                     'h-2 rounded-full transition-all',
-                    i === index ? 'w-6 bg-brand' : 'w-2 bg-border',
+                    i === index ? 'w-6 bg-primary' : 'w-2 bg-border',
                   )}
                 />
               ))}
@@ -140,7 +143,7 @@ export function Testimonials() {
               <button
                 onClick={() => setPaused(!paused)}
                 aria-label={paused ? 'Resume auto-play' : 'Pause auto-play'}
-                className="grid size-8 place-items-center rounded-full border border-border text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                className="grid size-8 place-items-center rounded-full border border-border text-muted-foreground transition-all hover:border-primary/40 hover:bg-primary/5 hover:text-primary"
               >
                 {paused ? <Play className="size-3" /> : <Pause className="size-3" />}
               </button>
@@ -148,14 +151,14 @@ export function Testimonials() {
                 <button
                   onClick={prev}
                   aria-label="Previous testimonial"
-                  className="grid size-10 place-items-center rounded-full border border-border transition-colors hover:bg-accent"
+                  className="grid size-10 place-items-center rounded-full border border-border transition-all hover:border-primary/40 hover:bg-primary/5 hover:text-primary"
                 >
                   <ChevronLeft className="size-4" />
                 </button>
                 <button
                   onClick={next}
                   aria-label="Next testimonial"
-                  className="grid size-10 place-items-center rounded-full border border-border transition-colors hover:bg-accent"
+                  className="grid size-10 place-items-center rounded-full border border-border transition-all hover:border-primary/40 hover:bg-primary/5 hover:text-primary"
                 >
                   <ChevronRight className="size-4" />
                 </button>

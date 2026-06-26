@@ -1,52 +1,53 @@
-import type { Metadata } from 'next'
-import Link from 'next/link'
-import { Clock, Tag, ArrowRight, Search } from 'lucide-react'
-import { SiteHeader } from '@/components/site-header'
-import { SiteFooter } from '@/components/site-footer'
-import { Breadcrumbs } from '@/components/content/breadcrumbs'
-import { ContentSearch } from '@/components/content/search'
-import { NewsletterCta } from '@/components/content/newsletter-cta'
-import { getAllBlogPosts, getAllBlogCategories } from '@/lib/content'
-import { generateMetadata as genMeta } from '@/lib/seo'
-import { Suspense } from 'react'
+import type { Metadata } from "next";
+import Link from "next/link";
+import { Clock, Tag, ArrowRight, Search } from "lucide-react";
+import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
+import { Breadcrumbs } from "@/components/content/breadcrumbs";
+import { ContentSearch } from "@/components/content/search";
+import { NewsletterCta } from "@/components/content/newsletter-cta";
+import { getAllBlogPosts, getAllBlogCategories } from "@/lib/content";
+import { generateMetadata as genMeta } from "@/lib/seo";
+import { Suspense } from "react";
 
 export const metadata: Metadata = genMeta({
-  title: 'Blog — Industry Insights & Product Updates',
+  title: "Blog - Industry Insights & Product Updates",
   description:
-    'Read about training academy management, rental business operations, event planning, and product updates from KalaiYarangam.',
-  url: 'https://kalaiyarangam.com/blog',
-})
+    "Read about training academy management, rental business operations, event planning, and product updates from KalaiYarangam.",
+  url: "https://kalaiyarangam.com/blog",
+});
 
-const POSTS_PER_PAGE = 9
+const POSTS_PER_PAGE = 9;
 
 export default function BlogPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; category?: string; tag?: string }>
+  searchParams: Promise<{ page?: string; category?: string; tag?: string }>;
 }) {
-  const allPosts = getAllBlogPosts()
-  const categories = getAllBlogCategories()
+  const allPosts = getAllBlogPosts();
+  const categories = getAllBlogCategories();
 
-  let posts = allPosts
+  let posts = allPosts;
 
   // Filtering will be handled client-side via search params
-  const page = 1
-  const totalPages = Math.ceil(posts.length / POSTS_PER_PAGE)
-  const paginatedPosts = posts.slice(0, POSTS_PER_PAGE)
+  const page = 1;
+  const totalPages = Math.ceil(posts.length / POSTS_PER_PAGE);
+  const paginatedPosts = posts.slice(0, POSTS_PER_PAGE);
 
   return (
     <div className="min-h-dvh bg-background">
       <SiteHeader />
       <main className="px-4 pb-24 pt-28">
         <div className="mx-auto max-w-6xl">
-          <Breadcrumbs items={[{ label: 'Blog' }]} />
+          <Breadcrumbs items={[{ label: "Blog" }]} />
 
           <div className="mb-10">
             <h1 className="font-heading text-4xl font-bold tracking-tight sm:text-5xl">
               Blog
             </h1>
             <p className="mt-3 max-w-2xl text-lg text-muted-foreground">
-              Industry insights, product updates, and best practices for training academies, rental businesses, and event companies.
+              Industry insights, product updates, and best practices for
+              training academies, rental businesses, and event companies.
             </p>
           </div>
 
@@ -143,5 +144,5 @@ export default function BlogPage({
       </main>
       <SiteFooter />
     </div>
-  )
+  );
 }

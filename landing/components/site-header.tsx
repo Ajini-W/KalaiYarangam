@@ -1,18 +1,21 @@
 'use client'
 
-import { Menu, X } from 'lucide-react'
+import { Menu, X, LogIn } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Button } from '@/components/ui/button'
 import { Logo } from '@/components/logo'
 import { ThemeToggle } from '@/components/theme-toggle'
+import { PwaInstallButton } from '@/components/pwa-install-button'
 import { cn } from '@/lib/utils'
 
+const SAAS_URL = process.env.NEXT_PUBLIC_SAAS_URL || 'https://app.saas.com'
+
 const navLinks = [
-  { label: 'Industries', href: '#industries' },
-  { label: 'Modules', href: '#modules' },
-  { label: 'Platform', href: '#platform' },
-  { label: 'Pricing', href: '#pricing' },
-  { label: 'Tutorials', href: '#tutorials' },
+  { label: 'Solutions', href: '/solutions' },
+  { label: 'Features', href: '/features' },
+  { label: 'Use Cases', href: '/use-cases' },
+  { label: 'Tutorials', href: '/tutorials' },
+  { label: 'Pricing', href: '/pricing' },
+  { label: 'Blog', href: '/blog' },
 ]
 
 export function SiteHeader() {
@@ -61,57 +64,60 @@ export function SiteHeader() {
   }, [open])
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 px-4 pt-4 sm:pt-5">
+    <header className="fixed inset-x-0 top-0 z-50 px-3 pt-3 sm:px-4 sm:pt-4">
       <div
         className={cn(
-          'mx-auto flex max-w-6xl items-center justify-between rounded-2xl border border-border px-5 py-3 transition-all duration-500',
-          scrolled &&
-            'border-border/70 bg-background/70 shadow-2xl shadow-brand/5 backdrop-blur-2xl',
+          'mx-auto flex max-w-6xl items-center justify-between rounded-2xl border border-border px-4 py-2.5 transition-all duration-500 sm:px-5 sm:py-3',
+          scrolled
+            ? 'border-border/70 bg-white/80 shadow-xl shadow-black/5 backdrop-blur-2xl dark:bg-background/80'
+            : 'bg-white/60 backdrop-blur-sm dark:bg-background/60',
         )}
       >
-        <a href="#top" aria-label="KalaiYarangam home">
+        <a href="/" aria-label="KalaiYarangam home" className="shrink-0">
           <Logo />
         </a>
 
-        <nav className="hidden items-center gap-1 lg:flex" aria-label="Main navigation">
+        <nav
+          className="hidden items-center gap-1 lg:flex"
+          aria-label="Main navigation"
+        >
           {navLinks.map((link) => (
             <a
               key={link.href}
               href={link.href}
-              className="rounded-lg px-3.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+              className="rounded-xl px-3.5 py-2 text-sm font-medium text-muted-foreground transition-all hover:bg-primary/5 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
             >
               {link.label}
             </a>
           ))}
         </nav>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-1.5 sm:gap-2.5">
           <ThemeToggle />
-          <Button
-            variant="ghost"
-            className="hidden font-medium sm:inline-flex"
-            asChild
+          <PwaInstallButton />
+          <a
+            href={`${SAAS_URL}/login`}
+            className="hidden items-center gap-2 rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition-all hover:bg-primary/5 hover:text-primary sm:inline-flex"
           >
-            <a href="#contact">Book Demo</a>
-          </Button>
-          <Button
-            asChild
-            className="hidden bg-brand text-brand-foreground hover:bg-brand/90 sm:inline-flex"
+            <LogIn className="size-4" />
+            Log in
+          </a>
+          <a
+            href={`${SAAS_URL}/register`}
+            className="hidden rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow-md shadow-primary/20 transition-all hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/30 sm:inline-flex"
           >
-            <a href="#pricing">Start Free Trial</a>
-          </Button>
-          <Button
+            Sign up free
+          </a>
+          <button
             ref={triggerRef}
-            variant="ghost"
-            size="icon"
-            className="lg:hidden"
+            onClick={() => setOpen((v) => !v)}
+            className="grid size-9 place-items-center rounded-xl text-muted-foreground transition-colors hover:bg-primary/5 hover:text-primary lg:hidden"
             aria-label={open ? 'Close menu' : 'Open menu'}
             aria-expanded={open}
             aria-controls="mobile-menu"
-            onClick={() => setOpen((v) => !v)}
           >
             {open ? <X className="size-5" /> : <Menu className="size-5" />}
-          </Button>
+          </button>
         </div>
       </div>
 
@@ -122,33 +128,35 @@ export function SiteHeader() {
           role="dialog"
           aria-modal="true"
           aria-label="Mobile navigation"
-          className="mx-auto mt-2 max-w-6xl overflow-hidden rounded-2xl border border-border bg-background/95 p-3 shadow-2xl backdrop-blur-2xl lg:hidden"
+          className="mx-auto mt-2 max-w-6xl overflow-hidden rounded-2xl border border-border bg-white p-4 shadow-2xl dark:bg-background lg:hidden"
         >
-          <nav className="flex flex-col">
+          <nav className="flex flex-col gap-1">
             {navLinks.map((link) => (
               <a
                 key={link.href}
                 href={link.href}
                 onClick={closeMenu}
-                className="rounded-lg px-3.5 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+                className="rounded-xl px-4 py-3 text-sm font-medium text-muted-foreground transition-all hover:bg-primary/5 hover:text-primary"
               >
                 {link.label}
               </a>
             ))}
-            <div className="mt-2 flex flex-col gap-2 border-t border-border pt-3">
-              <Button variant="outline" asChild>
-                <a href="#contact" onClick={closeMenu}>
-                  Book Demo
-                </a>
-              </Button>
-              <Button
-                asChild
-                className="bg-brand text-brand-foreground hover:bg-brand/90"
+            <div className="mt-3 flex flex-col gap-2 border-t border-border pt-3">
+              <a
+                href={`${SAAS_URL}/login`}
+                onClick={closeMenu}
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-border bg-card px-4 text-sm font-semibold text-foreground transition-all hover:bg-muted"
               >
-                <a href="#pricing" onClick={closeMenu}>
-                  Start Free Trial
-                </a>
-              </Button>
+                <LogIn className="size-4" />
+                Log in
+              </a>
+              <a
+                href={`${SAAS_URL}/register`}
+                onClick={closeMenu}
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-md shadow-primary/20 transition-all hover:bg-primary/90"
+              >
+                Sign up free
+              </a>
             </div>
           </nav>
         </div>

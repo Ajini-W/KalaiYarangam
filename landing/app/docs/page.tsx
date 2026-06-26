@@ -1,29 +1,29 @@
-import type { Metadata } from 'next'
-import Link from 'next/link'
-import { FileText, ChevronRight } from 'lucide-react'
-import { SiteHeader } from '@/components/site-header'
-import { SiteFooter } from '@/components/site-footer'
-import { Breadcrumbs } from '@/components/content/breadcrumbs'
-import { getAllDocs, getDocGroups } from '@/lib/content'
-import { generateMetadata as genMeta } from '@/lib/seo'
+import type { Metadata } from "next";
+import Link from "next/link";
+import { FileText, ChevronRight } from "lucide-react";
+import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
+import { Breadcrumbs } from "@/components/content/breadcrumbs";
+import { getAllDocs, getDocGroups } from "@/lib/content";
+import { generateMetadata as genMeta } from "@/lib/seo";
 
 export const metadata: Metadata = genMeta({
-  title: 'Documentation',
+  title: "Documentation",
   description:
-    'Complete documentation for KalaiYarangam — setup guides, module references, API docs, and more.',
-  url: 'https://kalaiyarangam.com/docs',
-})
+    "Complete documentation for KalaiYarangam - setup guides, module references, API docs, and more.",
+  url: "https://kalaiyarangam.com/docs",
+});
 
 export default function DocsPage() {
-  const docs = getAllDocs()
-  const groups = getDocGroups()
+  const docs = getAllDocs();
+  const groups = getDocGroups();
 
   return (
     <div className="min-h-dvh bg-background">
       <SiteHeader />
       <main className="px-4 pb-24 pt-28">
         <div className="mx-auto max-w-6xl">
-          <Breadcrumbs items={[{ label: 'Documentation' }]} />
+          <Breadcrumbs items={[{ label: "Documentation" }]} />
 
           <div className="mb-10">
             <h1 className="font-heading text-4xl font-bold tracking-tight sm:text-5xl">
@@ -37,7 +37,9 @@ export default function DocsPage() {
           <div className="space-y-10">
             {groups.map((group) => (
               <section key={group}>
-                <h2 className="mb-4 font-heading text-xl font-semibold">{group}</h2>
+                <h2 className="mb-4 font-heading text-xl font-semibold">
+                  {group}
+                </h2>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {docs
                     .filter((d) => d.group === group)
@@ -70,5 +72,5 @@ export default function DocsPage() {
       </main>
       <SiteFooter />
     </div>
-  )
+  );
 }

@@ -18,21 +18,25 @@ const categories = [
     icon: Rocket,
     title: 'Getting Started',
     articles: ['Account Setup', 'Tenant Creation', 'Branding'],
+    color: 'bg-primary/10 text-primary',
   },
   {
     icon: GraduationCap,
     title: 'Training Management',
     articles: ['Student Enrollment', 'Attendance', 'Fee Collection'],
+    color: 'bg-accent-blue/10 text-accent-blue',
   },
   {
     icon: Package,
     title: 'Rental Management',
     articles: ['Inventory Setup', 'Booking Creation', 'Return Processing'],
+    color: 'bg-accent-red/10 text-accent-red',
   },
   {
     icon: CalendarHeart,
     title: 'Event Management',
     articles: ['Event Planning', 'Team Assignment', 'Budget Tracking'],
+    color: 'bg-accent-green/10 text-accent-green',
   },
 ]
 
@@ -63,7 +67,7 @@ export function Tutorials() {
         />
 
         <Reveal className="mx-auto mt-10 max-w-xl">
-          <div className="flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 focus-within:border-brand/50 focus-within:ring-2 focus-within:ring-brand/20">
+          <div className="flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 shadow-sm transition-all focus-within:border-primary/50 focus-within:shadow-md focus-within:shadow-primary/5 focus-within:ring-2 focus-within:ring-primary/20">
             <Search className="size-5 text-muted-foreground" />
             <input
               type="search"
@@ -81,12 +85,12 @@ export function Tutorials() {
             <Reveal
               key={category.title}
               delay={(i % 4) * 0.08}
-              className="rounded-2xl border border-border bg-card p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+              className="rounded-3xl border border-border bg-card p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/5"
             >
-              <div className="grid size-11 place-items-center rounded-xl bg-brand/10 text-brand">
+              <div className={`grid size-11 place-items-center rounded-2xl ${category.color}`}>
                 <category.icon className="size-5" />
               </div>
-              <h3 className="mt-4 font-heading text-base font-semibold">
+              <h3 className="mt-4 font-heading text-base font-bold">
                 {category.title}
               </h3>
               <ul className="mt-4 space-y-2">
@@ -94,7 +98,7 @@ export function Tutorials() {
                   <li key={article}>
                     <a
                       href="#"
-                      className="flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-brand"
+                      className="flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-primary"
                     >
                       <FileText className="size-3.5" />
                       {article}
