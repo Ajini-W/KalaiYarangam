@@ -378,6 +378,7 @@ export class CertificatesService {
     metadata: Record<string, unknown>;
   }) {
     return {
+      ...params.metadata,
       certificateId: params.certificateId,
       certNumber: params.certNumber,
       templateId: params.template.id,
@@ -396,7 +397,6 @@ export class CertificatesService {
         id: params.template.id,
         name: params.template.name,
       },
-      ...params.metadata,
     };
   }
 
