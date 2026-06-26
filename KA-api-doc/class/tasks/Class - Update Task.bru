@@ -1,0 +1,28 @@
+meta {
+  name: Class - Update Task
+  type: http
+  seq: 5
+}
+
+patch {
+  url: {{base-url}}/class/tasks/{{taskId}}
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "title": "Chapter 5 Homework - Revised",
+    "maxScore": 50,
+    "allowLateSubmission": true
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

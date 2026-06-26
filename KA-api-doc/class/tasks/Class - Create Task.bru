@@ -1,0 +1,40 @@
+meta {
+  name: Class - Create Task
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{base-url}}/class/tasks
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "batchId": "{{batchId}}",
+    "title": "Chapter 5 Homework",
+    "type": "HOMEWORK",
+    "dueDate": "2026-07-10",
+    "maxScore": 100,
+    "allowLateSubmission": false
+  }
+}
+
+vars:pre-request {
+  batchId: 69eaa17e-1903-4de4-a9a0-e6552aa397b2
+}
+
+script:post-response {
+  const body = res.getBody();
+  if (body.data) { bru.setVar("taskId", body.data.id); }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
