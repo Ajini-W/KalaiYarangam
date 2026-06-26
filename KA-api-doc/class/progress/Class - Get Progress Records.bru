@@ -1,0 +1,24 @@
+meta {
+  name: Class - Get Progress Records
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{base-url}}/class/progress?page=1&pageSize=10&batchId={{batchId}}
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+vars:pre-request {
+  batchId: 69eaa17e-1903-4de4-a9a0-e6552aa397b2
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
