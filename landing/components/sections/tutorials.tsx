@@ -62,7 +62,7 @@ export function Tutorials() {
       <div className="mx-auto max-w-6xl">
         <SectionHeading
           eyebrow="Tutorial Center"
-          title="Learn KalaiYarangam faster"
+          title="Learn kalaiArangam faster"
           description="Step-by-step guides and searchable documentation help your team master the platform in days, not weeks."
         />
 

@@ -27,7 +27,7 @@ const testimonials = [
   },
   {
     quote:
-      'From enquiry to closure report, every event runs through KalaiYarangam. Our team coordination and budget accuracy have completely transformed.',
+      'From enquiry to closure report, every event runs through kalaiArangam. Our team coordination and budget accuracy have completely transformed.',
     name: 'Meera Nair',
     role: 'Director, Celebr8 Event Planners',
     metric: '30% higher margins',

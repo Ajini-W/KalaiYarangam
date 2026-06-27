@@ -48,7 +48,7 @@ export function ProblemsWeSolve() {
             Stop juggling spreadsheets, WhatsApp, and manual registers
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-pretty text-base leading-relaxed text-muted-foreground sm:text-lg">
-            Every problem you face daily - KalaiYarangam already has a solution.
+            Every problem you face daily - kalaiArangam already has a solution.
           </p>
         </Reveal>
 

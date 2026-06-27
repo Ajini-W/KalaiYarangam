@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next'
 import { getAllBlogPosts, getAllTutorials, getAllDocs, getAllLegalPages } from '@/lib/content'
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const base = 'https://kalaiyarangam.com'
+  const base = 'https://kalaiArangam.com'
 
   const staticPages = [
     { url: base, lastModified: new Date(), changeFrequency: 'weekly' as const, priority: 1 },

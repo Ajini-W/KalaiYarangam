@@ -20,7 +20,7 @@ export async function generateMetadata({
   return genMeta({
     title: page.title,
     description: page.description,
-    url: `https://kalaiyarangam.com/legal/${page.slug}`,
+    url: `https://kalaiArangam.com/legal/${page.slug}`,
   })
 }
 
@@ -96,8 +96,8 @@ export default async function LegalDetailPage({
               <div className="mt-10 rounded-xl border border-border bg-muted/20 p-4 text-sm text-muted-foreground">
                 <p>
                   If you have questions about this policy, contact us at{' '}
-                  <a href="mailto:legal@kalaiyarangam.com" className="text-brand hover:underline">
-                    legal@kalaiyarangam.com
+                  <a href="mailto:legal@kalaiArangam.com" className="text-brand hover:underline">
+                    legal@kalaiArangam.com
                   </a>
                 </p>
               </div>

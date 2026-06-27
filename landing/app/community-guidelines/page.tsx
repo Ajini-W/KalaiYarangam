@@ -7,8 +7,8 @@ import { generateMetadata as genMeta } from '@/lib/seo'
 export const metadata: Metadata = genMeta({
   title: 'Community Guidelines',
   description:
-    'Guidelines for participating in the KalaiYarangam community, forums, and support channels.',
-  url: 'https://kalaiyarangam.com/community-guidelines',
+    'Guidelines for participating in the kalaiArangam community, forums, and support channels.',
+  url: 'https://kalaiArangam.com/community-guidelines',
 })
 
 export default function CommunityGuidelinesPage() {
@@ -27,7 +27,7 @@ export default function CommunityGuidelinesPage() {
             <section>
               <h2 id="welcome">Welcome</h2>
               <p>
-                The KalaiYarangam community is a space for business owners, trainers, and operators
+                The kalaiArangam community is a space for business owners, trainers, and operators
                 to share knowledge, ask questions, and help each other succeed. These guidelines
                 help keep our community safe, productive, and welcoming for everyone.
               </p>
@@ -61,7 +61,7 @@ export default function CommunityGuidelinesPage() {
               <h2 id="reporting">Reporting Issues</h2>
               <p>
                 If you experience or witness behavior that violates these guidelines, please report it to{' '}
-                <a href="mailto:community@kalaiyarangam.com">community@kalaiyarangam.com</a>.
+                <a href="mailto:community@kalaiArangam.com">community@kalaiArangam.com</a>.
                 All reports are handled confidentially.
               </p>
             </section>

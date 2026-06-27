@@ -48,7 +48,7 @@ export function Walkthrough() {
         <SectionHeading
           eyebrow="Product Walkthrough"
           title="Up and running in five simple steps"
-          description="From sign-up to live operations, KalaiYarangam gets your business onboarded fast."
+          description="From sign-up to live operations, kalaiArangam gets your business onboarded fast."
         />
 
         <div className="relative mt-16">

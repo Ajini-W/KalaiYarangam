@@ -10,8 +10,8 @@ import { generateMetadata as genMeta } from '@/lib/seo'
 export const metadata: Metadata = genMeta({
   title: 'Legal',
   description:
-    'Legal documents, policies, and terms for KalaiYarangam.',
-  url: 'https://kalaiyarangam.com/legal',
+    'Legal documents, policies, and terms for kalaiArangam.',
+  url: 'https://kalaiArangam.com/legal',
 })
 
 export default function LegalPage() {
@@ -28,7 +28,7 @@ export default function LegalPage() {
             Legal
           </h1>
           <p className="mb-10 max-w-2xl text-lg text-muted-foreground">
-            Policies, terms, and legal documents governing the use of KalaiYarangam.
+            Policies, terms, and legal documents governing the use of kalaiArangam.
           </p>
 
           <div className="grid gap-4 sm:grid-cols-2">

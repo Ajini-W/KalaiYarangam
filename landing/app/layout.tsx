@@ -16,9 +16,9 @@ const sora = Sora({
 });
 
 export const metadata: Metadata = {
-  title: "KalaiYarangam - One Platform for Academies, Rentals & Events",
+  title: "kalaiArangam - One Platform for Academies, Rentals & Events",
   description:
-    "KalaiYarangam is a multi-tenant SaaS ERP that helps Training Institutes, Rental Businesses, and Event Companies manage leads, operations, teams, payments, and analytics from a single cloud platform.",
+    "kalaiArangam is a multi-tenant SaaS ERP that helps Training Institutes, Rental Businesses, and Event Companies manage leads, operations, teams, payments, and analytics from a single cloud platform.",
   generator: "v0.app",
   keywords: [
     "ERP",
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     "academy management",
   ],
   openGraph: {
-    title: "KalaiYarangam - One Platform for Academies, Rentals & Events",
+    title: "kalaiArangam - One Platform for Academies, Rentals & Events",
     description:
       "Replace spreadsheets, WhatsApp groups, and disconnected software with one intelligent business operating system.",
     type: "website",

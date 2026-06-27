@@ -76,7 +76,7 @@ export function WhyChooseUs() {
             Why Choose Us
           </span>
           <h2 className="mt-5 text-balance font-heading text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
-            Why academies choose KalaiYarangam
+            Why academies choose kalaiArangam
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-pretty text-base leading-relaxed text-muted-foreground sm:text-lg">
             Built by people who understand the academy business.

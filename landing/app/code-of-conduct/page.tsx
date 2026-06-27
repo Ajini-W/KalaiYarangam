@@ -7,8 +7,8 @@ import { generateMetadata as genMeta } from '@/lib/seo'
 export const metadata: Metadata = genMeta({
   title: 'Code of Conduct',
   description:
-    'Our community code of conduct for KalaiYarangam users, contributors, and team members.',
-  url: 'https://kalaiyarangam.com/code-of-conduct',
+    'Our community code of conduct for kalaiArangam users, contributors, and team members.',
+  url: 'https://kalaiArangam.com/code-of-conduct',
 })
 
 export default function CodeOfConductPage() {
@@ -76,7 +76,7 @@ export default function CodeOfConductPage() {
               <p>
                 Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to
                 the community leaders responsible for enforcement at{' '}
-                <a href="mailto:conduct@kalaiyarangam.com">conduct@kalaiyarangam.com</a>.
+                <a href="mailto:conduct@kalaiArangam.com">conduct@kalaiArangam.com</a>.
               </p>
               <p>
                 All complaints will be reviewed and investigated promptly and fairly.

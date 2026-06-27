@@ -1,10 +1,10 @@
 # Pricing Strategy
 
-# KalaiYarangam SaaS Pricing Strategy
+# kalaiArangam SaaS Pricing Strategy
 
 ## Overview
 
-KalaiYarangam is a Multi-Tenant SaaS ERP platform designed for:
+kalaiArangam is a Multi-Tenant SaaS ERP platform designed for:
 
 - Training & Coaching Institutes
 - Rental Businesses
@@ -371,4 +371,4 @@ Focus differentiation on:
 5. AI Capabilities
 6. Enterprise Integrations
 
-Core operational features inside a purchased module should never be restricted. Customers must receive the complete workflow of the module they purchase to ensure adoption, retention, and long-term platform dependency. Based on KalaiYarangam's modular SaaS architecture and business model.
+Core operational features inside a purchased module should never be restricted. Customers must receive the complete workflow of the module they purchase to ensure adoption, retention, and long-term platform dependency. Based on kalaiArangam's modular SaaS architecture and business model.

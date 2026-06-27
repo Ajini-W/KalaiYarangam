@@ -1,19 +1,23 @@
 [
   {
-    "slug": "getting-started-with-kalaiyarangam",
-    "title": "Getting Started with KalaiYarangam",
+    "slug": "getting-started-with-kalaiArangam",
+    "title": "Getting Started with kalaiArangam",
     "description": "Set up your account, create your organization, and start managing your business in under 10 minutes.",
     "content": "This tutorial walks you through the complete setup process.",
     "difficulty": "beginner",
     "estimatedTime": "10 minutes",
     "prerequisites": [],
     "category": "Getting Started",
-    "tags": ["setup", "onboarding", "beginner"],
+    "tags": [
+      "setup",
+      "onboarding",
+      "beginner"
+    ],
     "featured": true,
     "steps": [
       {
         "title": "Create Your Account",
-        "content": "Visit kalaiyarangam.com and click Start Free Trial. Enter your email, phone number, and create a password. You will receive a verification email.",
+        "content": "Visit kalaiArangam.com and click Start Free Trial. Enter your email, phone number, and create a password. You will receive a verification email.",
         "code": []
       },
       {
@@ -45,9 +49,16 @@
     "content": "Learn how to automate your entire fee collection process.",
     "difficulty": "beginner",
     "estimatedTime": "15 minutes",
-    "prerequisites": ["getting-started-with-kalaiyarangam"],
+    "prerequisites": [
+      "getting-started-with-kalaiArangam"
+    ],
     "category": "Training Management",
-    "tags": ["fees", "payments", "automation", "training"],
+    "tags": [
+      "fees",
+      "payments",
+      "automation",
+      "training"
+    ],
     "featured": false,
     "steps": [
       {
@@ -85,9 +96,16 @@
     "content": "A complete guide to rental inventory management.",
     "difficulty": "intermediate",
     "estimatedTime": "20 minutes",
-    "prerequisites": ["getting-started-with-kalaiyarangam"],
+    "prerequisites": [
+      "getting-started-with-kalaiArangam"
+    ],
     "category": "Rental Management",
-    "tags": ["inventory", "bookings", "rental", "catalog"],
+    "tags": [
+      "inventory",
+      "bookings",
+      "rental",
+      "catalog"
+    ],
     "featured": false,
     "steps": [
       {

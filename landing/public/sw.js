@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kalaiyarangam-v1'
+const CACHE_NAME = 'kalaiArangam-v1'
 
 self.addEventListener('install', () => {
   self.skipWaiting()

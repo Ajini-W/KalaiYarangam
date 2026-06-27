@@ -279,7 +279,7 @@ export function DashboardMockup({
         <span className="size-3 rounded-full bg-amber-400/80" />
         <span className="size-3 rounded-full bg-accent-green/70" />
         <div className="ml-3 hidden flex-1 items-center rounded-xl bg-background/80 px-3 py-1 text-xs text-muted-foreground sm:flex">
-          app.kalaiyarangam.com/dashboard
+          app.kalaiArangam.com/dashboard
         </div>
       </div>
 

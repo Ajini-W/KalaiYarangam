@@ -22,7 +22,7 @@ export async function generateMetadata({
   return genMeta({
     title: doc.title,
     description: doc.description,
-    url: `https://kalaiyarangam.com/docs/${doc.slug}`,
+    url: `https://kalaiArangam.com/docs/${doc.slug}`,
   })
 }
 

@@ -11,7 +11,7 @@ export function Logo({
     <span className={cn('flex items-center gap-3', className)}>
       <img
         src="/logo.png"
-        alt="KalaiYarangam"
+        alt="kalaiArangam"
         className="h-10 w-10 rounded-xl object-contain"
         width={40}
         height={40}

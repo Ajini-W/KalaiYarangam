@@ -48,7 +48,7 @@ export function HowItWorks() {
             How It Works
           </span>
           <h2 className="mt-5 text-balance font-heading text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
-            How KalaiYarangam Works
+            How kalaiArangam Works
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-pretty text-base leading-relaxed text-muted-foreground sm:text-lg">
             From sign-up to live operations in five simple steps.

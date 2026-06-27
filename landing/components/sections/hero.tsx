@@ -98,7 +98,7 @@ export function Hero() {
           transition={{ duration: 0.7, delay: 0.12 }}
           className="mx-auto mt-6 max-w-2xl text-pretty text-base leading-relaxed text-muted-foreground sm:text-lg"
         >
-          KalaiYarangam helps Training Institutes, Rental Businesses, and Event
+          kalaiArangam helps Training Institutes, Rental Businesses, and Event
           Companies manage leads, operations, teams, payments, and analytics
           from a single cloud platform.
         </motion.p>

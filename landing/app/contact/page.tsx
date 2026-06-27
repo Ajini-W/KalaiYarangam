@@ -6,7 +6,7 @@ import { Reveal } from '@/components/reveal'
 import { Mail, MessageCircle, Phone, MapPin } from 'lucide-react'
 
 const contactMethods = [
-  { icon: Mail, label: 'Email', value: 'support@kalaiyarangam.com', href: 'mailto:support@kalaiyarangam.com' },
+  { icon: Mail, label: 'Email', value: 'support@kalaiArangam.com', href: 'mailto:support@kalaiArangam.com' },
   { icon: MessageCircle, label: 'WhatsApp', value: 'Chat with us', href: '#' },
   { icon: Phone, label: 'Phone', value: '+91 XXX XXX XXXX', href: 'tel:+91XXXXXXXXXX' },
   { icon: MapPin, label: 'Location', value: 'Tamil Nadu, India', href: '#' },

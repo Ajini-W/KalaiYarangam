@@ -10,7 +10,7 @@ export interface SeoMetadata {
 }
 
 export function generateMetadata(seo: SeoMetadata) {
-  const siteName = 'KalaiYarangam'
+  const siteName = 'kalaiArangam'
   const title = seo.title.includes(siteName) ? seo.title : `${seo.title} | ${siteName}`
 
   return {
@@ -43,16 +43,16 @@ export function generateOrganizationSchema() {
   return {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: 'KalaiYarangam',
-    url: 'https://kalaiyarangam.com',
-    logo: 'https://kalaiyarangam.com/icon.svg',
+    name: 'kalaiArangam',
+    url: 'https://kalaiArangam.com',
+    logo: 'https://kalaiArangam.com/icon.svg',
     description:
       'Multi-tenant SaaS ERP for Training Institutes, Rental Businesses, and Event Management Companies.',
     sameAs: [],
     contactPoint: {
       '@type': 'ContactPoint',
       contactType: 'customer service',
-      email: 'support@kalaiyarangam.com',
+      email: 'support@kalaiArangam.com',
     },
   }
 }
@@ -61,11 +61,11 @@ export function generateWebSiteSchema() {
   return {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: 'KalaiYarangam',
-    url: 'https://kalaiyarangam.com',
+    name: 'kalaiArangam',
+    url: 'https://kalaiArangam.com',
     potentialAction: {
       '@type': 'SearchAction',
-      target: 'https://kalaiyarangam.com/search?q={search_term_string}',
+      target: 'https://kalaiArangam.com/search?q={search_term_string}',
       'query-input': 'required name=search_term_string',
     },
   }
@@ -95,10 +95,10 @@ export function generateArticleSchema(post: {
     image: post.image,
     publisher: {
       '@type': 'Organization',
-      name: 'KalaiYarangam',
+      name: 'kalaiArangam',
       logo: {
         '@type': 'ImageObject',
-        url: 'https://kalaiyarangam.com/icon.svg',
+        url: 'https://kalaiArangam.com/icon.svg',
       },
     },
   }

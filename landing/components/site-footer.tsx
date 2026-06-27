@@ -51,7 +51,7 @@ const columns = [
 
 const socials = [
   { icon: Globe, label: 'Website', href: '#' },
-  { icon: Mail, label: 'Email', href: 'mailto:support@kalaiyarangam.com' },
+  { icon: Mail, label: 'Email', href: 'mailto:support@kalaiArangam.com' },
   { icon: MessageCircle, label: 'WhatsApp', href: '#' },
   { icon: Send, label: 'Telegram', href: '#' },
 ]
@@ -118,7 +118,7 @@ export function SiteFooter() {
       <div className="my-3 px-4 md:px-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-sm text-muted-foreground">
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-6 items-start sm:items-center">
           <p className="whitespace-nowrap">
-            &copy; {currentYear} KalaiYarangam. All rights reserved.
+            &copy; {currentYear} kalaiArangam. All rights reserved.
           </p>
           <div className="flex flex-row gap-4">
             <Link href="/privacy-policy" className="hover:text-primary transition-colors">Privacy Policy</Link>

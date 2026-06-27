@@ -73,7 +73,7 @@ export function SiteHeader() {
             : 'bg-white/60 backdrop-blur-sm dark:bg-background/60',
         )}
       >
-        <a href="/" aria-label="KalaiYarangam home" className="shrink-0">
+        <a href="/" aria-label="kalaiArangam home" className="shrink-0">
           <Logo />
         </a>
 

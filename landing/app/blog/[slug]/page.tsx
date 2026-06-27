@@ -22,7 +22,7 @@ export async function generateMetadata({
   return genMeta({
     title: post.title,
     description: post.description,
-    url: `https://kalaiyarangam.com/blog/${post.slug}`,
+    url: `https://kalaiArangam.com/blog/${post.slug}`,
     type: 'article',
     publishedAt: post.publishedAt,
     updatedAt: post.updatedAt,
@@ -55,13 +55,13 @@ export default async function BlogPostPage({
     publishedAt: post.publishedAt,
     updatedAt: post.updatedAt,
     author: post.author.name,
-    url: `https://kalaiyarangam.com/blog/${post.slug}`,
+    url: `https://kalaiArangam.com/blog/${post.slug}`,
   })
 
   const breadcrumbSchema = generateBreadcrumbSchema([
-    { name: 'Home', url: 'https://kalaiyarangam.com' },
-    { name: 'Blog', url: 'https://kalaiyarangam.com/blog' },
-    { name: post.title, url: `https://kalaiyarangam.com/blog/${post.slug}` },
+    { name: 'Home', url: 'https://kalaiArangam.com' },
+    { name: 'Blog', url: 'https://kalaiArangam.com/blog' },
+    { name: post.title, url: `https://kalaiArangam.com/blog/${post.slug}` },
   ])
 
   return (
@@ -110,7 +110,7 @@ export default async function BlogPostPage({
               <div className="mt-4">
                 <SocialShare
                   title={post.title}
-                  url={`https://kalaiyarangam.com/blog/${post.slug}`}
+                  url={`https://kalaiArangam.com/blog/${post.slug}`}
                 />
               </div>
             </header>

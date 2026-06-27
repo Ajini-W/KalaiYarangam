@@ -64,7 +64,7 @@ function InstallModal({ onClose, platform }: { onClose: () => void; platform: 'i
             <Download className="size-5 text-white" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-gray-900">Install KalaiYarangam</h3>
+            <h3 className="text-lg font-bold text-gray-900">Install kalaiArangam</h3>
             <p className="text-xs text-gray-500">
               {platform === 'ios' ? 'Add to your Home Screen' : 'Install as an app'}
             </p>

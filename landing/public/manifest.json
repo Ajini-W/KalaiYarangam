@@ -1,6 +1,6 @@
 {
-  "name": "KalaiYarangam — Academy & Business Management",
-  "short_name": "KalaiYarangam",
+  "name": "kalaiArangam — Academy & Business Management",
+  "short_name": "kalaiArangam",
   "description": "One platform to manage your entire academy or business.",
   "start_url": "/",
   "display": "standalone",
@@ -24,7 +24,10 @@
       "type": "image/png"
     }
   ],
-  "categories": ["business", "education"],
+  "categories": [
+    "business",
+    "education"
+  ],
   "lang": "en",
   "scope": "/",
   "prefer_related_applications": false

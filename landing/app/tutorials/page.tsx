@@ -13,8 +13,8 @@ import { Suspense } from "react";
 export const metadata: Metadata = genMeta({
   title: "Tutorials - Step-by-Step Guides",
   description:
-    "Learn how to set up and use KalaiYarangam with step-by-step tutorials for training management, rental operations, and event planning.",
-  url: "https://kalaiyarangam.com/tutorials",
+    "Learn how to set up and use kalaiArangam with step-by-step tutorials for training management, rental operations, and event planning.",
+  url: "https://kalaiArangam.com/tutorials",
 });
 
 const difficultyColors = {
@@ -40,7 +40,7 @@ export default function TutorialsPage() {
             </h1>
             <p className="mt-3 max-w-2xl text-lg text-muted-foreground">
               Step-by-step guides to help you master every feature of
-              KalaiYarangam.
+              kalaiArangam.
             </p>
           </div>
 
