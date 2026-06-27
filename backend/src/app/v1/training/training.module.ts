@@ -7,6 +7,7 @@ import { TrainersModule } from './trainers/trainers.module';
 import { BatchesModule } from './batches/batches.module';
 import { SchedulesModule } from './schedules/schedules.module';
 import { WaitlistsModule } from './waitlists/waitlists.module';
+import { DocumentsModule } from './documents/documents.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { WaitlistsModule } from './waitlists/waitlists.module';
     BatchesModule,
     SchedulesModule,
     WaitlistsModule,
+    DocumentsModule,
   ],
   controllers: [TrainingController],
   providers: [TrainingService],
