@@ -18,7 +18,7 @@ export function Logo({
       />
       {showWordmark && (
         <span className="font-heading text-xl font-bold tracking-tight">
-          Kalai<span className="text-gradient">Yarangam</span>
+          Kalai<span className="text-gradient">Arangam</span>
         </span>
       )}
     </span>
