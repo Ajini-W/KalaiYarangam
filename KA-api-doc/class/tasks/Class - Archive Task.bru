@@ -1,0 +1,20 @@
+meta {
+  name: Class - Archive Task
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{base-url}}/class/tasks/{{taskId}}/archive
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

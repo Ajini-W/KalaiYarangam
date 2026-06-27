@@ -1,0 +1,20 @@
+meta {
+  name: Class - Get Submissions
+  type: http
+  seq: 10
+}
+
+get {
+  url: {{base-url}}/class/tasks/{{taskId}}/submissions
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
