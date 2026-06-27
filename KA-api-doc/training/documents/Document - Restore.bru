@@ -1,0 +1,20 @@
+meta {
+  name: Document - Restore
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{base-url}}/training/documents/{{documentId}}/restore
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

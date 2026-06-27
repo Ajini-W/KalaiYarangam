@@ -1,0 +1,30 @@
+meta {
+  name: File - Upload
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base-url}}/training/files/upload
+  body: multipartForm
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:multipart-form {
+  file: @file("./sample.pdf")
+  category: TRAINING_MATERIAL
+}
+
+script:post-response {
+  const body = res.getBody();
+  if (body.data) { bru.setVar("fileId", body.data.id); }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

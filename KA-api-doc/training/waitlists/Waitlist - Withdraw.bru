@@ -1,0 +1,20 @@
+meta {
+  name: Waitlist - Withdraw
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{base-url}}/training/waitlists/{{waitlistId}}/withdraw
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

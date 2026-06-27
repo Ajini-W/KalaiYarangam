@@ -1,0 +1,20 @@
+meta {
+  name: Trainer - Archive
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{base-url}}/training/trainers/{{trainerId}}/archive
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

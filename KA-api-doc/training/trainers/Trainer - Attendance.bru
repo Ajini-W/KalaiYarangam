@@ -1,0 +1,20 @@
+meta {
+  name: Trainer - Attendance
+  type: http
+  seq: 10
+}
+
+get {
+  url: {{base-url}}/training/trainers/{{trainerId}}/attendance
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

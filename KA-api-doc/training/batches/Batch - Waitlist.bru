@@ -1,0 +1,20 @@
+meta {
+  name: Batch - Waitlist
+  type: http
+  seq: 15
+}
+
+get {
+  url: {{base-url}}/training/batches/{{batchId}}/waitlist
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

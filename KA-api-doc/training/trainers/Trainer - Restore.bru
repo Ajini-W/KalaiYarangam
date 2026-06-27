@@ -1,0 +1,20 @@
+meta {
+  name: Trainer - Restore
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{base-url}}/training/trainers/{{trainerId}}/restore
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

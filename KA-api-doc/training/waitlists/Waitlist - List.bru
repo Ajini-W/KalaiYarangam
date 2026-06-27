@@ -1,0 +1,20 @@
+meta {
+  name: Waitlist - List
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{base-url}}/training/waitlists?page=1&pageSize=10
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -1,0 +1,33 @@
+meta {
+  name: Waitlist - Add
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base-url}}/training/waitlists
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "batchId": "{{batchId}}",
+    "studentId": "{{studentId}}",
+    "notes": "Interested in next batch"
+  }
+}
+
+script:post-response {
+  const body = res.getBody();
+  if (body.data) { bru.setVar("waitlistId", body.data.id); }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -1,0 +1,20 @@
+meta {
+  name: Waitlist - Promote
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{base-url}}/training/waitlists/{{waitlistId}}/promote
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
