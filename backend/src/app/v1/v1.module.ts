@@ -7,9 +7,9 @@ import { RbacModule } from './rbac/rbac.module';
 import { OnboardingModule } from './onboarding/onboarding.module';
 // import { BrunoModule } from './bruno/bruno.module';
 import { SecurityModule } from './security/security.module';
-import { SearchModule } from './reporting/search.module';
-
+import { SearchModule } from './reporting/search/search.module';
+import { ActivityLogsModule } from './reporting/activity-logs/activity-logs.module';
 @Module({
-  imports: [AuthModule, MailModule, NotificationModule, TrainingModule, RbacModule, OnboardingModule, SecurityModule, SearchModule],
+  imports: [AuthModule, MailModule, NotificationModule, TrainingModule, RbacModule, OnboardingModule, SecurityModule, SearchModule, ActivityLogsModule],
 })
 export class V1Module {}
