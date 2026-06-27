@@ -5,6 +5,7 @@ import { TrainingController } from './training.controller';
 import { TrainingService } from './training.service';
 import { TrainersModule } from './trainers/trainers.module';
 import { BatchesModule } from './batches/batches.module';
+import { SchedulesModule } from './schedules/schedules.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { BatchesModule } from './batches/batches.module';
     }),
     TrainersModule,
     BatchesModule,
+    SchedulesModule,
   ],
   controllers: [TrainingController],
   providers: [TrainingService],
