@@ -58,7 +58,7 @@ export function HowItWorks() {
         <div className="relative mt-16">
           <div
             aria-hidden="true"
-            className="absolute left-0 right-0 top-7 hidden h-px bg-gradient-to-r from-primary/20 via-accent-blue/20 to-accent-cyan/20 lg:block"
+           className="absolute left-14 right-14 top-7 hidden h-px bg-gradient-to-r from-primary/20 via-accent-blue/20 to-accent-cyan/20 lg:block"
           />
           <ol className="grid gap-8 sm:grid-cols-2 lg:grid-cols-5">
             {steps.map((step, i) => (
