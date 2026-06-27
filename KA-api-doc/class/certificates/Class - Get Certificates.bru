@@ -1,0 +1,24 @@
+meta {
+  name: Class - Get Certificates
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{base-url}}/class/certificates?page=1&pageSize=10&status=ACTIVE&studentId={{studentId1}}
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+vars:pre-request {
+  studentId1: 1ac2e2d1-94ae-46c1-9f2b-4b9c1605364d
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

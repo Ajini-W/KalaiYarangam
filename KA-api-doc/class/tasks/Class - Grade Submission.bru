@@ -1,0 +1,28 @@
+meta {
+  name: Class - Grade Submission
+  type: http
+  seq: 12
+}
+
+patch {
+  url: {{base-url}}/class/tasks/{{taskId}}/submissions/{{submissionId}}
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "score": 85,
+    "feedback": "Good work! Review the section on quadratic equations.",
+    "status": "GRADED"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

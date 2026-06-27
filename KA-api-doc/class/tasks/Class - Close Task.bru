@@ -1,0 +1,20 @@
+meta {
+  name: Class - Close Task
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{base-url}}/class/tasks/{{taskId}}/close
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
