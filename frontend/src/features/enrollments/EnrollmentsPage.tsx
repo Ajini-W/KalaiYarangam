@@ -1,11 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Plus, Pencil, Play, Pause, RotateCcw, XCircle, ExternalLink } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { toast } from "sonner";
+import { Plus, ExternalLink } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Table, type Column } from "@/components/ui/Table";
@@ -16,33 +12,11 @@ import { Button } from "@/components/ui/Button";
 import { SearchBar } from "@/components/ui/SearchBar";
 import { FilterBar, type FilterDef } from "@/components/ui/FilterBar";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { Alert } from "@/components/ui/Alert";
 import { SkeletonTable } from "@/components/ui/Skeleton";
+import { SearchableSelect } from "@/components/ui/SearchableSelect";
 import { EnrollmentStatusBadge } from "./StatusBadge";
-import {
-  getEnrollments,
-  getEnrollment,
-  createEnrollment,
-  updateEnrollment,
-  pauseEnrollment,
-  resumeEnrollment,
-  reactivateEnrollment,
-  cancelEnrollment,
-  type Enrollment,
-  type CreateEnrollmentRequest,
-  type UpdateEnrollmentRequest,
-  type EnrollmentStatus,
-} from "@/services/enrollments";
-
-const enrollmentSchema = z.object({
-  studentId: z.string().min(1, "Student is required"),
-  batchId: z.string().min(1, "Batch is required"),
-  courseId: z.string().min(1, "Course is required"),
-  startDate: z.string().min(1, "Start date is required"),
-  endDate: z.string().min(1, "End date is required"),
-  fee: z.string().min(1, "Fee is required").refine((v) => !isNaN(Number(v)), "Must be a number"),
-});
-type EnrollmentFormData = z.infer<typeof enrollmentSchema>;
+import { useEnrollments } from "@/hooks/useEnrollments";
+import type { Enrollment } from "@/services/enrollments";
 
 const statusFilters: FilterDef[] = [
   {
@@ -57,200 +31,31 @@ const statusFilters: FilterDef[] = [
   },
 ];
 
-const statusActions: {
-  status: EnrollmentStatus;
-  nextActions: { label: string; action: "pause" | "resume" | "reactivate" | "cancel"; icon: React.ReactNode; variant: "primary" | "danger" | "outline" }[];
-}[] = [
-  {
-    status: "active",
-    nextActions: [
-      { label: "Pause", action: "pause", icon: <Pause size={14} />, variant: "outline" },
-      { label: "Cancel", action: "cancel", icon: <XCircle size={14} />, variant: "danger" },
-    ],
-  },
-  {
-    status: "paused",
-    nextActions: [
-      { label: "Resume", action: "resume", icon: <Play size={14} />, variant: "primary" },
-      { label: "Cancel", action: "cancel", icon: <XCircle size={14} />, variant: "danger" },
-    ],
-  },
-  {
-    status: "cancelled",
-    nextActions: [
-      { label: "Reactivate", action: "reactivate", icon: <RotateCcw size={14} />, variant: "primary" },
-    ],
-  },
-  {
-    status: "completed",
-    nextActions: [],
-  },
-];
+const actionLabels: Record<string, { title: string; desc: string; intent: "danger" | "info" | "warning" }> = {
+  pause: { title: "Pause Enrollment", desc: "The student will temporarily lose access.", intent: "warning" },
+  resume: { title: "Resume Enrollment", desc: "The student will regain access.", intent: "info" },
+  reactivate: { title: "Reactivate Enrollment", desc: "The enrollment will become active again.", intent: "info" },
+  cancel: { title: "Cancel Enrollment", desc: "This action cannot be undone.", intent: "danger" },
+};
 
 export default function EnrollmentsPage() {
   const router = useRouter();
-
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState(false);
-  const [enrollments, setEnrollments] = React.useState<Enrollment[]>([]);
-  const [total, setTotal] = React.useState(0);
-  const [page, setPage] = React.useState(1);
-  const [pageSize] = React.useState(10);
-  const [search, setSearch] = React.useState("");
-  const [statusFilter, setStatusFilter] = React.useState("");
-  const [sortKey, setSortKey] = React.useState("");
-  const [sortDir, setSortDir] = React.useState<"asc" | "desc">("asc");
-
-  const [modalOpen, setModalOpen] = React.useState(false);
-  const [editingEnrollment, setEditingEnrollment] = React.useState<Enrollment | null>(null);
-  const [saving, setSaving] = React.useState(false);
-
-  const [actionConfirm, setActionConfirm] = React.useState<{
-    open: boolean;
-    enrollment: Enrollment | null;
-    action: "pause" | "resume" | "reactivate" | "cancel" | null;
-  }>({ open: false, enrollment: null, action: null });
-  const [actionSaving, setActionSaving] = React.useState(false);
-
   const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset,
-  } = useForm<EnrollmentFormData>({
-    resolver: zodResolver(enrollmentSchema),
-  });
+    loading, enrollments, total,
+    page, setPage, pageSize,
+    search, setSearch,
+    statusFilter, setStatusFilter,
+    sortKey, sortDir, handleSort,
+    modalOpen, setModalOpen,
+    editingEnrollment, saving,
+    openCreate, onSubmit,
+    actionConfirm, actionSaving, confirmAction, closeActionConfirm,
+    studentOptions, batchOptions, courseOptions,
+    studentName, studentEmail,
+    register, errors, handleSubmit,
+  } = useEnrollments();
 
-  const fetchEnrollments = React.useCallback(async () => {
-    setLoading(true);
-    setError(false);
-    try {
-      const res = await getEnrollments({
-        page,
-        pageSize,
-        search: search || undefined,
-        status: (statusFilter as EnrollmentStatus) || undefined,
-        sortBy: sortKey || undefined,
-        sortDir: sortKey ? sortDir : undefined,
-      });
-      setEnrollments(res.data.items);
-      setTotal(res.data.total);
-    } catch {
-      setError(true);
-    } finally {
-      setLoading(false);
-    }
-  }, [page, pageSize, search, statusFilter, sortKey, sortDir]);
-
-  React.useEffect(() => {
-    fetchEnrollments();
-  }, [fetchEnrollments]);
-
-  const handleSort = (key: string) => {
-    if (sortKey === key) {
-      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
-    } else {
-      setSortKey(key);
-      setSortDir("asc");
-    }
-  };
-
-  const openCreate = () => {
-    setEditingEnrollment(null);
-    reset({ studentId: "", batchId: "", courseId: "", startDate: "", endDate: "", fee: "0" });
-    setModalOpen(true);
-  };
-
-  const openEdit = async (enrollment: Enrollment) => {
-    setEditingEnrollment(enrollment);
-    const full = await getEnrollment(enrollment.id);
-    const e = full.data;
-    reset({
-      studentId: e.studentId,
-      batchId: e.batchId,
-      courseId: e.courseId,
-      startDate: e.startDate.slice(0, 10),
-      endDate: e.endDate.slice(0, 10),
-      fee: String(e.fee),
-    });
-    setModalOpen(true);
-  };
-
-  const onSubmit = async (data: EnrollmentFormData) => {
-    setSaving(true);
-    try {
-      const fee = Number(data.fee);
-      if (editingEnrollment) {
-        const payload: UpdateEnrollmentRequest = {
-          batchId: data.batchId,
-          courseId: data.courseId,
-          startDate: data.startDate,
-          endDate: data.endDate,
-          fee,
-        };
-        await updateEnrollment(editingEnrollment.id, payload);
-        toast.success("Enrollment updated");
-      } else {
-        const payload: CreateEnrollmentRequest = {
-          studentId: data.studentId,
-          batchId: data.batchId,
-          courseId: data.courseId,
-          startDate: data.startDate,
-          endDate: data.endDate,
-          fee,
-        };
-        await createEnrollment(payload);
-        toast.success("Enrollment created");
-      }
-      setModalOpen(false);
-      await fetchEnrollments();
-    } catch {
-      toast.error(editingEnrollment ? "Failed to update enrollment" : "Failed to create enrollment");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const confirmAction = async () => {
-    const { enrollment, action } = actionConfirm;
-    if (!enrollment || !action) return;
-    setActionSaving(true);
-    try {
-      switch (action) {
-        case "pause":
-          await pauseEnrollment(enrollment.id);
-          toast.success("Enrollment paused");
-          break;
-        case "resume":
-          await resumeEnrollment(enrollment.id);
-          toast.success("Enrollment resumed");
-          break;
-        case "reactivate":
-          await reactivateEnrollment(enrollment.id);
-          toast.success("Enrollment reactivated");
-          break;
-        case "cancel":
-          await cancelEnrollment(enrollment.id);
-          toast.success("Enrollment cancelled");
-          break;
-      }
-      setActionConfirm({ open: false, enrollment: null, action: null });
-      await fetchEnrollments();
-    } catch {
-      toast.error(`Failed to ${action} enrollment`);
-    } finally {
-      setActionSaving(false);
-    }
-  };
-
-  const actionLabels: Record<string, { title: string; desc: string; intent: "danger" | "info" | "warning" }> = {
-    pause: { title: "Pause Enrollment", desc: "The student will temporarily lose access.", intent: "warning" },
-    resume: { title: "Resume Enrollment", desc: "The student will regain access.", intent: "info" },
-    reactivate: { title: "Reactivate Enrollment", desc: "The enrollment will become active again.", intent: "info" },
-    cancel: { title: "Cancel Enrollment", desc: "This action cannot be undone.", intent: "danger" },
-  };
-
-  const columns: Column<Enrollment>[] = [
+  const columns: Column<Enrollment>[] = React.useMemo(() => [
     { key: "studentName", header: "Student", sortable: true },
     { key: "courseName", header: "Course", sortable: true },
     { key: "batchName", header: "Batch", sortable: true },
@@ -280,20 +85,13 @@ export default function EnrollmentsPage() {
       header: "",
       render: (row) => (
         <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.push(`./enrollments/${row.id}`)}
-          >
+          <Button variant="ghost" size="sm" onClick={() => router.push(`./enrollments/${row.id}`)}>
             <ExternalLink size={14} />
-          </Button>
-          <Button variant="ghost" size="sm" onClick={() => openEdit(row)}>
-            <Pencil size={14} />
           </Button>
         </div>
       ),
     },
-  ];
+  ], [router]);
 
   const confirmActionType = actionConfirm.action;
   const actionLabel = confirmActionType ? actionLabels[confirmActionType] : null;
@@ -308,13 +106,6 @@ export default function EnrollmentsPage() {
         </Button>
       }
     >
-      {error && (
-        <Alert type="danger" dismissible onDismiss={() => setError(false)} className="mb-4">
-          Failed to load enrollments.{' '}
-          <button onClick={fetchEnrollments} className="underline font-semibold">Retry</button>
-        </Alert>
-      )}
-
       <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <SearchBar value={search} onChange={setSearch} placeholder="Search students…" className="w-full sm:max-w-xs" />
         <FilterBar
@@ -371,12 +162,47 @@ export default function EnrollmentsPage() {
       >
         <div className="space-y-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Input label="Student ID" required error={errors.studentId?.message} {...register("studentId")} />
+            <SearchableSelect
+              label="Student Name"
+              required
+              placeholder="Search student..."
+              options={studentOptions}
+              value={editingEnrollment ? editingEnrollment.studentId : undefined}
+              onChange={(v) => register("studentId").onChange({ target: { value: v } })}
+              error={errors.studentId?.message}
+              emptyMessage="No students available"
+            />
+            <SearchableSelect
+              label="Course Name"
+              required
+              placeholder="Search course..."
+              options={courseOptions}
+              value={editingEnrollment ? editingEnrollment.courseId : undefined}
+              onChange={(v) => register("courseId").onChange({ target: { value: v } })}
+              error={errors.courseId?.message}
+              emptyMessage="No courses available"
+            />
+          </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <SearchableSelect
+              label="Batch Name"
+              required
+              placeholder="Search batch..."
+              options={batchOptions}
+              value={editingEnrollment ? editingEnrollment.batchId : undefined}
+              onChange={(v) => register("batchId").onChange({ target: { value: v } })}
+              error={errors.batchId?.message}
+              emptyMessage="No batches available"
+            />
             <Input label="Fee" type="number" required error={errors.fee?.message} {...register("fee")} />
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Input label="Batch ID" required error={errors.batchId?.message} {...register("batchId")} />
-            <Input label="Course ID" required error={errors.courseId?.message} {...register("courseId")} />
+            {studentName && !editingEnrollment && (
+              <div className="col-span-2 rounded-[var(--radius-sm)] border border-border bg-surface-raised px-3 py-2 text-sm">
+                <p className="font-medium text-text-primary">{studentName}</p>
+                {studentEmail && <p className="text-xs text-text-secondary">{studentEmail}</p>}
+              </div>
+            )}
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Input label="Start Date" type="date" required error={errors.startDate?.message} {...register("startDate")} />
@@ -387,7 +213,7 @@ export default function EnrollmentsPage() {
 
       <ConfirmModal
         open={actionConfirm.open}
-        onClose={() => setActionConfirm({ open: false, enrollment: null, action: null })}
+        onClose={closeActionConfirm}
         onConfirm={confirmAction}
         title={actionLabel?.title ?? ""}
         description={
@@ -396,7 +222,7 @@ export default function EnrollmentsPage() {
             : ""
         }
         intent={actionLabel?.intent ?? "info"}
-        confirmLabel={actionConfirm.action ? actionConfirm.action.charAt(0).toUpperCase() + actionConfirm.action.slice(1) : "Confirm"}
+        confirmLabel={confirmActionType ? confirmActionType.charAt(0).toUpperCase() + confirmActionType.slice(1) : "Confirm"}
         loading={actionSaving}
       />
     </PageContainer>

@@ -2,10 +2,6 @@
 
 import * as React from "react";
 import { Plus, ExternalLink, CheckCircle2, XCircle, Ban } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Table, type Column } from "@/components/ui/Table";
@@ -17,24 +13,10 @@ import { SearchBar } from "@/components/ui/SearchBar";
 import { FilterBar, type FilterDef } from "@/components/ui/FilterBar";
 import { SkeletonTable } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { Alert } from "@/components/ui/Alert";
+import { SearchableSelect } from "@/components/ui/SearchableSelect";
 import { TransferStatusBadge } from "@/features/enrollments/StatusBadge";
-import {
-  getTransfers,
-  createTransfer,
-  approveTransfer,
-  rejectTransfer,
-  cancelTransfer,
-  type Transfer,
-  type TransferStatus,
-} from "@/services/transfers";
-
-const transferSchema = z.object({
-  enrollmentId: z.string().min(1, "Enrollment is required"),
-  toBatchId: z.string().min(1, "Target batch is required"),
-  reason: z.string().min(10, "Please provide a reason (at least 10 characters)"),
-});
-type TransferFormData = z.infer<typeof transferSchema>;
+import { useTransfers } from "@/hooks/useTransfers";
+import type { Transfer } from "@/services/transfers";
 
 const statusFilters: FilterDef[] = [
   {
@@ -51,130 +33,24 @@ const statusFilters: FilterDef[] = [
 
 export default function TransfersPage() {
   const router = useRouter();
-
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState(false);
-  const [transfers, setTransfers] = React.useState<Transfer[]>([]);
-  const [total, setTotal] = React.useState(0);
-  const [page, setPage] = React.useState(1);
-  const [pageSize] = React.useState(10);
-  const [search, setSearch] = React.useState("");
-  const [statusFilter, setStatusFilter] = React.useState("");
-
-  const [modalOpen, setModalOpen] = React.useState(false);
-  const [saving, setSaving] = React.useState(false);
-
-  const [approveConfirm, setApproveConfirm] = React.useState<{ open: boolean; transfer: Transfer | null }>({
-    open: false, transfer: null,
-  });
-  const [rejectConfirm, setRejectConfirm] = React.useState<{ open: boolean; transfer: Transfer | null }>({
-    open: false, transfer: null,
-  });
-  const [cancelConfirm, setCancelConfirm] = React.useState<{ open: boolean; transfer: Transfer | null }>({
-    open: false, transfer: null,
-  });
-  const [actionSaving, setActionSaving] = React.useState(false);
-
   const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset,
-  } = useForm<TransferFormData>({
-    resolver: zodResolver(transferSchema),
-  });
+    loading, transfers, total,
+    page, setPage, pageSize,
+    search, setSearch,
+    statusFilter, setStatusFilter,
+    modalOpen, setModalOpen,
+    saving,
+    openCreate, onSubmit,
+    approveConfirm, rejectConfirm, cancelConfirm,
+    actionSaving,
+    handleApprove, handleReject, handleCancel,
+    requestApprove, requestReject, requestCancel,
+    closeApprove, closeReject, closeCancel,
+    enrollmentOptions, batchOptions,
+    register, errors, handleSubmit,
+  } = useTransfers();
 
-  const fetchTransfers = React.useCallback(async () => {
-    setLoading(true);
-    setError(false);
-    try {
-      const res = await getTransfers({
-        page,
-        pageSize,
-        search: search || undefined,
-        status: (statusFilter as TransferStatus) || undefined,
-      });
-      setTransfers(res.data.items);
-      setTotal(res.data.total);
-    } catch {
-      setError(true);
-    } finally {
-      setLoading(false);
-    }
-  }, [page, pageSize, search, statusFilter]);
-
-  React.useEffect(() => {
-    fetchTransfers();
-  }, [fetchTransfers]);
-
-  const openCreate = () => {
-    reset({ enrollmentId: "", toBatchId: "", reason: "" });
-    setModalOpen(true);
-  };
-
-  const onSubmit = async (data: TransferFormData) => {
-    setSaving(true);
-    try {
-      await createTransfer(data);
-      toast.success("Transfer request created");
-      setModalOpen(false);
-      await fetchTransfers();
-    } catch {
-      toast.error("Failed to create transfer request");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleApprove = async () => {
-    const t = approveConfirm.transfer;
-    if (!t) return;
-    setActionSaving(true);
-    try {
-      await approveTransfer(t.id);
-      toast.success("Transfer approved");
-      setApproveConfirm({ open: false, transfer: null });
-      await fetchTransfers();
-    } catch {
-      toast.error("Failed to approve transfer");
-    } finally {
-      setActionSaving(false);
-    }
-  };
-
-  const handleReject = async () => {
-    const t = rejectConfirm.transfer;
-    if (!t) return;
-    setActionSaving(true);
-    try {
-      await rejectTransfer(t.id);
-      toast.success("Transfer rejected");
-      setRejectConfirm({ open: false, transfer: null });
-      await fetchTransfers();
-    } catch {
-      toast.error("Failed to reject transfer");
-    } finally {
-      setActionSaving(false);
-    }
-  };
-
-  const handleCancel = async () => {
-    const t = cancelConfirm.transfer;
-    if (!t) return;
-    setActionSaving(true);
-    try {
-      await cancelTransfer(t.id);
-      toast.success("Transfer cancelled");
-      setCancelConfirm({ open: false, transfer: null });
-      await fetchTransfers();
-    } catch {
-      toast.error("Failed to cancel transfer");
-    } finally {
-      setActionSaving(false);
-    }
-  };
-
-  const columns: Column<Transfer>[] = [
+  const columns: Column<Transfer>[] = React.useMemo(() => [
     { key: "studentName", header: "Student" },
     { key: "fromBatchName", header: "From Batch" },
     { key: "toBatchName", header: "To Batch" },
@@ -193,34 +69,18 @@ export default function TransfersPage() {
       header: "",
       render: (row) => (
         <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.push(`./transfers/${row.id}`)}
-          >
+          <Button variant="ghost" size="sm" onClick={() => router.push(`./transfers/${row.id}`)}>
             <ExternalLink size={14} />
           </Button>
           {row.status === "pending" && (
             <>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setApproveConfirm({ open: true, transfer: row })}
-              >
+              <Button variant="ghost" size="sm" onClick={() => requestApprove(row)}>
                 <CheckCircle2 size={14} className="text-success" />
               </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setRejectConfirm({ open: true, transfer: row })}
-              >
+              <Button variant="ghost" size="sm" onClick={() => requestReject(row)}>
                 <XCircle size={14} className="text-danger" />
               </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setCancelConfirm({ open: true, transfer: row })}
-              >
+              <Button variant="ghost" size="sm" onClick={() => requestCancel(row)}>
                 <Ban size={14} className="text-warning" />
               </Button>
             </>
@@ -228,7 +88,7 @@ export default function TransfersPage() {
         </div>
       ),
     },
-  ];
+  ], [router, requestApprove, requestReject, requestCancel]);
 
   return (
     <PageContainer
@@ -240,13 +100,6 @@ export default function TransfersPage() {
         </Button>
       }
     >
-      {error && (
-        <Alert type="danger" dismissible onDismiss={() => setError(false)} className="mb-4">
-          Failed to load transfers.{' '}
-          <button onClick={fetchTransfers} className="underline font-semibold">Retry</button>
-        </Alert>
-      )}
-
       <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <SearchBar value={search} onChange={setSearch} placeholder="Search students…" className="w-full sm:max-w-xs" />
         <FilterBar
@@ -295,15 +148,31 @@ export default function TransfersPage() {
         }
       >
         <div className="space-y-4">
-          <Input label="Enrollment ID" required error={errors.enrollmentId?.message} {...register("enrollmentId")} />
-          <Input label="Target Batch ID" required error={errors.toBatchId?.message} {...register("toBatchId")} />
+          <SearchableSelect
+            label="Enrollment"
+            required
+            placeholder="Search enrollment..."
+            options={enrollmentOptions}
+            onChange={(v) => register("enrollmentId").onChange({ target: { value: v } })}
+            error={errors.enrollmentId?.message}
+            emptyMessage="No enrollments available"
+          />
+          <SearchableSelect
+            label="Batch Name"
+            required
+            placeholder="Search batch..."
+            options={batchOptions}
+            onChange={(v) => register("toBatchId").onChange({ target: { value: v } })}
+            error={errors.toBatchId?.message}
+            emptyMessage="No batches available"
+          />
           <Input label="Reason" required error={errors.reason?.message} {...register("reason")} />
         </div>
       </Modal>
 
       <ConfirmModal
         open={approveConfirm.open}
-        onClose={() => setApproveConfirm({ open: false, transfer: null })}
+        onClose={closeApprove}
         onConfirm={handleApprove}
         title="Approve Transfer"
         description={
@@ -318,7 +187,7 @@ export default function TransfersPage() {
 
       <ConfirmModal
         open={rejectConfirm.open}
-        onClose={() => setRejectConfirm({ open: false, transfer: null })}
+        onClose={closeReject}
         onConfirm={handleReject}
         title="Reject Transfer"
         description={
@@ -333,7 +202,7 @@ export default function TransfersPage() {
 
       <ConfirmModal
         open={cancelConfirm.open}
-        onClose={() => setCancelConfirm({ open: false, transfer: null })}
+        onClose={closeCancel}
         onConfirm={handleCancel}
         title="Cancel Transfer"
         description={

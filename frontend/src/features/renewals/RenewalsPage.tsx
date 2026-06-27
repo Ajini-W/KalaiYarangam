@@ -2,10 +2,6 @@
 
 import * as React from "react";
 import { Plus, ExternalLink, CheckCircle2, XCircle, Ban } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Table, type Column } from "@/components/ui/Table";
@@ -17,24 +13,10 @@ import { SearchBar } from "@/components/ui/SearchBar";
 import { FilterBar, type FilterDef } from "@/components/ui/FilterBar";
 import { SkeletonTable } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { Alert } from "@/components/ui/Alert";
+import { SearchableSelect } from "@/components/ui/SearchableSelect";
 import { RenewalStatusBadge } from "@/features/enrollments/StatusBadge";
-import {
-  getRenewals,
-  createRenewal,
-  approveRenewal,
-  rejectRenewal,
-  cancelRenewal,
-  type Renewal,
-  type RenewalStatus,
-} from "@/services/renewals";
-
-const renewalSchema = z.object({
-  enrollmentId: z.string().min(1, "Enrollment is required"),
-  newEndDate: z.string().min(1, "New end date is required"),
-  fee: z.string().min(1, "Fee is required").refine((v) => !isNaN(Number(v)), "Must be a number"),
-});
-type RenewalFormData = z.infer<typeof renewalSchema>;
+import { useRenewals } from "@/hooks/useRenewals";
+import type { Renewal } from "@/services/renewals";
 
 const statusFilters: FilterDef[] = [
   {
@@ -51,134 +33,24 @@ const statusFilters: FilterDef[] = [
 
 export default function RenewalsPage() {
   const router = useRouter();
-
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState(false);
-  const [renewals, setRenewals] = React.useState<Renewal[]>([]);
-  const [total, setTotal] = React.useState(0);
-  const [page, setPage] = React.useState(1);
-  const [pageSize] = React.useState(10);
-  const [search, setSearch] = React.useState("");
-  const [statusFilter, setStatusFilter] = React.useState("");
-
-  const [modalOpen, setModalOpen] = React.useState(false);
-  const [saving, setSaving] = React.useState(false);
-
-  const [approveConfirm, setApproveConfirm] = React.useState<{ open: boolean; renewal: Renewal | null }>({
-    open: false, renewal: null,
-  });
-  const [rejectConfirm, setRejectConfirm] = React.useState<{ open: boolean; renewal: Renewal | null }>({
-    open: false, renewal: null,
-  });
-  const [cancelConfirm, setCancelConfirm] = React.useState<{ open: boolean; renewal: Renewal | null }>({
-    open: false, renewal: null,
-  });
-  const [actionSaving, setActionSaving] = React.useState(false);
-
   const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset,
-  } = useForm<RenewalFormData>({
-    resolver: zodResolver(renewalSchema),
-  });
+    loading, renewals, total,
+    page, setPage, pageSize,
+    search, setSearch,
+    statusFilter, setStatusFilter,
+    modalOpen, setModalOpen,
+    saving,
+    openCreate, onSubmit,
+    approveConfirm, rejectConfirm, cancelConfirm,
+    actionSaving,
+    handleApprove, handleReject, handleCancel,
+    requestApprove, requestReject, requestCancel,
+    closeApprove, closeReject, closeCancel,
+    enrollmentOptions,
+    register, errors, handleSubmit,
+  } = useRenewals();
 
-  const fetchRenewals = React.useCallback(async () => {
-    setLoading(true);
-    setError(false);
-    try {
-      const res = await getRenewals({
-        page,
-        pageSize,
-        search: search || undefined,
-        status: (statusFilter as RenewalStatus) || undefined,
-      });
-      setRenewals(res.data.items);
-      setTotal(res.data.total);
-    } catch {
-      setError(true);
-    } finally {
-      setLoading(false);
-    }
-  }, [page, pageSize, search, statusFilter]);
-
-  React.useEffect(() => {
-    fetchRenewals();
-  }, [fetchRenewals]);
-
-  const openCreate = () => {
-    reset({ enrollmentId: "", newEndDate: "", fee: "0" });
-    setModalOpen(true);
-  };
-
-  const onSubmit = async (data: RenewalFormData) => {
-    setSaving(true);
-    try {
-      await createRenewal({
-        enrollmentId: data.enrollmentId,
-        newEndDate: data.newEndDate,
-        fee: Number(data.fee),
-      });
-      toast.success("Renewal request created");
-      setModalOpen(false);
-      await fetchRenewals();
-    } catch {
-      toast.error("Failed to create renewal request");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleApprove = async () => {
-    const r = approveConfirm.renewal;
-    if (!r) return;
-    setActionSaving(true);
-    try {
-      await approveRenewal(r.id);
-      toast.success("Renewal approved");
-      setApproveConfirm({ open: false, renewal: null });
-      await fetchRenewals();
-    } catch {
-      toast.error("Failed to approve renewal");
-    } finally {
-      setActionSaving(false);
-    }
-  };
-
-  const handleReject = async () => {
-    const r = rejectConfirm.renewal;
-    if (!r) return;
-    setActionSaving(true);
-    try {
-      await rejectRenewal(r.id);
-      toast.success("Renewal rejected");
-      setRejectConfirm({ open: false, renewal: null });
-      await fetchRenewals();
-    } catch {
-      toast.error("Failed to reject renewal");
-    } finally {
-      setActionSaving(false);
-    }
-  };
-
-  const handleCancel = async () => {
-    const r = cancelConfirm.renewal;
-    if (!r) return;
-    setActionSaving(true);
-    try {
-      await cancelRenewal(r.id);
-      toast.success("Renewal cancelled");
-      setCancelConfirm({ open: false, renewal: null });
-      await fetchRenewals();
-    } catch {
-      toast.error("Failed to cancel renewal");
-    } finally {
-      setActionSaving(false);
-    }
-  };
-
-  const columns: Column<Renewal>[] = [
+  const columns: Column<Renewal>[] = React.useMemo(() => [
     { key: "studentName", header: "Student" },
     { key: "courseName", header: "Course" },
     { key: "batchName", header: "Batch" },
@@ -202,34 +74,18 @@ export default function RenewalsPage() {
       header: "",
       render: (row) => (
         <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.push(`./renewals/${row.id}`)}
-          >
+          <Button variant="ghost" size="sm" onClick={() => router.push(`./renewals/${row.id}`)}>
             <ExternalLink size={14} />
           </Button>
           {row.status === "pending" && (
             <>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setApproveConfirm({ open: true, renewal: row })}
-              >
+              <Button variant="ghost" size="sm" onClick={() => requestApprove(row)}>
                 <CheckCircle2 size={14} className="text-success" />
               </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setRejectConfirm({ open: true, renewal: row })}
-              >
+              <Button variant="ghost" size="sm" onClick={() => requestReject(row)}>
                 <XCircle size={14} className="text-danger" />
               </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setCancelConfirm({ open: true, renewal: row })}
-              >
+              <Button variant="ghost" size="sm" onClick={() => requestCancel(row)}>
                 <Ban size={14} className="text-warning" />
               </Button>
             </>
@@ -237,7 +93,7 @@ export default function RenewalsPage() {
         </div>
       ),
     },
-  ];
+  ], [router, requestApprove, requestReject, requestCancel]);
 
   return (
     <PageContainer
@@ -248,14 +104,7 @@ export default function RenewalsPage() {
           New Renewal
         </Button>
       }
-      >
-      {error && (
-        <Alert type="danger" dismissible onDismiss={() => setError(false)} className="mb-4">
-          Failed to load renewals.{' '}
-          <button onClick={fetchRenewals} className="underline font-semibold">Retry</button>
-        </Alert>
-      )}
-
+    >
       <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <SearchBar value={search} onChange={setSearch} placeholder="Search students…" className="w-full sm:max-w-xs" />
         <FilterBar
@@ -304,15 +153,23 @@ export default function RenewalsPage() {
         }
       >
         <div className="space-y-4">
-          <Input label="Enrollment ID" required error={errors.enrollmentId?.message} {...register("enrollmentId")} />
-          <Input label="New End Date" type="date" required error={errors.newEndDate?.message} {...register("newEndDate")} />
+          <SearchableSelect
+            label="Enrollment"
+            required
+            placeholder="Search enrollment..."
+            options={enrollmentOptions}
+            onChange={(v) => register("enrollmentId").onChange({ target: { value: v } })}
+            error={errors.enrollmentId?.message}
+            emptyMessage="No enrollments available"
+          />
+          <Input label="End Date" type="date" required error={errors.newEndDate?.message} {...register("newEndDate")} />
           <Input label="Fee" type="number" required error={errors.fee?.message} {...register("fee")} />
         </div>
       </Modal>
 
       <ConfirmModal
         open={approveConfirm.open}
-        onClose={() => setApproveConfirm({ open: false, renewal: null })}
+        onClose={closeApprove}
         onConfirm={handleApprove}
         title="Approve Renewal"
         description={
@@ -327,7 +184,7 @@ export default function RenewalsPage() {
 
       <ConfirmModal
         open={rejectConfirm.open}
-        onClose={() => setRejectConfirm({ open: false, renewal: null })}
+        onClose={closeReject}
         onConfirm={handleReject}
         title="Reject Renewal"
         description={
@@ -342,7 +199,7 @@ export default function RenewalsPage() {
 
       <ConfirmModal
         open={cancelConfirm.open}
-        onClose={() => setCancelConfirm({ open: false, renewal: null })}
+        onClose={closeCancel}
         onConfirm={handleCancel}
         title="Cancel Renewal"
         description={

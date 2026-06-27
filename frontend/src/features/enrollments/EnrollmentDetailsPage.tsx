@@ -1,12 +1,11 @@
 "use client";
 
 import * as React from "react";
-import { Pause, Play, RotateCcw, XCircle, ArrowLeft } from "lucide-react";
+import { Pause, Play, RotateCcw, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Card, CardHeader, CardTitle, CardBody } from "@/components/ui/Card";
-import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { ConfirmModal } from "@/components/ui/Modal";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -145,7 +144,6 @@ export default function EnrollmentDetailsPage({ id }: { id: string }) {
               </CardHeader>
               <CardBody>
                 <p className="text-sm text-text-primary">{enrollment.courseName}</p>
-                <p className="text-xs text-text-secondary">ID: {enrollment.courseId}</p>
               </CardBody>
             </Card>
             <Card>
@@ -154,7 +152,6 @@ export default function EnrollmentDetailsPage({ id }: { id: string }) {
               </CardHeader>
               <CardBody>
                 <p className="text-sm text-text-primary">{enrollment.batchName}</p>
-                <p className="text-xs text-text-secondary">ID: {enrollment.batchId}</p>
               </CardBody>
             </Card>
             <Card>
@@ -193,7 +190,6 @@ export default function EnrollmentDetailsPage({ id }: { id: string }) {
               </CardHeader>
               <CardBody>
                 <p className="text-sm text-text-primary">{enrollment.studentName}</p>
-                <p className="text-xs text-text-secondary">ID: {enrollment.studentId}</p>
               </CardBody>
             </Card>
           </div>
