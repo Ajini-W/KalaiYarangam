@@ -1,11 +1,9 @@
-import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Query, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiBearerAuth, ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
-import { Response } from 'express';
+import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Query } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from '@/common/decorators';
 import { AuthenticatedUser } from '@/common/interfaces';
 import { FilesService } from './files.service';
-import { QueryFileDto } from './dto/files.dto';
+import { CreateFileDto, QueryFileDto } from './dto/files.dto';
 
 @ApiTags('training/files')
 @ApiBearerAuth()
@@ -13,16 +11,9 @@ import { QueryFileDto } from './dto/files.dto';
 export class FilesController {
   constructor(private readonly filesService: FilesService) {}
 
-  @Post('upload')
-  @UseInterceptors(FileInterceptor('file'))
-  @ApiConsumes('multipart/form-data')
-  @ApiBody({ schema: { type: 'object', properties: { file: { type: 'string', format: 'binary' }, category: { type: 'string' } } } })
-  upload(
-    @CurrentUser() user: AuthenticatedUser,
-    @UploadedFile() file: Express.Multer.File,
-    @Body('category') category?: string,
-  ) {
-    return this.filesService.upload(user, file, category);
+  @Post()
+  create(@CurrentUser() user: AuthenticatedUser, @Body() dto: CreateFileDto) {
+    return this.filesService.create(user, dto);
   }
 
   @Get()
@@ -31,13 +22,8 @@ export class FilesController {
   }
 
   @Get(':id')
-  async serve(
-    @CurrentUser() user: AuthenticatedUser,
-    @Param('id', ParseUUIDPipe) id: string,
-    @Res() res: Response,
-  ) {
-    const result = await this.filesService.serve(user, id);
-    res.sendFile(result.path);
+  findOne(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string) {
+    return this.filesService.findOne(user, id);
   }
 
   @Post(':id/archive')

@@ -1,12 +1,12 @@
 meta {
-  name: File - Upload
+  name: File - Create
   type: http
   seq: 1
 }
 
 post {
-  url: {{base-url}}/training/files/upload
-  body: multipartForm
+  url: {{base-url}}/training/files
+  body: json
   auth: inherit
 }
 
@@ -14,9 +14,13 @@ headers {
   Authorization: Bearer {{token}}
 }
 
-body:multipart-form {
-  file: @file("./sample.pdf")
-  category: TRAINING_MATERIAL
+body:json {
+  {
+    "originalName": "sample.pdf",
+    "mimeType": "application/pdf",
+    "size": 102400,
+    "category": "TRAINING_MATERIAL"
+  }
 }
 
 script:post-response {

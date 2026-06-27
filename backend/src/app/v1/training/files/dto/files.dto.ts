@@ -1,5 +1,22 @@
-import { IsInt, IsOptional, IsString, Min } from 'class-validator';
+import { IsInt, IsOptional, IsString, Min, IsNumber } from 'class-validator';
 import { Type } from 'class-transformer';
+
+export class CreateFileDto {
+  @IsString()
+  originalName: string;
+
+  @IsOptional()
+  @IsString()
+  mimeType?: string;
+
+  @IsOptional()
+  @IsNumber()
+  size?: number;
+
+  @IsOptional()
+  @IsString()
+  category?: string;
+}
 
 export class QueryFileDto {
   @IsOptional()

@@ -1,49 +1,31 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { randomUUID } from 'crypto';
-import { extname, join } from 'path';
-import { writeFile } from 'fs/promises';
 import { PrismaService } from '@/database';
 import { AuthenticatedUser } from '@/common/interfaces';
 import { paginate, paginationArgs } from '@/common/utils';
-import { QueryFileDto } from './dto/files.dto';
-
-interface UploadedFile {
-  originalname: string;
-  filename: string;
-  mimetype: string;
-  size: number;
-  buffer: Buffer;
-}
-
-const UPLOAD_DIR = join(__dirname, '..', '..', '..', '..', '..', 'uploads', 'training');
+import { CreateFileDto, QueryFileDto } from './dto/files.dto';
 
 @Injectable()
 export class FilesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async upload(user: AuthenticatedUser, file: UploadedFile, category?: string) {
+  async create(user: AuthenticatedUser, dto: CreateFileDto) {
     if (!user.tenantId) {
       throw new NotFoundException('Tenant not found');
     }
 
-    const uniqueName = `${randomUUID()}${extname(file.originalname)}`;
-    const filePath = join(UPLOAD_DIR, uniqueName);
-
-    await writeFile(filePath, file.buffer);
-
     const record = await this.prisma.trainingFile.create({
       data: {
         tenantId: user.tenantId,
-        originalName: file.originalname,
-        storagePath: uniqueName,
-        mimeType: file.mimetype,
-        size: file.size,
-        category: category || null,
+        originalName: dto.originalName,
+        storagePath: dto.originalName,
+        mimeType: dto.mimeType || null,
+        size: dto.size || null,
+        category: dto.category || null,
         uploadedBy: user.id,
       },
     });
 
-    return { message: 'File uploaded successfully', data: record };
+    return { message: 'File record created successfully', data: record };
   }
 
   async findAll(user: AuthenticatedUser, query: QueryFileDto) {
@@ -65,7 +47,7 @@ export class FilesService {
     return paginate(data, total, page, pageSize);
   }
 
-  async serve(user: AuthenticatedUser, id: string) {
+  async findOne(user: AuthenticatedUser, id: string) {
     if (!user.tenantId) {
       throw new NotFoundException('Tenant not found');
     }
@@ -78,7 +60,7 @@ export class FilesService {
       throw new NotFoundException('File not found');
     }
 
-    return { path: join(UPLOAD_DIR, file.storagePath) };
+    return { message: 'File fetched successfully', data: file };
   }
 
   async archive(user: AuthenticatedUser, id: string) {

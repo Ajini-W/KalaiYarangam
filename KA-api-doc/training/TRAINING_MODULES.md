@@ -316,30 +316,30 @@ Manage student documents (ID proof, medical, consent, certificates, etc.) using 
 
 ### Purpose
 
-Generic file upload and storage for training materials using the `TrainingFile` model. Files are stored on local disk under `backend/uploads/training/` with UUID-based filenames to prevent collisions.
+Manage file metadata records for training materials using the `TrainingFile` model. Actual file upload is handled by a universal upload API (object storage bucket) — **not implemented in this sprint**. This module only stores file metadata (name, type, size, category). Once the universal upload API is built, the returned URL will be mapped to the `storagePath` field.
 
 ### DTOs (`dto/files.dto.ts`)
 
 | DTO | Fields | Purpose |
 |---|---|---|
+| `CreateFileDto` | `originalName`, `mimeType?`, `size?`, `category?` | Create a file metadata record |
 | `QueryFileDto` | `page?`, `pageSize?`, `category?` | Paginated listing |
 
 ### Endpoints (`@Controller('training/files')`)
 
 | Method | Path | Purpose |
 |---|---|---|
-| `POST` | `/upload` | Multipart file upload (field: `file`), saves to disk, creates DB record |
-| `GET` | `/` | List files (filterable by category) |
-| `GET` | `/:id` | Serve/download file via `res.sendFile()` |
+| `POST` | `/` | Create file metadata record (stores `originalName` as `storagePath`; URL will be mapped later via universal upload API) |
+| `GET` | `/` | List file records (filterable by category) |
+| `GET` | `/:id` | Get single file record |
 | `POST` | `/:id/archive` | Soft-delete (`isArchived = true`) |
 | `POST` | `/:id/restore` | Restore (`isArchived = false`) |
 
 ### Key Business Logic
 
-- **Upload:** uses `FileInterceptor('file')` from `@nestjs/platform-express`. File buffer written to `uploads/training/{uuid}.{ext}` via `fs.promises.writeFile`.
-- **Storage path:** `crypto.randomUUID()` generates unique filename; original extension preserved.
-- **Serve:** returns absolute path to `res.sendFile()` for download.
-- Tenant-scoped — files belong to the uploading user's tenant.
+- **No file handling:** This module only stores metadata in the database. No multipart upload, no disk I/O, no file serving.
+- **Placeholder:** `storagePath` is set to `originalName` as a placeholder. Once the universal upload API is implemented, `storagePath` will hold the object storage URL returned by that API.
+- Tenant-scoped — records belong to the uploading user's tenant.
 
 ---
 
@@ -424,7 +424,7 @@ In `training.module.ts`:
 | `schedules/` | 9 | Create, List, Calendar, Upcoming, Today, Get, Update, Cancel, Reschedule |
 | `waitlists/` | 6 | Add, List, Get, Update, Promote, Withdraw |
 | `documents/` | 7 | Create, List, Get, Update, Verify, Archive, Restore |
-| `files/` | 5 | Upload, List, Serve, Archive, Restore |
+| `files/` | 5 | Create, List, Get, Archive, Restore |
 
 Each file follows the standard Bruno format:
 - `meta` block with `name`, `type: http`, `seq`
