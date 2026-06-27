@@ -5,7 +5,7 @@ import * as bcrypt from 'bcrypt';
 import { PrismaService } from '@/database';
 import { AuthenticatedUser } from '@/common/interfaces';
 import { paginate, paginationArgs } from '@/common/utils';
-import { ClaimTenantDto, CreateBatchDto, CreateBranchDto, CreateStudentDto, CreateTenantDto, QueryPaginationDto, UpdateBranchDto, UpdateBranchStatusDto, UpdateBrandingDto, UpdateModulesDto, UpdateTenantDto, UpdateTenantSettingsDto } from './dto/training.dto';
+import { ClaimTenantDto, CreateBranchDto, CreateStudentDto, CreateTenantDto, QueryPaginationDto, UpdateBranchDto, UpdateBranchStatusDto, UpdateBrandingDto, UpdateModulesDto, UpdateTenantDto, UpdateTenantSettingsDto } from './dto/training.dto';
 
 function slugify(value: string) {
   return value
@@ -25,34 +25,6 @@ export class TrainingService {
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
   ) {}
-
-  async findBatches(user: AuthenticatedUser, query: QueryPaginationDto) {
-    const { skip, take, page, pageSize } = paginationArgs(query.page, query.pageSize);
-    const where = { tenantId: user.tenantId };
-
-    const [data, total] = await Promise.all([
-      this.prisma.batch.findMany({
-        where,
-        skip,
-        take,
-        orderBy: { createdAt: 'desc' },
-        include: { _count: { select: { enrollments: true } } },
-      }),
-      this.prisma.batch.count({ where }),
-    ]);
-
-    return paginate(data, total, page, pageSize);
-  }
-
-  createBatch(user: AuthenticatedUser, dto: CreateBatchDto) {
-    return this.prisma.batch.create({
-      data: {
-        tenantId: user.tenantId,
-        name: dto.name,
-        capacity: dto.capacity ?? 30,
-      },
-    });
-  }
 
   async findStudents(user: AuthenticatedUser, query: QueryPaginationDto) {
     const { skip, take, page, pageSize } = paginationArgs(query.page, query.pageSize);
