@@ -3,6 +3,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { env } from '@/config';
 import { TrainingController } from './training.controller';
 import { TrainingService } from './training.service';
+import { TrainersModule } from './trainers/trainers.module';
 
 @Module({
   imports: [
@@ -10,6 +11,7 @@ import { TrainingService } from './training.service';
       secret: env.JWT_SECRET,
       signOptions: { expiresIn: env.JWT_EXPIRES_IN as any },
     }),
+    TrainersModule,
   ],
   controllers: [TrainingController],
   providers: [TrainingService],

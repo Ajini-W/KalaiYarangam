@@ -152,6 +152,49 @@ model StudentAttendance {
   @@map("student_attendance")
 }
 
+model TrainingDocument {
+  id         String   @id @default(uuid()) @db.Uuid
+  tenantId   String   @map("tenant_id") @db.Uuid
+  studentId  String?  @map("student_id") @db.Uuid
+  name       String   @db.VarChar(200)
+  type       String   @db.VarChar(50)     /// ID_PROOF, MEDICAL, CONSENT, CERTIFICATE, OTHER
+  fileUrl    String   @map("file_url") @db.VarChar(500)
+  fileSize   Int?     @map("file_size")
+  mimeType   String?  @map("mime_type") @db.VarChar(100)
+  status     String   @default("PENDING") @db.VarChar(30)  /// PENDING, VERIFIED, REJECTED, ARCHIVED
+  verifiedBy String?  @map("verified_by") @db.Uuid
+  verifiedAt DateTime? @map("verified_at")
+  notes      String?  @db.Text
+  isArchived Boolean  @default(false) @map("is_archived")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  student Student? @relation(fields: [studentId], references: [id])
+
+  @@index([tenantId])
+  @@index([studentId])
+  @@map("training_documents")
+}
+
+model TrainingFile {
+  id           String   @id @default(uuid()) @db.Uuid
+  tenantId     String   @map("tenant_id") @db.Uuid
+  originalName String   @map("original_name") @db.VarChar(255)
+  storagePath  String   @map("storage_path") @db.VarChar(500)
+  mimeType     String   @map("mime_type") @db.VarChar(100)
+  size         Int
+  category     String?  @db.VarChar(50)
+  uploadedBy   String   @map("uploaded_by") @db.Uuid
+  isArchived   Boolean  @default(false) @map("is_archived")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("training_files")
+}
+
 // ═══════════════════════════════════════════════════════════════
 // 8. FEE MANAGEMENT
 // ═══════════════════════════════════════════════════════════════
