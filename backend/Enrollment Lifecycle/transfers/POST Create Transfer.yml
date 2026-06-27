@@ -1,0 +1,24 @@
+info:
+  name: POST Create Transfer
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: http://localhost:4000/api/v1/transfers
+  body:
+    type: json
+    data: |-
+      {
+        "enrollmentId": "1acbe156-aec5-4196-9aa2-37802e9aeeeb",
+        "tenantId": "16d91ceb-cf3d-44a1-8ca4-163038eea476",
+        "fromBatchId": "69eaa17e-1903-42d4-a9a0-e6552aa397b2",
+        "toBatchId": "1b8f5542-4b1f-44a0-9c87-216045788e68"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

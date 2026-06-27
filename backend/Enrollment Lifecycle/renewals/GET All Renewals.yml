@@ -1,0 +1,15 @@
+info:
+  name: GET All Renewals
+  type: http
+  seq: 2
+
+http:
+  method: GET
+  url: http://localhost:4000/api/v1/renewals
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
