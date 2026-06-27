@@ -1,0 +1,16 @@
+meta {
+  name: Class - Verify Certificate
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{base-url}}/class/certificates/verify/{{certNumber}}
+  body: none
+  auth: none
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

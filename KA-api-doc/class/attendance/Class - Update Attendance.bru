@@ -1,0 +1,42 @@
+meta {
+  name: Class - Update Attendance
+  type: http
+  seq: 5
+}
+
+patch {
+  url: {{base-url}}/class/attendance/{{attendanceSessionId}}
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "records": [
+      {
+        "studentId": "{{studentId1}}",
+        "status": "ABSENT",
+        "remarks": "Medical emergency"
+      },
+      {
+        "studentId": "{{studentId2}}",
+        "status": "PRESENT",
+        "checkInTime": "09:30"
+      }
+    ]
+  }
+}
+
+vars:pre-request {
+  studentId1: 1ac2e2d1-94ae-46c1-9f2b-4b9c1605364d
+  studentId2: 2e01f75b-3af1-4e08-a87d-2d1477f2cb1d
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

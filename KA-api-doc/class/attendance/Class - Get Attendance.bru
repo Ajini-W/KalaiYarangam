@@ -1,0 +1,20 @@
+meta {
+  name: Class - Get Attendance
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{base-url}}/class/attendance/{{attendanceSessionId}}
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

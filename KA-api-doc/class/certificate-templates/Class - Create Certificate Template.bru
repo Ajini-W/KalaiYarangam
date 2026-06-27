@@ -1,0 +1,41 @@
+meta {
+  name: Class - Create Certificate Template
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{base-url}}/class/certificate-templates
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "name": "Default Certificate",
+    "htmlContent": "<html><body><h1>{{studentName}}</h1><p>{{courseName}}</p></body></html>",
+    "cssStyles": "body { font-family: Arial; }",
+    "orientation": "landscape",
+    "paperSize": "A4",
+    "isDefault": true
+  }
+}
+
+vars:pre-request {
+  studentName: Rajesh Kumar
+  courseName: Full Stack Development
+}
+
+script:post-response {
+  const body = res.getBody();
+  if (body.data && body.data.id) { bru.setVar("templateId", body.data.id); }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
