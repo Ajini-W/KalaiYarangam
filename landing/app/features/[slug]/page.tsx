@@ -44,7 +44,15 @@ export default async function FeaturePage({ params }: PageProps) {
     <div className="min-h-dvh bg-background">
       <SiteHeader />
       <main className="pt-28 pb-24">
-        <FeatureHero feature={feature} />
+        <FeatureHero
+          iconName={feature.iconName}
+          bgColor={feature.bgColor}
+          color={feature.color}
+          category={feature.category}
+          name={feature.name}
+          tagline={feature.tagline}
+          stats={feature.stats}
+        />
 
         {/* Description */}
         <section className="mx-auto mt-20 max-w-4xl px-4">

@@ -47,7 +47,6 @@ import {
   MessageCircle,
   type LucideIcon,
 } from "lucide-react";
-import type { Feature } from "@/data/features";
 
 const iconMap: Record<string, LucideIcon> = {
   Users,
@@ -94,8 +93,24 @@ const iconMap: Record<string, LucideIcon> = {
   MessageCircle,
 };
 
-export function FeatureHero({ feature }: { feature: Feature }) {
-  const Icon = iconMap[feature.iconName] || Users;
+export function FeatureHero({
+  iconName,
+  bgColor,
+  color,
+  category,
+  name,
+  tagline,
+  stats,
+}: {
+  iconName: string;
+  bgColor: string;
+  color: string;
+  category: string;
+  name: string;
+  tagline: string;
+  stats?: { value: string; label: string }[];
+}) {
+  const Icon = iconMap[iconName] || Users;
 
   return (
     <section className="relative overflow-hidden px-4 pb-16 pt-12 sm:pt-20">
@@ -118,7 +133,7 @@ export function FeatureHero({ feature }: { feature: Feature }) {
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
-          className={`mx-auto grid size-20 place-items-center rounded-3xl ${feature.bgColor} ${feature.color} mb-8 shadow-lg`}
+          className={`mx-auto grid size-20 place-items-center rounded-3xl ${bgColor} ${color} mb-8 shadow-lg`}
         >
           <Icon className="size-10" />
         </motion.div>
@@ -129,7 +144,7 @@ export function FeatureHero({ feature }: { feature: Feature }) {
           transition={{ duration: 0.5, delay: 0.05 }}
           className="inline-flex items-center gap-2 rounded-full border border-border bg-card/80 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-muted-foreground backdrop-blur-sm"
         >
-          {feature.category}
+          {category}
         </motion.span>
 
         <motion.h1
@@ -138,7 +153,7 @@ export function FeatureHero({ feature }: { feature: Feature }) {
           transition={{ duration: 0.7, delay: 0.1 }}
           className="mt-6 text-balance font-heading text-4xl font-extrabold leading-[1.02] tracking-tight sm:text-5xl lg:text-6xl"
         >
-          {feature.name}
+          {name}
         </motion.h1>
 
         <motion.p
@@ -147,7 +162,7 @@ export function FeatureHero({ feature }: { feature: Feature }) {
           transition={{ duration: 0.7, delay: 0.18 }}
           className="mx-auto mt-5 max-w-2xl text-pretty text-lg leading-relaxed text-muted-foreground sm:text-xl"
         >
-          {feature.tagline}
+          {tagline}
         </motion.p>
 
         <motion.div
@@ -175,14 +190,14 @@ export function FeatureHero({ feature }: { feature: Feature }) {
         </motion.div>
 
         {/* Stats */}
-        {feature.stats && (
+        {stats && (
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.35 }}
             className="mx-auto mt-14 grid max-w-2xl grid-cols-3 gap-4 rounded-3xl border border-border/60 bg-card/80 p-6 shadow-xl shadow-black/5 backdrop-blur-xl sm:p-8"
           >
-            {feature.stats.map((stat) => (
+            {stats.map((stat) => (
               <div key={stat.label} className="text-center">
                 <div className="font-heading text-3xl font-bold text-primary sm:text-4xl">
                   {stat.value}
