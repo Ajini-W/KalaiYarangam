@@ -1,0 +1,133 @@
+[
+  {
+    "slug": "getting-started-with-kalaiArangam",
+    "title": "Getting Started with kalaiArangam",
+    "description": "Set up your account, create your organization, and start managing your business in under 10 minutes.",
+    "content": "This tutorial walks you through the complete setup process.",
+    "difficulty": "beginner",
+    "estimatedTime": "10 minutes",
+    "prerequisites": [],
+    "category": "Getting Started",
+    "tags": [
+      "setup",
+      "onboarding",
+      "beginner"
+    ],
+    "featured": true,
+    "steps": [
+      {
+        "title": "Create Your Account",
+        "content": "Visit kalaiArangam.com and click Start Free Trial. Enter your email, phone number, and create a password. You will receive a verification email.",
+        "code": []
+      },
+      {
+        "title": "Set Up Your Organization",
+        "content": "After verifying your email, you will be prompted to create your organization. Enter your business name, select your industry (Training, Rental, or Event), and add your branch location.",
+        "code": []
+      },
+      {
+        "title": "Select Your Modules",
+        "content": "Choose the modules you want to activate. You can start with one module and add more later as your business grows.",
+        "code": []
+      },
+      {
+        "title": "Invite Your Team",
+        "content": "Add your staff members by entering their email addresses. Assign roles like Branch Manager, Trainer, or Staff based on their responsibilities.",
+        "code": []
+      },
+      {
+        "title": "Start Operating",
+        "content": "Your organization is now ready. Start adding students, creating batches, or setting up inventory depending on your selected modules.",
+        "code": []
+      }
+    ]
+  },
+  {
+    "slug": "setting-up-fee-collection",
+    "title": "Setting Up Automated Fee Collection",
+    "description": "Configure fee plans, payment reminders, and automated receipts for your training academy.",
+    "content": "Learn how to automate your entire fee collection process.",
+    "difficulty": "beginner",
+    "estimatedTime": "15 minutes",
+    "prerequisites": [
+      "getting-started-with-kalaiArangam"
+    ],
+    "category": "Training Management",
+    "tags": [
+      "fees",
+      "payments",
+      "automation",
+      "training"
+    ],
+    "featured": false,
+    "steps": [
+      {
+        "title": "Create Fee Plans",
+        "content": "Navigate to Settings > Fee Plans and create plans for each course. Set the total fee, installment options, and due dates.",
+        "code": [
+          {
+            "language": "json",
+            "filename": "fee-plan-example.json",
+            "code": "{\n  \"course\": \"Bharatanatyam\",\n  \"totalFee\": 24000,\n  \"installments\": 4,\n  \"dueDay\": 1\n}"
+          }
+        ]
+      },
+      {
+        "title": "Enable Payment Reminders",
+        "content": "Go to Settings > Notifications and enable automatic reminders. Set reminders for 3 days before, on the due date, and 3 days after.",
+        "code": []
+      },
+      {
+        "title": "Connect Payment Gateway",
+        "content": "Integrate your preferred payment gateway to accept online payments. Parents can pay directly from the reminder link.",
+        "code": []
+      },
+      {
+        "title": "Track Collections",
+        "content": "Use the Finance dashboard to see real-time collection status, pending amounts, and overdue accounts.",
+        "code": []
+      }
+    ]
+  },
+  {
+    "slug": "managing-rental-inventory",
+    "title": "Setting Up Rental Inventory and Bookings",
+    "description": "Create your rental catalog, configure availability, and manage the booking lifecycle.",
+    "content": "A complete guide to rental inventory management.",
+    "difficulty": "intermediate",
+    "estimatedTime": "20 minutes",
+    "prerequisites": [
+      "getting-started-with-kalaiArangam"
+    ],
+    "category": "Rental Management",
+    "tags": [
+      "inventory",
+      "bookings",
+      "rental",
+      "catalog"
+    ],
+    "featured": false,
+    "steps": [
+      {
+        "title": "Add Inventory Items",
+        "content": "Go to Inventory > Add Item. Enter the item name, category, SKU, quantity, condition, and rental price per day.",
+        "code": []
+      },
+      {
+        "title": "Configure Availability",
+        "content": "Set availability rules for each item. Define maintenance schedules, blocked dates, and minimum rental periods.",
+        "code": []
+      },
+      {
+        "title": "Create Booking Workflow",
+        "content": "Configure the booking lifecycle: Enquiry > Quotation > Confirmation > Dispatch > Return. Each stage triggers appropriate notifications.",
+        "code": []
+      },
+      {
+        "title": "Set Up Dispatch Process",
+        "content": "Define the dispatch checklist: item inspection, condition documentation, handover to customer, and expected return date.",
+        "code": []
+      }
+    ]
+  }
+]

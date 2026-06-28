@@ -1,9 +1,10 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { IndustryType, OnboardingStep, UserRole, UserStatus, AccessRequestStatus } from '@prisma/client';
+import { AuditAction, IndustryType, OnboardingStep, UserRole, UserStatus, AccessRequestStatus } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '@/database';
 import { AuthenticatedUser } from '@/common/interfaces';
+import { AuditService } from '@/app/v1/security/audit.service';
 import { env } from '@/config';
 import {
   ApproveAccessDto,
@@ -35,6 +36,7 @@ export class OnboardingService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
+    private readonly auditService: AuditService,
   ) {}
 
   async getProgress(userId: string) {
@@ -102,6 +104,14 @@ export class OnboardingService {
           currentStep: OnboardingStep.PROFILE_SETUP,
         },
       });
+    });
+
+    await this.auditService.log({
+      userId,
+      action: AuditAction.UPDATE,
+      entity: 'User',
+      entityId: userId,
+      newValues: { role: dto.role, step: 'ROLE_SELECTION' },
     });
 
     return {
@@ -175,6 +185,14 @@ export class OnboardingService {
       }
     });
 
+    await this.auditService.log({
+      userId,
+      action: AuditAction.UPDATE,
+      entity: 'UserProfile',
+      entityId: userId,
+      newValues: { name: dto.fullName, role, nextStep: role === UserRole.CLIENT ? OnboardingStep.COMPLETED : this.getNextStepAfterProfile(role) },
+    });
+
     if (role === UserRole.CLIENT) {
       return {
         message: 'Profile setup completed. Onboarding finished.',
@@ -232,7 +250,12 @@ export class OnboardingService {
           name: dto.businessName,
           slug,
           industry: dto.businessType as IndustryType,
-          ...(dto.address ? {} : {}),
+          address: dto.address,
+          city: dto.city,
+          state: dto.state,
+          pincode: dto.pincode,
+          latitude: dto.latitude,
+          longitude: dto.longitude,
         },
       });
 
@@ -280,34 +303,28 @@ export class OnboardingService {
         });
       }
 
-      // Update onboarding progress — Owner flow: tenant → dashboard
+      // Update onboarding progress — Owner flow: tenant → branch setup
       await tx.onboardingProgress.update({
         where: { userId },
-        data: { currentStep: OnboardingStep.COMPLETED, isCompleted: true, completedAt: now },
-      });
-
-      await tx.user.update({
-        where: { id: userId },
-        data: { status: UserStatus.ACTIVE },
+        data: { currentStep: OnboardingStep.BRANCH_SETUP },
       });
 
       return tenant;
     });
 
-    const updatedUser = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { id: true, tenantId: true, email: true, name: true, role: true },
+    await this.auditService.log({
+      userId,
+      action: AuditAction.CREATE,
+      entity: 'Tenant',
+      entityId: result.id,
+      newValues: { name: result.name, slug: result.slug },
     });
 
-    const payload = toPayload(updatedUser!);
-    const accessToken = this.jwtService.sign(payload);
-
     return {
-      message: 'Tenant created successfully. Onboarding completed.',
+      message: 'Business registered successfully. Next, set up your branch.',
       data: {
         tenant: { id: result.id, name: result.name, slug: result.slug },
-        token: { accessToken, user: payload },
-        redirectTo: '/owner/dashboard',
+        nextStep: OnboardingStep.BRANCH_SETUP,
       },
     };
   }
@@ -346,6 +363,14 @@ export class OnboardingService {
       return branch;
     });
 
+    await this.auditService.log({
+      userId,
+      action: AuditAction.CREATE,
+      entity: 'Branch',
+      entityId: result.id,
+      newValues: { name: result.name, tenantId: user.tenantId },
+    });
+
     return {
       message: 'Branch created successfully',
       data: { branch: { id: result.id, name: result.name, isDefault: result.isDefault }, nextStep: OnboardingStep.MODULE_SELECTION },
@@ -380,6 +405,14 @@ export class OnboardingService {
         where: { userId },
         data: { currentStep: OnboardingStep.SUBSCRIPTION },
       });
+    });
+
+    await this.auditService.log({
+      userId,
+      action: AuditAction.UPDATE,
+      entity: 'TenantModule',
+      entityId: user.tenantId!,
+      newValues: { training: dto.training, rental: dto.rental, event: dto.event },
     });
 
     return { message: 'Modules selected successfully', data: { nextStep: OnboardingStep.SUBSCRIPTION } };
@@ -428,6 +461,22 @@ export class OnboardingService {
       });
     });
 
+    await this.auditService.log({
+      userId,
+      action: AuditAction.CREATE,
+      entity: 'Subscription',
+      entityId: plan.id,
+      newValues: { plan: dto.plan, tenantId: user.tenantId },
+    });
+
+    await this.auditService.recordSecurityEvent({
+      userId,
+      tenantId: user.tenantId!,
+      eventType: 'ONBOARDING_COMPLETED',
+      severity: 'INFO',
+      message: `User completed onboarding with role ${user.role}`,
+    });
+
     const updatedUser = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { id: true, tenantId: true, email: true, name: true, role: true },
@@ -435,6 +484,11 @@ export class OnboardingService {
 
     const payload = toPayload(updatedUser!);
     const accessToken = this.jwtService.sign(payload);
+
+    // Log the login after onboarding completion
+    await this.prisma.userLoginLog.create({
+      data: { userId, success: true, accessToken },
+    });
 
     return {
       message: 'Onboarding completed successfully',
@@ -548,6 +602,13 @@ export class OnboardingService {
       { sub: user.id },
       { secret: env.JWT_REFRESH_SECRET, expiresIn: env.JWT_REFRESH_EXPIRES_IN as any },
     );
+
+    await this.auditService.log({
+      userId,
+      action: AuditAction.CREATE,
+      entity: 'TenantAccessRequest',
+      newValues: { tenantId: dto.tenantId, status: AccessRequestStatus.PENDING },
+    });
 
     return {
       message: 'Access request submitted. Waiting for approval.',
@@ -689,6 +750,21 @@ export class OnboardingService {
       });
     });
 
+    await this.auditService.log({
+      userId: user.id,
+      action: AuditAction.UPDATE,
+      entity: 'TenantAccessRequest',
+      entityId: dto.requestId,
+      newValues: { status: AccessRequestStatus.APPROVED },
+    });
+
+    await this.auditService.recordActivity({
+      userId: user.id,
+      tenantId: user.tenantId,
+      activity: 'ACCESS_REQUEST_APPROVED',
+      details: { requestId: dto.requestId, targetUserId: request.userId },
+    });
+
     return { message: 'Access request approved', data: { status: AccessRequestStatus.APPROVED } };
   }
 
@@ -717,6 +793,14 @@ export class OnboardingService {
       },
     });
 
+    await this.auditService.log({
+      userId: user.id,
+      action: AuditAction.UPDATE,
+      entity: 'TenantAccessRequest',
+      entityId: dto.requestId,
+      newValues: { status: AccessRequestStatus.REJECTED, reason: dto.reason },
+    });
+
     return { message: 'Access request rejected', data: { status: AccessRequestStatus.REJECTED } };
   }
 
@@ -737,6 +821,14 @@ export class OnboardingService {
     await this.prisma.user.update({
       where: { id: userId },
       data: { status: UserStatus.SUSPENDED },
+    });
+
+    await this.auditService.recordSecurityEvent({
+      userId: user.id,
+      tenantId: user.tenantId,
+      eventType: 'USER_BLOCKED',
+      severity: 'WARNING',
+      message: `User ${userId} blocked from tenant ${user.tenantId}`,
     });
 
     return { message: 'User blocked successfully' };

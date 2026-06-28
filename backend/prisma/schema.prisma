@@ -234,6 +234,45 @@ enum AuditAction {
   SECURITY_EVENT
   TWO_FACTOR_ENABLE
   TWO_FACTOR_DISABLE
+  SETTINGS_CHANGE
+  WEBHOOK_CHANGE
+  API_KEY_CHANGE
+  INVITATION
+  SUBSCRIPTION_CHANGE
+  BILLING_CHANGE
+  DATA_EXPORT
+  ACCOUNT_LOCK
+  ACCOUNT_UNLOCK
+}
+
+enum LoginMethod {
+  PASSWORD
+  SSO
+  OAUTH_GOOGLE
+  MAGIC_LINK
+  API_KEY
+}
+
+enum FailureReason {
+  INVALID_CREDENTIALS
+  ACCOUNT_LOCKED
+  ACCOUNT_SUSPENDED
+  EMAIL_NOT_VERIFIED
+  MFA_FAILED
+  MFA_REQUIRED
+  TOKEN_EXPIRED
+  TOKEN_REVOKED
+  RATE_LIMITED
+  UNKNOWN
+}
+
+enum DeviceType {
+  DESKTOP
+  MOBILE
+  TABLET
+  SMART_TV
+  WEARABLE
+  UNKNOWN
 }
 
 enum HealthStatus {
@@ -282,27 +321,27 @@ enum SubmissionStatus {
 // ═══════════════════════════════════════════════════════════════
 
 model User {
-  id           String     @id @default(uuid()) @db.Uuid
-  tenantId     String?    @map("tenant_id") @db.Uuid
-  email        String     @unique @db.VarChar(255)
-  passwordHash String     @map("password_hash") @db.VarChar(255)
-  passwordSet  Boolean    @default(false) @map("password_set")
-  name         String     @db.VarChar(150)
-  phone        String?    @unique @db.VarChar(20)
-  role         UserRole   @default(STAFF)
-  status            UserStatus @default(PENDING)
-  verificationToken           String?   @unique @map("verification_token") @db.VarChar(255)
-  verificationTokenExpiresAt  DateTime? @map("verification_token_expires_at")
-  verifiedAt                  DateTime? @map("verified_at")
-  resetPasswordToken          String?   @map("reset_password_token") @db.VarChar(255)
-  resetPasswordExpiresAt      DateTime? @map("reset_password_expires_at")
-  avatarUrl         String?   @map("avatar_url") @db.VarChar(500)
-  lastLoginAt       DateTime? @map("last_login_at")
-  preferences       Json?     @default("{}")
-  createdAt    DateTime   @default(now()) @map("created_at")
-  updatedAt    DateTime   @updatedAt @map("updated_at")
+  id                         String     @id @default(uuid()) @db.Uuid
+  tenantId                   String?    @map("tenant_id") @db.Uuid
+  email                      String     @unique @db.VarChar(255)
+  passwordHash               String     @map("password_hash") @db.VarChar(255)
+  passwordSet                Boolean    @default(false) @map("password_set")
+  name                       String     @db.VarChar(150)
+  phone                      String?    @unique @db.VarChar(20)
+  role                       UserRole   @default(STAFF)
+  status                     UserStatus @default(PENDING)
+  verificationToken          String?    @unique @map("verification_token") @db.VarChar(255)
+  verificationTokenExpiresAt DateTime?  @map("verification_token_expires_at")
+  verifiedAt                 DateTime?  @map("verified_at")
+  resetPasswordToken         String?    @map("reset_password_token") @db.VarChar(255)
+  resetPasswordExpiresAt     DateTime?  @map("reset_password_expires_at")
+  avatarUrl                  String?    @map("avatar_url") @db.Text
+  lastLoginAt                DateTime?  @map("last_login_at")
+  preferences                Json?      @default("{}")
+  createdAt                  DateTime   @default(now()) @map("created_at")
+  updatedAt                  DateTime   @updatedAt @map("updated_at")
 
-  tenant            Tenant?          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant            Tenant?                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   profile           UserProfile?
   userBranches      UserBranch[]
   loginLogs         UserLoginLog[]
@@ -310,7 +349,7 @@ model User {
   authProviders     AuthProvider[]
   userRoles         UserRoleMapping[]
   accessRequests    TenantAccessRequest[]
-  reviewedRequests  TenantAccessRequest[] @relation("reviewer")
+  reviewedRequests  TenantAccessRequest[]   @relation("reviewer")
   staffMappings     StaffBranchMapping[]
   onboarding        OnboardingProgress?
   leadFollowups     LeadFollowup[]
@@ -322,7 +361,7 @@ model User {
   securityEvents    SecurityEvent[]
   auditLogs         AuditLog[]
   activityLogs      ActivityLog[]
-  createdTasks      Task[]              @relation("UserCreatedTask")
+  createdTasks      Task[]                  @relation("UserCreatedTask")
   gradedSubmissions StudentTaskSubmission[] @relation("SubmissionGradedBy")
 
   @@index([tenantId])
@@ -335,20 +374,20 @@ model User {
 }
 
 model UserProfile {
-  id            String    @id @default(uuid()) @db.Uuid
-  userId        String    @unique @map("user_id") @db.Uuid
-  dateOfBirth   DateTime? @map("date_of_birth") @db.Date
-  gender        Gender?
-  addressLine1  String?   @map("address_line_1") @db.VarChar(255)
-  addressLine2  String?   @map("address_line_2") @db.VarChar(255)
-  city          String?   @db.VarChar(100)
-  state         String?   @db.VarChar(100)
-  pincode       String?   @db.VarChar(10)
-  emergencyName String?   @map("emergency_name") @db.VarChar(150)
-  emergencyPhone String?  @map("emergency_phone") @db.VarChar(20)
-  bio           String?   @db.Text
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
+  id             String    @id @default(uuid()) @db.Uuid
+  userId         String    @unique @map("user_id") @db.Uuid
+  dateOfBirth    DateTime? @map("date_of_birth") @db.Date
+  gender         Gender?
+  addressLine1   String?   @map("address_line_1") @db.VarChar(255)
+  addressLine2   String?   @map("address_line_2") @db.VarChar(255)
+  city           String?   @db.VarChar(100)
+  state          String?   @db.VarChar(100)
+  pincode        String?   @db.VarChar(10)
+  emergencyName  String?   @map("emergency_name") @db.VarChar(150)
+  emergencyPhone String?   @map("emergency_phone") @db.VarChar(20)
+  bio            String?   @db.Text
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -370,30 +409,51 @@ model UserBranch {
 }
 
 model UserLoginLog {
-  id           String   @id @default(uuid()) @db.Uuid
-  userId       String   @map("user_id") @db.Uuid
-  ipAddress    String?  @map("ip_address") @db.VarChar(45)
-  userAgent    String?  @map("user_agent") @db.VarChar(500)
-  accessToken  String?  @map("access_token") @db.Text
-  refreshToken String?  @map("refresh_token") @db.Text
-  loginAt      DateTime @default(now()) @map("login_at")
-  success      Boolean  @default(true)
+  id                String         @id @default(uuid()) @db.Uuid
+  userId            String         @map("user_id") @db.Uuid
+  ipAddress         String?        @map("ip_address") @db.VarChar(45)
+  userAgent         String?        @map("user_agent") @db.VarChar(500)
+  accessToken       String?        @map("access_token") @db.Text
+  refreshToken      String?        @map("refresh_token") @db.Text
+  loginAt           DateTime       @default(now()) @map("login_at")
+  success           Boolean        @default(true)
+  loginMethod       LoginMethod    @default(PASSWORD) @map("login_method")
+  failureReason     FailureReason? @map("failure_reason")
+  browser           String?        @db.VarChar(100)
+  browserVersion    String?        @map("browser_version") @db.VarChar(50)
+  os                String?        @db.VarChar(100)
+  osVersion         String?        @map("os_version") @db.VarChar(50)
+  deviceType        DeviceType     @default(UNKNOWN) @map("device_type")
+  deviceName        String?        @map("device_name") @db.VarChar(200)
+  deviceFingerprint String?        @map("device_fingerprint") @db.VarChar(255)
+  location          String?        @db.VarChar(255)
+  city              String?        @db.VarChar(100)
+  country           String?        @db.VarChar(100)
+  countryCode       String?        @map("country_code") @db.VarChar(5)
+  latitude          Float?
+  longitude         Float?
+  isSuspicious      Boolean        @default(false) @map("is_suspicious")
+  suspiciousReason  String?        @map("suspicious_reason") @db.VarChar(255)
+  metadata          Json?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([loginAt])
   @@index([ipAddress])
+  @@index([success])
+  @@index([isSuspicious])
+  @@index([deviceFingerprint])
   @@map("user_login_log")
 }
 
 model RefreshToken {
-  id        String   @id @default(uuid()) @db.Uuid
-  userId    String   @map("user_id") @db.Uuid
-  token     String   @unique @db.VarChar(500)
-  expiresAt DateTime @map("expires_at")
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  token     String    @unique @db.VarChar(500)
+  expiresAt DateTime  @map("expires_at")
   revokedAt DateTime? @map("revoked_at")
-  createdAt DateTime @default(now()) @map("created_at")
+  createdAt DateTime  @default(now()) @map("created_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -402,13 +462,13 @@ model RefreshToken {
 }
 
 model AuthProvider {
-  id             String          @id @default(uuid()) @db.Uuid
-  userId         String          @map("user_id") @db.Uuid
-  provider       AuthProviderType
-  providerId     String?         @map("provider_id") @db.VarChar(255)
-  email          String?         @db.VarChar(255)
-  linkedAt       DateTime        @default(now()) @map("linked_at")
-  createdAt      DateTime        @default(now()) @map("created_at")
+  id         String           @id @default(uuid()) @db.Uuid
+  userId     String           @map("user_id") @db.Uuid
+  provider   AuthProviderType
+  providerId String?          @map("provider_id") @db.VarChar(255)
+  email      String?          @db.VarChar(255)
+  linkedAt   DateTime         @default(now()) @map("linked_at")
+  createdAt  DateTime         @default(now()) @map("created_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -418,24 +478,24 @@ model AuthProvider {
 }
 
 model AuthErrorLog {
-  id          String   @id @default(uuid()) @db.Uuid
-  errorCode   String   @map("error_code") @db.VarChar(100)
-  errorMessage String  @map("error_message") @db.Text
-  provider    String?  @db.VarChar(50)
-  userId      String?  @map("user_id") @db.Uuid
-  timestamp   DateTime @default(now())
-  metadata    Json?
+  id           String   @id @default(uuid()) @db.Uuid
+  errorCode    String   @map("error_code") @db.VarChar(100)
+  errorMessage String   @map("error_message") @db.Text
+  provider     String?  @db.VarChar(50)
+  userId       String?  @map("user_id") @db.Uuid
+  timestamp    DateTime @default(now())
+  metadata     Json?
 
   @@map("auth_error_logs")
 }
 
 model TenantModule {
-  id        String   @id @default(uuid()) @db.Uuid
-  tenantId  String   @map("tenant_id") @db.Uuid
+  id        String       @id @default(uuid()) @db.Uuid
+  tenantId  String       @map("tenant_id") @db.Uuid
   module    IndustryType
-  isEnabled Boolean  @default(false) @map("is_enabled")
-  enabledAt DateTime? @map("enabled_at")
-  createdAt DateTime @default(now()) @map("created_at")
+  isEnabled Boolean      @default(false) @map("is_enabled")
+  enabledAt DateTime?    @map("enabled_at")
+  createdAt DateTime     @default(now()) @map("created_at")
 
   tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
@@ -444,27 +504,27 @@ model TenantModule {
 }
 
 model TenantAccessRequest {
-  id             String             @id @default(uuid()) @db.Uuid
-  tenantId       String?            @map("tenant_id") @db.Uuid
-  branchId       String?            @map("branch_id") @db.Uuid
-  userId         String             @map("user_id") @db.Uuid
-  role           UserRole
-  status         AccessRequestStatus @default(PENDING)
-  notes          String?            @db.Text
-  preferredBranchId String?         @map("preferred_branch_id") @db.Uuid
-  skills         String[]           @db.VarChar(100)
-  specialization String?            @map("specialization") @db.VarChar(200)
-  courseId       String?            @map("course_id") @db.Uuid
-  reviewedBy     String?            @map("reviewed_by") @db.Uuid
-  reviewedAt     DateTime?          @map("reviewed_at")
-  rejectionReason String?           @map("rejection_reason") @db.Text
-  createdAt      DateTime           @default(now()) @map("created_at")
-  updatedAt      DateTime           @updatedAt @map("updated_at")
+  id                String              @id @default(uuid()) @db.Uuid
+  tenantId          String?             @map("tenant_id") @db.Uuid
+  branchId          String?             @map("branch_id") @db.Uuid
+  userId            String              @map("user_id") @db.Uuid
+  role              UserRole
+  status            AccessRequestStatus @default(PENDING)
+  notes             String?             @db.Text
+  preferredBranchId String?             @map("preferred_branch_id") @db.Uuid
+  skills            String[]            @db.VarChar(100)
+  specialization    String?             @map("specialization") @db.VarChar(200)
+  courseId          String?             @map("course_id") @db.Uuid
+  reviewedBy        String?             @map("reviewed_by") @db.Uuid
+  reviewedAt        DateTime?           @map("reviewed_at")
+  rejectionReason   String?             @map("rejection_reason") @db.Text
+  createdAt         DateTime            @default(now()) @map("created_at")
+  updatedAt         DateTime            @updatedAt @map("updated_at")
 
-  tenant   Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  branch   Branch?  @relation(fields: [branchId], references: [id])
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  reviewer User?    @relation("reviewer", fields: [reviewedBy], references: [id])
+  tenant   Tenant? @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  branch   Branch? @relation(fields: [branchId], references: [id])
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviewer User?   @relation("reviewer", fields: [reviewedBy], references: [id])
 
   @@index([tenantId])
   @@index([userId])
@@ -489,15 +549,15 @@ model StaffBranchMapping {
 }
 
 model OnboardingProgress {
-  id              String         @id @default(uuid()) @db.Uuid
-  userId          String         @unique @map("user_id") @db.Uuid
-  selectedRole    UserRole?
-  currentStep     OnboardingStep @default(ROLE_SELECTION)
-  isCompleted     Boolean        @default(false) @map("is_completed")
-  completedAt     DateTime?      @map("completed_at")
-  metadata        Json?
-  createdAt       DateTime       @default(now()) @map("created_at")
-  updatedAt       DateTime       @updatedAt @map("updated_at")
+  id           String         @id @default(uuid()) @db.Uuid
+  userId       String         @unique @map("user_id") @db.Uuid
+  selectedRole UserRole?
+  currentStep  OnboardingStep @default(ROLE_SELECTION)
+  isCompleted  Boolean        @default(false) @map("is_completed")
+  completedAt  DateTime?      @map("completed_at")
+  metadata     Json?
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -558,33 +618,39 @@ model Tenant {
   website   String?      @db.VarChar(255)
   phone     String?      @db.VarChar(20)
   email     String?      @db.VarChar(255)
+  address   String?      @db.VarChar(500)
+  city      String?      @db.VarChar(100)
+  state     String?      @db.VarChar(100)
+  pincode   String?      @db.VarChar(20)
+  latitude  Float?
+  longitude Float?
   createdAt DateTime     @default(now()) @map("created_at")
   updatedAt DateTime     @updatedAt @map("updated_at")
 
-  users             User[]
-  userRoles         UserRoleMapping[]
-  brand             TenantBrand?
-  invitations       TenantInvitation[]
-  settings          TenantSetting[]
-  tenantModules     TenantModule[]
-  branches          Branch[]
-  subscriptions     Subscription[]
-  subscriptionUsage SubscriptionUsage[]
-  students          Student[]
-  leads             Lead[]
-  enrollments       Enrollment[]
-  courses           Course[]
+  users              User[]
+  userRoles          UserRoleMapping[]
+  brand              TenantBrand?
+  invitations        TenantInvitation[]
+  settings           TenantSetting[]
+  tenantModules      TenantModule[]
+  branches           Branch[]
+  subscriptions      Subscription[]
+  subscriptionUsage  SubscriptionUsage[]
+  students           Student[]
+  leads              Lead[]
+  enrollments        Enrollment[]
+  courses            Course[]
   courseCategories   CourseCategory[]
-  batches           Batch[]
-  competitions      Competition[]
+  batches            Batch[]
+  competitions       Competition[]
   attendanceSessions AttendanceSession[]
-  feePlans          FeePlan[]
-  invoices          Invoice[]
-  expenseCategories ExpenseCategory[]
-  transactions      Transaction[]
-  certTemplates     CertificateTemplate[]
-  certificates      Certificate[]
-  dashboardWidgets  DashboardWidget[]
+  feePlans           FeePlan[]
+  invoices           Invoice[]
+  expenseCategories  ExpenseCategory[]
+  transactions       Transaction[]
+  certTemplates      CertificateTemplate[]
+  certificates       Certificate[]
+  dashboardWidgets   DashboardWidget[]
   analyticsSnapshots AnalyticsSnapshot[]
   notifications     Notification[]
   accessRequests    TenantAccessRequest[]
@@ -601,13 +667,13 @@ model Tenant {
 }
 
 model TenantBrand {
-  id             String  @id @default(uuid()) @db.Uuid
-  tenantId       String  @unique @map("tenant_id") @db.Uuid
-  primaryColor   String? @map("primary_color") @db.VarChar(7)
-  secondaryColor String? @map("secondary_color") @db.VarChar(7)
-  faviconUrl     String? @map("favicon_url") @db.VarChar(500)
-  tagline        String? @db.VarChar(255)
-  customDomain   String? @map("custom_domain") @db.VarChar(255)
+  id             String   @id @default(uuid()) @db.Uuid
+  tenantId       String   @unique @map("tenant_id") @db.Uuid
+  primaryColor   String?  @map("primary_color") @db.VarChar(7)
+  secondaryColor String?  @map("secondary_color") @db.VarChar(7)
+  faviconUrl     String?  @map("favicon_url") @db.VarChar(500)
+  tagline        String?  @db.VarChar(255)
+  customDomain   String?  @map("custom_domain") @db.VarChar(255)
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
 
@@ -664,39 +730,40 @@ model Branch {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  tenant              Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  userBranches        UserBranch[]
-  accessRequests      TenantAccessRequest[]
-  staffMappings       StaffBranchMapping[]
-  leads               Lead[]
-  batches             Batch[]
-  attendanceSessions  AttendanceSession[]
-  invoices            Invoice[]
+  tenant             Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userBranches       UserBranch[]
+  accessRequests     TenantAccessRequest[]
+  staffMappings      StaffBranchMapping[]
+  leads              Lead[]
+  batches            Batch[]
+  attendanceSessions AttendanceSession[]
+  invoices           Invoice[]
 
   @@unique([tenantId, code])
   @@index([tenantId])
   @@map("branches")
 }
+
 // ═══════════════════════════════════════════════════════════════
 // 3. SUBSCRIPTION & BILLING (SaaS)
 // ═══════════════════════════════════════════════════════════════
 
 model Plan {
-  id            String       @id @default(uuid()) @db.Uuid
-  name          String       @db.VarChar(100)
-  slug          String       @unique @db.VarChar(100)
-  description   String?      @db.Text
-  interval      PlanInterval @default(MONTHLY)
-  price         Decimal      @db.Decimal(10, 2)
-  currency      String       @default("INR") @db.VarChar(3)
-  trialDays     Int          @default(15) @map("trial_days")
-  maxUsers      Int?         @map("max_users")
-  maxBranches   Int?         @map("max_branches")
-  maxStudents   Int?         @map("max_students")
-  isActive      Boolean      @default(true) @map("is_active")
-  sortOrder     Int          @default(0) @map("sort_order")
-  createdAt     DateTime     @default(now()) @map("created_at")
-  updatedAt     DateTime     @updatedAt @map("updated_at")
+  id          String       @id @default(uuid()) @db.Uuid
+  name        String       @db.VarChar(100)
+  slug        String       @unique @db.VarChar(100)
+  description String?      @db.Text
+  interval    PlanInterval @default(MONTHLY)
+  price       Decimal      @db.Decimal(10, 2)
+  currency    String       @default("INR") @db.VarChar(3)
+  trialDays   Int          @default(15) @map("trial_days")
+  maxUsers    Int?         @map("max_users")
+  maxBranches Int?         @map("max_branches")
+  maxStudents Int?         @map("max_students")
+  isActive    Boolean      @default(true) @map("is_active")
+  sortOrder   Int          @default(0) @map("sort_order")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
 
   features      PlanFeature[]
   subscriptions Subscription[]
@@ -719,9 +786,9 @@ model PlanFeature {
 }
 
 model SubscriptionModule {
-  id       String @id @default(uuid()) @db.Uuid
-  planId   String @map("plan_id") @db.Uuid
-  module   String @db.VarChar(50)
+  id       String  @id @default(uuid()) @db.Uuid
+  planId   String  @map("plan_id") @db.Uuid
+  module   String  @db.VarChar(50)
   isActive Boolean @default(true) @map("is_active")
 
   plan Plan @relation(fields: [planId], references: [id], onDelete: Cascade)
@@ -731,20 +798,20 @@ model SubscriptionModule {
 }
 
 model Subscription {
-  id           String             @id @default(uuid()) @db.Uuid
-  tenantId     String             @map("tenant_id") @db.Uuid
-  planId       String             @map("plan_id") @db.Uuid
-  status       SubscriptionStatus @default(TRIAL)
-  startDate    DateTime           @map("start_date") @db.Date
-  endDate      DateTime           @map("end_date") @db.Date
-  trialEndsAt  DateTime?          @map("trial_ends_at")
-  cancelledAt  DateTime?          @map("cancelled_at")
-  autoRenew    Boolean            @default(true) @map("auto_renew")
-  createdAt    DateTime           @default(now()) @map("created_at")
-  updatedAt    DateTime           @updatedAt @map("updated_at")
+  id          String             @id @default(uuid()) @db.Uuid
+  tenantId    String             @map("tenant_id") @db.Uuid
+  planId      String             @map("plan_id") @db.Uuid
+  status      SubscriptionStatus @default(TRIAL)
+  startDate   DateTime           @map("start_date") @db.Date
+  endDate     DateTime           @map("end_date") @db.Date
+  trialEndsAt DateTime?          @map("trial_ends_at")
+  cancelledAt DateTime?          @map("cancelled_at")
+  autoRenew   Boolean            @default(true) @map("auto_renew")
+  createdAt   DateTime           @default(now()) @map("created_at")
+  updatedAt   DateTime           @updatedAt @map("updated_at")
 
-  tenant   Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  plan     Plan                 @relation(fields: [planId], references: [id])
+  tenant   Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  plan     Plan                  @relation(fields: [planId], references: [id])
   usage    SubscriptionUsage[]
   invoices SubscriptionInvoice[]
   payments SubscriptionPayment[]
@@ -795,17 +862,17 @@ model SubscriptionInvoice {
 }
 
 model SubscriptionPayment {
-  id             String        @id @default(uuid()) @db.Uuid
-  subscriptionId String        @map("subscription_id") @db.Uuid
-  invoiceId      String?       @map("invoice_id") @db.Uuid
-  amount         Decimal       @db.Decimal(10, 2)
-  currency       String        @default("INR") @db.VarChar(3)
-  mode           PaymentMode   @default(ONLINE)
-  status         PaymentStatus @default(PENDING)
-  gatewayRef     String?       @map("gateway_ref") @db.VarChar(255)
-  gatewayResponse Json?        @map("gateway_response")
-  paidAt         DateTime?     @map("paid_at")
-  createdAt      DateTime      @default(now()) @map("created_at")
+  id              String        @id @default(uuid()) @db.Uuid
+  subscriptionId  String        @map("subscription_id") @db.Uuid
+  invoiceId       String?       @map("invoice_id") @db.Uuid
+  amount          Decimal       @db.Decimal(10, 2)
+  currency        String        @default("INR") @db.VarChar(3)
+  mode            PaymentMode   @default(ONLINE)
+  status          PaymentStatus @default(PENDING)
+  gatewayRef      String?       @map("gateway_ref") @db.VarChar(255)
+  gatewayResponse Json?         @map("gateway_response")
+  paidAt          DateTime?     @map("paid_at")
+  createdAt       DateTime      @default(now()) @map("created_at")
 
   subscription Subscription         @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
   invoice      SubscriptionInvoice? @relation(fields: [invoiceId], references: [id])
@@ -815,13 +882,13 @@ model SubscriptionPayment {
 }
 
 model SubscriptionHistory {
-  id             String             @id @default(uuid()) @db.Uuid
-  subscriptionId String             @map("subscription_id") @db.Uuid
-  action         String             @db.VarChar(50)
+  id             String              @id @default(uuid()) @db.Uuid
+  subscriptionId String              @map("subscription_id") @db.Uuid
+  action         String              @db.VarChar(50)
   previousStatus SubscriptionStatus? @map("previous_status")
   newStatus      SubscriptionStatus? @map("new_status")
   metadata       Json?
-  createdAt      DateTime           @default(now()) @map("created_at")
+  createdAt      DateTime            @default(now()) @map("created_at")
 
   subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
 
@@ -840,35 +907,36 @@ model ModuleInterest {
 
   @@map("modules_interest")
 }
+
 // ═══════════════════════════════════════════════════════════════
 // 4. STUDENT MANAGEMENT
 // ═══════════════════════════════════════════════════════════════
 
 model Student {
-  id             String           @id @default(uuid()) @db.Uuid
-  tenantId       String           @map("tenant_id") @db.Uuid
-  registrationNo String?         @unique @map("registration_no") @db.VarChar(50)
-  name           String           @db.VarChar(150)
-  email          String?          @db.VarChar(255)
-  phone          String           @db.VarChar(20)
-  dateOfBirth    DateTime?        @map("date_of_birth") @db.Date
+  id             String    @id @default(uuid()) @db.Uuid
+  tenantId       String    @map("tenant_id") @db.Uuid
+  registrationNo String?   @unique @map("registration_no") @db.VarChar(50)
+  name           String    @db.VarChar(150)
+  email          String?   @db.VarChar(255)
+  phone          String    @db.VarChar(20)
+  dateOfBirth    DateTime? @map("date_of_birth") @db.Date
   gender         Gender?
-  parentName     String?          @map("parent_name") @db.VarChar(150)
-  parentPhone    String?          @map("parent_phone") @db.VarChar(20)
-  address        String?          @db.Text
-  city           String?          @db.VarChar(100)
-  state          String?          @db.VarChar(100)
-  pincode        String?          @db.VarChar(10)
-  photoUrl       String?          @map("photo_url") @db.VarChar(500)
-  medicalNotes   String?          @map("medical_notes") @db.Text
-  joinedAt       DateTime         @default(now()) @map("joined_at")
-  isActive       Boolean          @default(true) @map("is_active")
-  createdAt      DateTime         @default(now()) @map("created_at")
-  updatedAt      DateTime         @updatedAt @map("updated_at")
+  parentName     String?   @map("parent_name") @db.VarChar(150)
+  parentPhone    String?   @map("parent_phone") @db.VarChar(20)
+  address        String?   @db.Text
+  city           String?   @db.VarChar(100)
+  state          String?   @db.VarChar(100)
+  pincode        String?   @db.VarChar(10)
+  photoUrl       String?   @map("photo_url") @db.VarChar(500)
+  medicalNotes   String?   @map("medical_notes") @db.Text
+  joinedAt       DateTime  @default(now()) @map("joined_at")
+  isActive       Boolean   @default(true) @map("is_active")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
 
-  tenant       Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  enrollments  Enrollment[]
-  attendance   StudentAttendance[]
+  tenant          Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  enrollments     Enrollment[]
+  attendance      StudentAttendance[]
   progress        StudentProgress[]
   certificates      Certificate[]
   invoices          Invoice[]
@@ -886,22 +954,22 @@ model Student {
 // ═══════════════════════════════════════════════════════════════
 
 model Lead {
-  id           String     @id @default(uuid()) @db.Uuid
-  tenantId     String     @map("tenant_id") @db.Uuid
-  branchId     String?    @map("branch_id") @db.Uuid
-  name         String     @db.VarChar(150)
-  email        String?    @db.VarChar(255)
-  phone        String     @db.VarChar(20)
-  course       String?    @db.VarChar(200)
-  source       LeadSource @default(WALK_IN)
-  status       LeadStatus @default(NEW)
-  notes        String?    @db.Text
-  assignedTo   String?    @map("assigned_to") @db.Uuid
-  convertedAt  DateTime?  @map("converted_at")
-  convertedToStudentId String? @map("converted_to_student_id") @db.Uuid
-  nextFollowUp DateTime?  @map("next_follow_up")
-  createdAt    DateTime   @default(now()) @map("created_at")
-  updatedAt    DateTime   @updatedAt @map("updated_at")
+  id                   String     @id @default(uuid()) @db.Uuid
+  tenantId             String     @map("tenant_id") @db.Uuid
+  branchId             String?    @map("branch_id") @db.Uuid
+  name                 String     @db.VarChar(150)
+  email                String?    @db.VarChar(255)
+  phone                String     @db.VarChar(20)
+  course               String?    @db.VarChar(200)
+  source               LeadSource @default(WALK_IN)
+  status               LeadStatus @default(NEW)
+  notes                String?    @db.Text
+  assignedTo           String?    @map("assigned_to") @db.Uuid
+  convertedAt          DateTime?  @map("converted_at")
+  convertedToStudentId String?    @map("converted_to_student_id") @db.Uuid
+  nextFollowUp         DateTime?  @map("next_follow_up")
+  createdAt            DateTime   @default(now()) @map("created_at")
+  updatedAt            DateTime   @updatedAt @map("updated_at")
 
   tenant    Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   branch    Branch?        @relation(fields: [branchId], references: [id])
@@ -915,14 +983,14 @@ model Lead {
 }
 
 model LeadFollowup {
-  id          String   @id @default(uuid()) @db.Uuid
-  leadId      String   @map("lead_id") @db.Uuid
-  userId      String?  @map("user_id") @db.Uuid
-  notes       String   @db.Text
-  outcome     String?  @db.VarChar(100)
-  nextDate    DateTime? @map("next_date")
-  contactedVia String? @map("contacted_via") @db.VarChar(50)
-  createdAt   DateTime @default(now()) @map("created_at")
+  id           String    @id @default(uuid()) @db.Uuid
+  leadId       String    @map("lead_id") @db.Uuid
+  userId       String?   @map("user_id") @db.Uuid
+  notes        String    @db.Text
+  outcome      String?   @db.VarChar(100)
+  nextDate     DateTime? @map("next_date")
+  contactedVia String?   @map("contacted_via") @db.VarChar(50)
+  createdAt    DateTime  @default(now()) @map("created_at")
 
   lead Lead  @relation(fields: [leadId], references: [id], onDelete: Cascade)
   user User? @relation(fields: [userId], references: [id])
@@ -986,7 +1054,7 @@ model Course {
   name        String   @db.VarChar(200)
   code        String?  @db.VarChar(20)
   description String?  @db.Text
-  duration    Int?     /// Duration in hours
+  duration    Int? /// Duration in hours
   level       String?  @db.VarChar(50)
   fee         Decimal? @db.Decimal(10, 2)
   isActive    Boolean  @default(true) @map("is_active")
@@ -1002,35 +1070,36 @@ model Course {
   @@index([tenantId])
   @@map("courses")
 }
+
 // ═══════════════════════════════════════════════════════════════
 // 7. BATCH / CLASS / COMPETITIONS MANAGEMENT
 // ═══════════════════════════════════════════════════════════════
 
 model Batch {
-  id         String      @id @default(uuid()) @db.Uuid
-  tenantId   String      @map("tenant_id") @db.Uuid
-  branchId   String?     @map("branch_id") @db.Uuid
-  courseId    String?     @map("course_id") @db.Uuid
-  name       String      @db.VarChar(200)
-  code       String?     @db.VarChar(30)
-  capacity   Int         @default(30)
-  enrolled   Int         @default(0)
-  status     BatchStatus @default(UPCOMING)
-  startDate  DateTime?   @map("start_date") @db.Date
-  endDate    DateTime?   @map("end_date") @db.Date
-  isActive   Boolean     @default(true) @map("is_active")
-  createdAt  DateTime    @default(now()) @map("created_at")
-  updatedAt  DateTime    @updatedAt @map("updated_at")
+  id        String      @id @default(uuid()) @db.Uuid
+  tenantId  String      @map("tenant_id") @db.Uuid
+  branchId  String?     @map("branch_id") @db.Uuid
+  courseId  String?     @map("course_id") @db.Uuid
+  name      String      @db.VarChar(200)
+  code      String?     @db.VarChar(30)
+  capacity  Int         @default(30)
+  enrolled  Int         @default(0)
+  status    BatchStatus @default(UPCOMING)
+  startDate DateTime?   @map("start_date") @db.Date
+  endDate   DateTime?   @map("end_date") @db.Date
+  isActive  Boolean     @default(true) @map("is_active")
+  createdAt DateTime    @default(now()) @map("created_at")
+  updatedAt DateTime    @updatedAt @map("updated_at")
 
-  tenant       Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  branch       Branch?         @relation(fields: [branchId], references: [id])
-  course       Course?         @relation(fields: [courseId], references: [id])
-  trainers     BatchTrainer[]
-  schedules    BatchSchedule[]
-  enrollments  Enrollment[]
-  sessions         ClassSession[]
-  tasks            Task[]
-  studentProgress  StudentProgress[]
+  tenant          Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  branch          Branch?           @relation(fields: [branchId], references: [id])
+  course          Course?           @relation(fields: [courseId], references: [id])
+  trainers        BatchTrainer[]
+  schedules       BatchSchedule[]
+  enrollments     Enrollment[]
+  sessions        ClassSession[]
+  tasks           Task[]
+  studentProgress StudentProgress[]
 
   @@unique([tenantId, code])
   @@index([tenantId])
@@ -1039,10 +1108,10 @@ model Batch {
 }
 
 model BatchTrainer {
-  id        String   @id @default(uuid()) @db.Uuid
-  batchId   String   @map("batch_id") @db.Uuid
-  trainerId String   @map("trainer_id") @db.Uuid
-  isPrimary Boolean  @default(false) @map("is_primary")
+  id         String   @id @default(uuid()) @db.Uuid
+  batchId    String   @map("batch_id") @db.Uuid
+  trainerId  String   @map("trainer_id") @db.Uuid
+  isPrimary  Boolean  @default(false) @map("is_primary")
   assignedAt DateTime @default(now()) @map("assigned_at")
 
   batch   Batch @relation(fields: [batchId], references: [id], onDelete: Cascade)
@@ -1057,7 +1126,7 @@ model BatchSchedule {
   batchId   String    @map("batch_id") @db.Uuid
   dayOfWeek DayOfWeek @map("day_of_week")
   startTime String    @map("start_time") @db.VarChar(5) /// HH:MM format
-  endTime   String    @map("end_time") @db.VarChar(5)   /// HH:MM format
+  endTime   String    @map("end_time") @db.VarChar(5) /// HH:MM format
   room      String?   @db.VarChar(100)
   isActive  Boolean   @default(true) @map("is_active")
 
@@ -1068,17 +1137,17 @@ model BatchSchedule {
 }
 
 model Competition {
-  id          String   @id @default(uuid()) @db.Uuid
-  tenantId    String   @map("tenant_id") @db.Uuid
-  name        String   @db.VarChar(200)
-  description String?  @db.Text
-  eventDate   DateTime @map("event_date") @db.Date
-  venue       String?  @db.VarChar(255)
-  maxParticipants Int? @map("max_participants")
+  id                   String    @id @default(uuid()) @db.Uuid
+  tenantId             String    @map("tenant_id") @db.Uuid
+  name                 String    @db.VarChar(200)
+  description          String?   @db.Text
+  eventDate            DateTime  @map("event_date") @db.Date
+  venue                String?   @db.VarChar(255)
+  maxParticipants      Int?      @map("max_participants")
   registrationDeadline DateTime? @map("registration_deadline")
-  status      String   @default("UPCOMING") @db.VarChar(30)
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  status               String    @default("UPCOMING") @db.VarChar(30)
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
 
   tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
@@ -1097,7 +1166,7 @@ model ClassSession {
   status    SessionStatus @default(SCHEDULED)
   createdAt DateTime      @default(now()) @map("created_at")
 
-  batch             Batch               @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  batch             Batch              @relation(fields: [batchId], references: [id], onDelete: Cascade)
   attendanceSession AttendanceSession?
 
   @@index([batchId, date])
@@ -1132,15 +1201,15 @@ model StudentProgress {
 }
 
 model AttendanceSession {
-  id           String   @id @default(uuid()) @db.Uuid
-  tenantId     String   @map("tenant_id") @db.Uuid
-  branchId     String?  @map("branch_id") @db.Uuid
-  classSessionId String? @unique @map("class_session_id") @db.Uuid
-  batchId      String?  @map("batch_id") @db.Uuid
-  date         DateTime @db.Date
-  markedBy     String?  @map("marked_by") @db.Uuid
-  markedAt     DateTime @default(now()) @map("marked_at")
-  createdAt    DateTime @default(now()) @map("created_at")
+  id             String   @id @default(uuid()) @db.Uuid
+  tenantId       String   @map("tenant_id") @db.Uuid
+  branchId       String?  @map("branch_id") @db.Uuid
+  classSessionId String?  @unique @map("class_session_id") @db.Uuid
+  batchId        String?  @map("batch_id") @db.Uuid
+  date           DateTime @db.Date
+  markedBy       String?  @map("marked_by") @db.Uuid
+  markedAt       DateTime @default(now()) @map("marked_at")
+  createdAt      DateTime @default(now()) @map("created_at")
 
   tenant       Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   branch       Branch?             @relation(fields: [branchId], references: [id])
@@ -1214,24 +1283,24 @@ model TrainingFile {
 // ═══════════════════════════════════════════════════════════════
 
 model Task {
-  id                 String     @id @default(uuid()) @db.Uuid
-  tenantId           String     @map("tenant_id") @db.Uuid
-  batchId            String     @map("batch_id") @db.Uuid
-  createdBy          String     @map("created_by") @db.Uuid
-  title              String     @db.VarChar(200)
-  description        String?    @db.Text
-  type               TaskType
-  status             TaskStatus @default(PENDING)
-  dueDate            DateTime?  @map("due_date") @db.Date
-  maxScore           Int?       @map("max_score")
-  allowLateSubmission Boolean   @default(false) @map("allow_late_submission")
-  createdAt          DateTime   @default(now()) @map("created_at")
-  updatedAt          DateTime   @updatedAt @map("updated_at")
-  isArchived         Boolean    @default(false) @map("is_archived")
-  tenant       Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  batch        Batch               @relation(fields: [batchId], references: [id], onDelete: Cascade)
-  createdByUser User               @relation("UserCreatedTask", fields: [createdBy], references: [id])
-  submissions  StudentTaskSubmission[]
+  id                  String                  @id @default(uuid()) @db.Uuid
+  tenantId            String                  @map("tenant_id") @db.Uuid
+  batchId             String                  @map("batch_id") @db.Uuid
+  createdBy           String                  @map("created_by") @db.Uuid
+  title               String                  @db.VarChar(200)
+  description         String?                 @db.Text
+  type                TaskType
+  status              TaskStatus              @default(PENDING)
+  dueDate             DateTime?               @map("due_date") @db.Date
+  maxScore            Int?                    @map("max_score")
+  allowLateSubmission Boolean                 @default(false) @map("allow_late_submission")
+  createdAt           DateTime                @default(now()) @map("created_at")
+  updatedAt           DateTime                @updatedAt @map("updated_at")
+  isArchived          Boolean                 @default(false) @map("is_archived")
+  tenant              Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  batch               Batch                   @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  createdByUser       User                    @relation("UserCreatedTask", fields: [createdBy], references: [id])
+  submissions         StudentTaskSubmission[]
 
   @@index([tenantId])
   @@index([batchId])
@@ -1255,9 +1324,9 @@ model StudentTaskSubmission {
   createdAt   DateTime         @default(now()) @map("created_at")
   updatedAt   DateTime         @updatedAt @map("updated_at")
 
-  task          Task    @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  student       Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  gradedByUser  User?   @relation("SubmissionGradedBy", fields: [gradedBy], references: [id])
+  task         Task    @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  student      Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  gradedByUser User?   @relation("SubmissionGradedBy", fields: [gradedBy], references: [id])
 
   @@unique([taskId, studentId])
   @@index([taskId])
@@ -1273,7 +1342,7 @@ model StudentTaskSubmission {
 model FeePlan {
   id             String   @id @default(uuid()) @db.Uuid
   tenantId       String   @map("tenant_id") @db.Uuid
-  courseId        String?  @map("course_id") @db.Uuid
+  courseId       String?  @map("course_id") @db.Uuid
   name           String   @db.VarChar(200)
   feeType        FeeType  @default(MONTHLY) @map("fee_type")
   totalAmount    Decimal  @map("total_amount") @db.Decimal(10, 2)
@@ -1294,23 +1363,24 @@ model FeePlan {
 }
 
 model FeeDiscount {
-  id          String   @id @default(uuid()) @db.Uuid
-  feePlanId   String   @map("fee_plan_id") @db.Uuid
-  name        String   @db.VarChar(100)
-  type        String   @db.VarChar(20) /// PERCENTAGE or FLAT
-  value       Decimal  @db.Decimal(10, 2)
-  code        String?  @db.VarChar(30)
-  maxUses     Int?     @map("max_uses")
-  usedCount   Int      @default(0) @map("used_count")
-  validFrom   DateTime? @map("valid_from") @db.Date
-  validTo     DateTime? @map("valid_to") @db.Date
-  isActive    Boolean  @default(true) @map("is_active")
-  createdAt   DateTime @default(now()) @map("created_at")
+  id        String    @id @default(uuid()) @db.Uuid
+  feePlanId String    @map("fee_plan_id") @db.Uuid
+  name      String    @db.VarChar(100)
+  type      String    @db.VarChar(20) /// PERCENTAGE or FLAT
+  value     Decimal   @db.Decimal(10, 2)
+  code      String?   @db.VarChar(30)
+  maxUses   Int?      @map("max_uses")
+  usedCount Int       @default(0) @map("used_count")
+  validFrom DateTime? @map("valid_from") @db.Date
+  validTo   DateTime? @map("valid_to") @db.Date
+  isActive  Boolean   @default(true) @map("is_active")
+  createdAt DateTime  @default(now()) @map("created_at")
 
   feePlan FeePlan @relation(fields: [feePlanId], references: [id], onDelete: Cascade)
 
   @@map("fee_discounts")
 }
+
 // ═══════════════════════════════════════════════════════════════
 // 9. FINANCE / ACCOUNTING FOUNDATION
 // ═══════════════════════════════════════════════════════════════
@@ -1391,18 +1461,18 @@ model Transaction {
 // ═══════════════════════════════════════════════════════════════
 
 model CertificateTemplate {
-  id           String   @id @default(uuid()) @db.Uuid
-  tenantId     String   @map("tenant_id") @db.Uuid
-  name         String   @db.VarChar(200)
-  htmlContent  String   @map("html_content") @db.Text
-  cssStyles    String?  @map("css_styles") @db.Text
-  variables    Json?    /// Template variables schema
-  orientation  String   @default("landscape") @db.VarChar(10)
-  paperSize    String   @default("A4") @map("paper_size") @db.VarChar(10)
-  isDefault    Boolean  @default(false) @map("is_default")
-  isActive     Boolean  @default(true) @map("is_active")
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  id          String   @id @default(uuid()) @db.Uuid
+  tenantId    String   @map("tenant_id") @db.Uuid
+  name        String   @db.VarChar(200)
+  htmlContent String   @map("html_content") @db.Text
+  cssStyles   String?  @map("css_styles") @db.Text
+  variables   Json? /// Template variables schema
+  orientation String   @default("landscape") @db.VarChar(10)
+  paperSize   String   @default("A4") @map("paper_size") @db.VarChar(10)
+  isDefault   Boolean  @default(false) @map("is_default")
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
   tenant       Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   certificates Certificate[]
@@ -1412,21 +1482,21 @@ model CertificateTemplate {
 }
 
 model Certificate {
-  id          String   @id @default(uuid()) @db.Uuid
-  tenantId    String   @map("tenant_id") @db.Uuid
-  studentId   String   @map("student_id") @db.Uuid
-  templateId  String   @map("template_id") @db.Uuid
-  certNumber  String   @unique @map("cert_number") @db.VarChar(50)
-  courseName  String   @map("course_name") @db.VarChar(200)
-  issuedDate  DateTime @map("issued_date") @db.Date
-  pdfUrl      String?  @map("pdf_url") @db.VarChar(500)
-  data        Json?    /// Rendered data snapshot
-  revokedAt   DateTime? @map("revoked_at")
-  createdAt   DateTime @default(now()) @map("created_at")
+  id         String    @id @default(uuid()) @db.Uuid
+  tenantId   String    @map("tenant_id") @db.Uuid
+  studentId  String    @map("student_id") @db.Uuid
+  templateId String    @map("template_id") @db.Uuid
+  certNumber String    @unique @map("cert_number") @db.VarChar(50)
+  courseName String    @map("course_name") @db.VarChar(200)
+  issuedDate DateTime  @map("issued_date") @db.Date
+  pdfUrl     String?   @map("pdf_url") @db.VarChar(500)
+  data       Json? /// Rendered data snapshot
+  revokedAt  DateTime? @map("revoked_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
 
-  tenant        Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  student       Student                 @relation(fields: [studentId], references: [id])
-  template      CertificateTemplate     @relation(fields: [templateId], references: [id])
+  tenant        Tenant                    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  student       Student                   @relation(fields: [studentId], references: [id])
+  template      CertificateTemplate       @relation(fields: [templateId], references: [id])
   verifications CertificateVerification[]
 
   @@index([tenantId])
@@ -1451,13 +1521,13 @@ model CertificateVerification {
 // ═══════════════════════════════════════════════════════════════
 
 model DashboardWidget {
-  id        String  @id @default(uuid()) @db.Uuid
-  tenantId  String  @map("tenant_id") @db.Uuid
-  title     String  @db.VarChar(200)
-  type      String  @db.VarChar(50) /// chart, counter, table, etc.
-  config    Json    /// Widget configuration
-  position  Int     @default(0)
-  isVisible Boolean @default(true) @map("is_visible")
+  id        String     @id @default(uuid()) @db.Uuid
+  tenantId  String     @map("tenant_id") @db.Uuid
+  title     String     @db.VarChar(200)
+  type      String     @db.VarChar(50) /// chart, counter, table, etc.
+  config    Json /// Widget configuration
+  position  Int        @default(0)
+  isVisible Boolean    @default(true) @map("is_visible")
   roles     UserRole[]
 
   tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -1467,13 +1537,13 @@ model DashboardWidget {
 }
 
 model AnalyticsSnapshot {
-  id         String   @id @default(uuid()) @db.Uuid
-  tenantId   String   @map("tenant_id") @db.Uuid
-  metric     String   @db.VarChar(100)
-  value      Decimal  @db.Decimal(12, 2)
-  dimensions Json?    /// Filters/dimensions for the metric
+  id           String   @id @default(uuid()) @db.Uuid
+  tenantId     String   @map("tenant_id") @db.Uuid
+  metric       String   @db.VarChar(100)
+  value        Decimal  @db.Decimal(12, 2)
+  dimensions   Json? /// Filters/dimensions for the metric
   snapshotDate DateTime @map("snapshot_date") @db.Date
-  createdAt  DateTime @default(now()) @map("created_at")
+  createdAt    DateTime @default(now()) @map("created_at")
 
   tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
@@ -1481,6 +1551,7 @@ model AnalyticsSnapshot {
   @@index([tenantId])
   @@map("analytics_snapshots")
 }
+
 // ═══════════════════════════════════════════════════════════════
 // SUPER ADMIN — 1. NOTIFICATION SYSTEM
 // ═══════════════════════════════════════════════════════════════
@@ -1532,17 +1603,25 @@ model Notification {
 }
 
 model NotificationLog {
-  id        String              @id @default(uuid()) @db.Uuid
-  channel   NotificationChannel
-  recipient String              @db.VarChar(255)
-  subject   String?             @db.VarChar(255)
-  body      String              @db.Text
-  status    String              @db.VarChar(30) /// SENT, FAILED, BOUNCED
-  errorMsg  String?             @map("error_msg") @db.Text
-  sentAt    DateTime            @default(now()) @map("sent_at")
+  id          String              @id @default(uuid()) @db.Uuid
+  channel     NotificationChannel
+  recipient   String              @db.VarChar(255)
+  subject     String?             @db.VarChar(255)
+  body        String              @db.Text
+  status      String              @db.VarChar(30) /// SENT, FAILED, BOUNCED, PENDING, RETRY
+  errorMsg    String?             @map("error_msg") @db.Text
+  eventType   String?             @map("event_type") @db.VarChar(100)
+  metadata    Json?
+  retryCount  Int                 @default(0) @map("retry_count")
+  sentAt      DateTime            @default(now()) @map("sent_at")
+  deliveredAt DateTime?           @map("delivered_at")
+  readAt      DateTime?           @map("read_at")
 
   @@index([sentAt])
   @@index([channel])
+  @@index([recipient])
+  @@index([status])
+  @@index([eventType])
   @@map("notification_logs")
 }
 
@@ -1567,38 +1646,68 @@ model UserDevice {
 // ═══════════════════════════════════════════════════════════════
 
 model Session {
-  id           String   @id @default(uuid()) @db.Uuid
-  userId       String   @map("user_id") @db.Uuid
-  token        String   @unique @db.Text
-  refreshToken String?  @map("refresh_token") @db.Text
-  ipAddress    String?  @map("ip_address") @db.VarChar(45)
-  userAgent    String?  @map("user_agent") @db.VarChar(500)
-  deviceInfo   String?  @map("device_info") @db.VarChar(500)
-  isActive     Boolean  @default(true) @map("is_active")
-  lastActivity DateTime @default(now()) @map("last_activity")
-  expiresAt    DateTime @map("expires_at")
-  createdAt    DateTime @default(now()) @map("created_at")
-  revokedAt    DateTime? @map("revoked_at")
+  id             String      @id @default(uuid()) @db.Uuid
+  userId         String      @map("user_id") @db.Uuid
+  token          String      @unique @db.Text
+  refreshToken   String?     @map("refresh_token") @db.Text
+  ipAddress      String?     @map("ip_address") @db.VarChar(45)
+  userAgent      String?     @map("user_agent") @db.VarChar(500)
+  deviceInfo     String?     @map("device_info") @db.VarChar(500)
+  browser        String?     @db.VarChar(100)
+  browserVersion String?     @map("browser_version") @db.VarChar(50)
+  os             String?     @db.VarChar(100)
+  osVersion      String?     @map("os_version") @db.VarChar(50)
+  deviceType     DeviceType  @default(UNKNOWN) @map("device_type")
+  deviceName     String?     @map("device_name") @db.VarChar(200)
+  location       String?     @db.VarChar(255)
+  city           String?     @db.VarChar(100)
+  country        String?     @db.VarChar(100)
+  countryCode    String?     @map("country_code") @db.VarChar(5)
+  latitude       Float?
+  longitude      Float?
+  loginMethod    LoginMethod @default(PASSWORD) @map("login_method")
+  isActive       Boolean     @default(true) @map("is_active")
+  lastActivity   DateTime    @default(now()) @map("last_activity")
+  expiresAt      DateTime    @map("expires_at")
+  createdAt      DateTime    @default(now()) @map("created_at")
+  revokedAt      DateTime?   @map("revoked_at")
+  revokeReason   String?     @map("revoke_reason") @db.VarChar(255)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([token])
   @@index([isActive])
+  @@index([createdAt])
+  @@index([ipAddress])
+  @@index([deviceType])
   @@map("sessions")
 }
 
 model SecurityEvent {
-  id        String   @id @default(uuid()) @db.Uuid
-  userId    String?  @map("user_id") @db.Uuid
-  tenantId  String?  @map("tenant_id") @db.Uuid
-  eventType String   @map("event_type") @db.VarChar(100)
-  severity  String   @default("INFO") @db.VarChar(20)
-  message   String   @db.Text
-  ipAddress String?  @map("ip_address") @db.VarChar(45)
-  userAgent String?  @map("user_agent") @db.VarChar(500)
-  metadata  Json?
-  createdAt DateTime @default(now()) @map("created_at")
+  id            String      @id @default(uuid()) @db.Uuid
+  userId        String?     @map("user_id") @db.Uuid
+  tenantId      String?     @map("tenant_id") @db.Uuid
+  eventType     String      @map("event_type") @db.VarChar(100)
+  category      String?     @db.VarChar(50)
+  severity      String      @default("INFO") @db.VarChar(20)
+  message       String      @db.Text
+  description   String?     @db.Text
+  ipAddress     String?     @map("ip_address") @db.VarChar(45)
+  userAgent     String?     @map("user_agent") @db.VarChar(500)
+  browser       String?     @db.VarChar(100)
+  os            String?     @db.VarChar(100)
+  deviceType    DeviceType? @map("device_type")
+  location      String?     @db.VarChar(255)
+  city          String?     @db.VarChar(100)
+  country       String?     @db.VarChar(100)
+  countryCode   String?     @map("country_code") @db.VarChar(5)
+  correlationId String?     @map("correlation_id") @db.VarChar(100)
+  metadata      Json?
+  resolved      Boolean     @default(false)
+  resolvedBy    String?     @map("resolved_by") @db.Uuid
+  resolvedAt    DateTime?   @map("resolved_at")
+  createdAt     DateTime    @default(now()) @map("created_at")
 
   user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
   tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -1608,60 +1717,97 @@ model SecurityEvent {
   @@index([eventType])
   @@index([severity])
   @@index([createdAt])
+  @@index([correlationId])
+  @@index([category])
+  @@index([resolved])
   @@map("security_events")
 }
 
 model AuditLog {
-  id         String      @id @default(uuid()) @db.Uuid
-  userId     String?     @map("user_id") @db.Uuid
-  tenantId   String?     @map("tenant_id") @db.Uuid
-  action     AuditAction
-  entity     String      @db.VarChar(100)
-  entityId   String?     @map("entity_id") @db.VarChar(100)
-  oldValues  Json?       @map("old_values")
-  newValues  Json?       @map("new_values")
-  ipAddress  String?     @map("ip_address") @db.VarChar(45)
-  userAgent  String?     @map("user_agent") @db.VarChar(500)
-  createdAt  DateTime    @default(now()) @map("created_at")
+  id            String      @id @default(uuid()) @db.Uuid
+  userId        String?     @map("user_id") @db.Uuid
+  tenantId      String?     @map("tenant_id") @db.Uuid
+  action        AuditAction
+  entity        String      @db.VarChar(100)
+  entityId      String?     @map("entity_id") @db.VarChar(100)
+  oldValues     Json?       @map("old_values")
+  newValues     Json?       @map("new_values")
+  ipAddress     String?     @map("ip_address") @db.VarChar(45)
+  userAgent     String?     @map("user_agent") @db.VarChar(500)
+  browser       String?     @db.VarChar(100)
+  os            String?     @db.VarChar(100)
+  location      String?     @db.VarChar(255)
+  correlationId String?     @map("correlation_id") @db.VarChar(100)
+  requestId     String?     @map("request_id") @db.VarChar(100)
+  metadata      Json?
+  description   String?     @db.Text
+  createdAt     DateTime    @default(now()) @map("created_at")
 
   user User? @relation(fields: [userId], references: [id])
 
   @@index([entity, entityId])
   @@index([userId])
   @@index([createdAt])
+  @@index([action])
+  @@index([correlationId])
+  @@index([tenantId])
   @@map("audit_logs")
 }
 
 model ActivityLog {
-  id        String   @id @default(uuid()) @db.Uuid
-  userId    String?  @map("user_id") @db.Uuid
-  tenantId  String?  @map("tenant_id") @db.Uuid
-  activity  String   @db.VarChar(255)
-  details   Json?
-  ipAddress String?  @map("ip_address") @db.VarChar(45)
-  createdAt DateTime @default(now()) @map("created_at")
+  id              String   @id @default(uuid()) @db.Uuid
+  userId          String?  @map("user_id") @db.Uuid
+  tenantId        String?  @map("tenant_id") @db.Uuid
+  activity        String   @db.VarChar(255)
+  action          String?  @db.VarChar(50)
+  resource        String?  @db.VarChar(100)
+  resourceId      String?  @map("resource_id") @db.VarChar(100)
+  details         Json?
+  previousValues  Json?    @map("previous_values")
+  newValues       Json?    @map("new_values")
+  ipAddress       String?  @map("ip_address") @db.VarChar(45)
+  userAgent       String?  @map("user_agent") @db.VarChar(500)
+  requestSource   String?  @map("request_source") @db.VarChar(50)
+  executionStatus String?  @map("execution_status") @db.VarChar(20)
+  correlationId   String?  @map("correlation_id") @db.VarChar(100)
+  projectId       String?  @map("project_id") @db.Uuid
+  workspaceId     String?  @map("workspace_id") @db.Uuid
+  createdAt       DateTime @default(now()) @map("created_at")
 
   user User? @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([createdAt])
+  @@index([resource])
+  @@index([action])
+  @@index([tenantId])
+  @@index([correlationId])
   @@map("activity_logs")
 }
 
 model ApiLog {
-  id           String   @id @default(uuid()) @db.Uuid
-  method       String   @db.VarChar(10)
-  path         String   @db.VarChar(500)
-  statusCode   Int      @map("status_code")
-  responseTime Int      @map("response_time") /// in ms
-  userId       String?  @map("user_id") @db.Uuid
-  ipAddress    String?  @map("ip_address") @db.VarChar(45)
-  requestBody  Json?    @map("request_body")
-  errorMessage String?  @map("error_message") @db.Text
-  createdAt    DateTime @default(now()) @map("created_at")
+  id            String   @id @default(uuid()) @db.Uuid
+  method        String   @db.VarChar(10)
+  path          String   @db.VarChar(500)
+  statusCode    Int      @map("status_code")
+  responseTime  Int      @map("response_time") /// in ms
+  userId        String?  @map("user_id") @db.Uuid
+  tenantId      String?  @map("tenant_id") @db.Uuid
+  ipAddress     String?  @map("ip_address") @db.VarChar(45)
+  userAgent     String?  @map("user_agent") @db.VarChar(500)
+  requestBody   Json?    @map("request_body")
+  responseBody  Json?    @map("response_body")
+  errorMessage  String?  @map("error_message") @db.Text
+  requestId     String?  @map("request_id") @db.VarChar(100)
+  correlationId String?  @map("correlation_id") @db.VarChar(100)
+  createdAt     DateTime @default(now()) @map("created_at")
 
   @@index([path])
   @@index([createdAt])
+  @@index([statusCode])
+  @@index([userId])
+  @@index([tenantId])
+  @@index([correlationId])
   @@map("api_logs")
 }
 
@@ -1670,19 +1816,19 @@ model ApiLog {
 // ═══════════════════════════════════════════════════════════════
 
 model PlatformLead {
-  id           String   @id @default(uuid()) @db.Uuid
-  name         String   @db.VarChar(150)
-  email        String   @db.VarChar(255)
-  phone        String   @db.VarChar(20)
-  companyName  String?  @map("company_name") @db.VarChar(200)
-  industry     String?  @db.VarChar(100)
-  source       String?  @db.VarChar(100)
-  status       String   @default("NEW") @db.VarChar(30)
-  assignedTo   String?  @map("assigned_to") @db.Uuid
-  notes        String?  @db.Text
-  convertedAt  DateTime? @map("converted_at")
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  id          String    @id @default(uuid()) @db.Uuid
+  name        String    @db.VarChar(150)
+  email       String    @db.VarChar(255)
+  phone       String    @db.VarChar(20)
+  companyName String?   @map("company_name") @db.VarChar(200)
+  industry    String?   @db.VarChar(100)
+  source      String?   @db.VarChar(100)
+  status      String    @default("NEW") @db.VarChar(30)
+  assignedTo  String?   @map("assigned_to") @db.Uuid
+  notes       String?   @db.Text
+  convertedAt DateTime? @map("converted_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
 
   followups PlatformFollowup[]
   customer  PlatformCustomer?
@@ -1693,13 +1839,13 @@ model PlatformLead {
 }
 
 model PlatformFollowup {
-  id        String   @id @default(uuid()) @db.Uuid
-  leadId    String   @map("lead_id") @db.Uuid
-  notes     String   @db.Text
-  outcome   String?  @db.VarChar(100)
+  id        String    @id @default(uuid()) @db.Uuid
+  leadId    String    @map("lead_id") @db.Uuid
+  notes     String    @db.Text
+  outcome   String?   @db.VarChar(100)
   nextDate  DateTime? @map("next_date")
-  createdBy String?  @map("created_by") @db.Uuid
-  createdAt DateTime @default(now()) @map("created_at")
+  createdBy String?   @map("created_by") @db.Uuid
+  createdAt DateTime  @default(now()) @map("created_at")
 
   lead PlatformLead @relation(fields: [leadId], references: [id], onDelete: Cascade)
 
@@ -1708,25 +1854,25 @@ model PlatformFollowup {
 }
 
 model PlatformCustomer {
-  id             String   @id @default(uuid()) @db.Uuid
-  leadId         String?  @unique @map("lead_id") @db.Uuid
-  tenantId       String?  @map("tenant_id") @db.Uuid
-  companyName    String   @map("company_name") @db.VarChar(200)
-  contactName    String   @map("contact_name") @db.VarChar(150)
-  email          String   @db.VarChar(255)
-  phone          String   @db.VarChar(20)
-  industry       String?  @db.VarChar(100)
-  status         String   @default("ACTIVE") @db.VarChar(30)
-  csmId          String?  @map("csm_id") @db.Uuid
-  onboardedAt    DateTime @default(now()) @map("onboarded_at")
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
+  id          String   @id @default(uuid()) @db.Uuid
+  leadId      String?  @unique @map("lead_id") @db.Uuid
+  tenantId    String?  @map("tenant_id") @db.Uuid
+  companyName String   @map("company_name") @db.VarChar(200)
+  contactName String   @map("contact_name") @db.VarChar(150)
+  email       String   @db.VarChar(255)
+  phone       String   @db.VarChar(20)
+  industry    String?  @db.VarChar(100)
+  status      String   @default("ACTIVE") @db.VarChar(30)
+  csmId       String?  @map("csm_id") @db.Uuid
+  onboardedAt DateTime @default(now()) @map("onboarded_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
-  lead          PlatformLead?          @relation(fields: [leadId], references: [id])
-  csm           CustomerSuccessManager? @relation(fields: [csmId], references: [id])
-  healthScores  CustomerHealthScore[]
-  interactions  CustomerInteraction[]
-  feedbacks     CustomerFeedback[]
+  lead         PlatformLead?           @relation(fields: [leadId], references: [id])
+  csm          CustomerSuccessManager? @relation(fields: [csmId], references: [id])
+  healthScores CustomerHealthScore[]
+  interactions CustomerInteraction[]
+  feedbacks    CustomerFeedback[]
 
   @@index([status])
   @@map("platform_customers")
@@ -1737,16 +1883,16 @@ model PlatformCustomer {
 // ═══════════════════════════════════════════════════════════════
 
 model ReferralProgram {
-  id              String   @id @default(uuid()) @db.Uuid
-  name            String   @db.VarChar(200)
-  description     String?  @db.Text
-  rewardType      String   @map("reward_type") @db.VarChar(30) /// DISCOUNT, CREDIT, CASH
-  rewardValue     Decimal  @map("reward_value") @db.Decimal(10, 2)
-  maxRedemptions  Int?     @map("max_redemptions")
-  validFrom       DateTime @map("valid_from") @db.Date
-  validTo         DateTime? @map("valid_to") @db.Date
-  isActive        Boolean  @default(true) @map("is_active")
-  createdAt       DateTime @default(now()) @map("created_at")
+  id             String    @id @default(uuid()) @db.Uuid
+  name           String    @db.VarChar(200)
+  description    String?   @db.Text
+  rewardType     String    @map("reward_type") @db.VarChar(30) /// DISCOUNT, CREDIT, CASH
+  rewardValue    Decimal   @map("reward_value") @db.Decimal(10, 2)
+  maxRedemptions Int?      @map("max_redemptions")
+  validFrom      DateTime  @map("valid_from") @db.Date
+  validTo        DateTime? @map("valid_to") @db.Date
+  isActive       Boolean   @default(true) @map("is_active")
+  createdAt      DateTime  @default(now()) @map("created_at")
 
   codes   ReferralCode[]
   rewards ReferralReward[]
@@ -1755,14 +1901,14 @@ model ReferralProgram {
 }
 
 model ReferralCode {
-  id          String   @id @default(uuid()) @db.Uuid
-  programId   String   @map("program_id") @db.Uuid
-  code        String   @unique @db.VarChar(30)
-  referrerId  String?  @map("referrer_id") @db.Uuid
-  usedCount   Int      @default(0) @map("used_count")
-  maxUses     Int?     @map("max_uses")
-  isActive    Boolean  @default(true) @map("is_active")
-  createdAt   DateTime @default(now()) @map("created_at")
+  id         String   @id @default(uuid()) @db.Uuid
+  programId  String   @map("program_id") @db.Uuid
+  code       String   @unique @db.VarChar(30)
+  referrerId String?  @map("referrer_id") @db.Uuid
+  usedCount  Int      @default(0) @map("used_count")
+  maxUses    Int?     @map("max_uses")
+  isActive   Boolean  @default(true) @map("is_active")
+  createdAt  DateTime @default(now()) @map("created_at")
 
   program ReferralProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
 
@@ -1771,37 +1917,38 @@ model ReferralCode {
 }
 
 model ReferralReward {
-  id          String   @id @default(uuid()) @db.Uuid
-  programId   String   @map("program_id") @db.Uuid
-  referrerId  String   @map("referrer_id") @db.Uuid
-  refereeId   String   @map("referee_id") @db.Uuid
-  rewardType  String   @map("reward_type") @db.VarChar(30)
-  rewardValue Decimal  @map("reward_value") @db.Decimal(10, 2)
-  status      String   @default("PENDING") @db.VarChar(30)
+  id          String    @id @default(uuid()) @db.Uuid
+  programId   String    @map("program_id") @db.Uuid
+  referrerId  String    @map("referrer_id") @db.Uuid
+  refereeId   String    @map("referee_id") @db.Uuid
+  rewardType  String    @map("reward_type") @db.VarChar(30)
+  rewardValue Decimal   @map("reward_value") @db.Decimal(10, 2)
+  status      String    @default("PENDING") @db.VarChar(30)
   redeemedAt  DateTime? @map("redeemed_at")
-  createdAt   DateTime @default(now()) @map("created_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
 
   program ReferralProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
 
   @@map("referral_rewards")
 }
+
 // ═══════════════════════════════════════════════════════════════
 // SUPER ADMIN — 6. PLATFORM BILLING (Refunds + Payment Transactions)
 // ═══════════════════════════════════════════════════════════════
 
 model PaymentTransaction {
-  id            String        @id @default(uuid()) @db.Uuid
-  tenantId      String?       @map("tenant_id") @db.Uuid
-  amount        Decimal       @db.Decimal(10, 2)
-  currency      String        @default("INR") @db.VarChar(3)
-  mode          PaymentMode   @default(ONLINE)
-  status        PaymentStatus @default(PENDING)
-  gatewayName   String?       @map("gateway_name") @db.VarChar(50)
-  gatewayRef    String?       @map("gateway_ref") @db.VarChar(255)
-  gatewayResponse Json?       @map("gateway_response")
-  description   String?       @db.Text
-  paidAt        DateTime?     @map("paid_at")
-  createdAt     DateTime      @default(now()) @map("created_at")
+  id              String        @id @default(uuid()) @db.Uuid
+  tenantId        String?       @map("tenant_id") @db.Uuid
+  amount          Decimal       @db.Decimal(10, 2)
+  currency        String        @default("INR") @db.VarChar(3)
+  mode            PaymentMode   @default(ONLINE)
+  status          PaymentStatus @default(PENDING)
+  gatewayName     String?       @map("gateway_name") @db.VarChar(50)
+  gatewayRef      String?       @map("gateway_ref") @db.VarChar(255)
+  gatewayResponse Json?         @map("gateway_response")
+  description     String?       @db.Text
+  paidAt          DateTime?     @map("paid_at")
+  createdAt       DateTime      @default(now()) @map("created_at")
 
   refunds Refund[]
 
@@ -1811,14 +1958,14 @@ model PaymentTransaction {
 }
 
 model Refund {
-  id               String        @id @default(uuid()) @db.Uuid
-  transactionId    String        @map("transaction_id") @db.Uuid
-  amount           Decimal       @db.Decimal(10, 2)
-  reason           String?       @db.Text
-  status           PaymentStatus @default(PENDING)
-  gatewayRef       String?       @map("gateway_ref") @db.VarChar(255)
-  processedAt      DateTime?     @map("processed_at")
-  createdAt        DateTime      @default(now()) @map("created_at")
+  id            String        @id @default(uuid()) @db.Uuid
+  transactionId String        @map("transaction_id") @db.Uuid
+  amount        Decimal       @db.Decimal(10, 2)
+  reason        String?       @db.Text
+  status        PaymentStatus @default(PENDING)
+  gatewayRef    String?       @map("gateway_ref") @db.VarChar(255)
+  processedAt   DateTime?     @map("processed_at")
+  createdAt     DateTime      @default(now()) @map("created_at")
 
   transaction PaymentTransaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
 
@@ -1887,9 +2034,9 @@ model CustomerSuccessManager {
 model CustomerHealthScore {
   id         String       @id @default(uuid()) @db.Uuid
   customerId String       @map("customer_id") @db.Uuid
-  score      Int          /// 0-100
+  score      Int /// 0-100
   status     HealthStatus @default(HEALTHY)
-  factors    Json?        /// Scoring factors breakdown
+  factors    Json? /// Scoring factors breakdown
   scoredAt   DateTime     @default(now()) @map("scored_at")
 
   customer PlatformCustomer @relation(fields: [customerId], references: [id], onDelete: Cascade)
@@ -1899,13 +2046,13 @@ model CustomerHealthScore {
 }
 
 model CustomerInteraction {
-  id           String   @id @default(uuid()) @db.Uuid
-  customerId   String   @map("customer_id") @db.Uuid
-  type         String   @db.VarChar(50) /// CALL, EMAIL, MEETING, DEMO
-  summary      String   @db.Text
-  conductedBy  String?  @map("conducted_by") @db.Uuid
-  conductedAt  DateTime @default(now()) @map("conducted_at")
-  createdAt    DateTime @default(now()) @map("created_at")
+  id          String   @id @default(uuid()) @db.Uuid
+  customerId  String   @map("customer_id") @db.Uuid
+  type        String   @db.VarChar(50) /// CALL, EMAIL, MEETING, DEMO
+  summary     String   @db.Text
+  conductedBy String?  @map("conducted_by") @db.Uuid
+  conductedAt DateTime @default(now()) @map("conducted_at")
+  createdAt   DateTime @default(now()) @map("created_at")
 
   customer PlatformCustomer @relation(fields: [customerId], references: [id], onDelete: Cascade)
 
@@ -1914,14 +2061,14 @@ model CustomerInteraction {
 }
 
 model CustomerFeedback {
-  id         String   @id @default(uuid()) @db.Uuid
-  customerId String   @map("customer_id") @db.Uuid
-  rating     Int      /// 1-5
-  category   String?  @db.VarChar(100)
-  feedback   String   @db.Text
-  response   String?  @db.Text
+  id          String    @id @default(uuid()) @db.Uuid
+  customerId  String    @map("customer_id") @db.Uuid
+  rating      Int /// 1-5
+  category    String?   @db.VarChar(100)
+  feedback    String    @db.Text
+  response    String?   @db.Text
   respondedAt DateTime? @map("responded_at")
-  createdAt  DateTime @default(now()) @map("created_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
 
   customer PlatformCustomer @relation(fields: [customerId], references: [id], onDelete: Cascade)
 
@@ -1948,16 +2095,16 @@ model AnnouncementTemplate {
 }
 
 model PlatformNotification {
-  id         String   @id @default(uuid()) @db.Uuid
-  templateId String?  @map("template_id") @db.Uuid
-  title      String   @db.VarChar(255)
-  body       String   @db.Text
-  type       String   @db.VarChar(50)
-  targetType String   @map("target_type") @db.VarChar(30) /// ALL, TENANT, ROLE
-  targetIds  String[] @map("target_ids") @db.Uuid
+  id          String    @id @default(uuid()) @db.Uuid
+  templateId  String?   @map("template_id") @db.Uuid
+  title       String    @db.VarChar(255)
+  body        String    @db.Text
+  type        String    @db.VarChar(50)
+  targetType  String    @map("target_type") @db.VarChar(30) /// ALL, TENANT, ROLE
+  targetIds   String[]  @map("target_ids") @db.Uuid
   publishedAt DateTime? @map("published_at")
-  expiresAt  DateTime?  @map("expires_at")
-  createdAt  DateTime @default(now()) @map("created_at")
+  expiresAt   DateTime? @map("expires_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
 
   template AnnouncementTemplate? @relation(fields: [templateId], references: [id])
 
@@ -2000,12 +2147,12 @@ model PlatformRevenue {
 }
 
 model PlatformProfitability {
-  id          String   @id @default(uuid()) @db.Uuid
-  period      String   @db.VarChar(7) /// YYYY-MM format
-  totalRevenue Decimal @map("total_revenue") @db.Decimal(12, 2)
-  totalExpense Decimal @map("total_expense") @db.Decimal(12, 2)
-  netProfit    Decimal @map("net_profit") @db.Decimal(12, 2)
-  margin       Decimal @db.Decimal(5, 2) /// percentage
+  id           String   @id @default(uuid()) @db.Uuid
+  period       String   @db.VarChar(7) /// YYYY-MM format
+  totalRevenue Decimal  @map("total_revenue") @db.Decimal(12, 2)
+  totalExpense Decimal  @map("total_expense") @db.Decimal(12, 2)
+  netProfit    Decimal  @map("net_profit") @db.Decimal(12, 2)
+  margin       Decimal  @db.Decimal(5, 2) /// percentage
   metadata     Json?
   calculatedAt DateTime @default(now()) @map("calculated_at")
 
@@ -2014,15 +2161,15 @@ model PlatformProfitability {
 }
 
 model CommissionPayout {
-  id          String        @id @default(uuid()) @db.Uuid
-  referrerId  String        @map("referrer_id") @db.Uuid
-  tenantId    String?       @map("tenant_id") @db.Uuid
-  amount      Decimal       @db.Decimal(10, 2)
-  currency    String        @default("INR") @db.VarChar(3)
-  status      PaymentStatus @default(PENDING)
-  paidAt      DateTime?     @map("paid_at")
-  reference   String?       @db.VarChar(255)
-  createdAt   DateTime      @default(now()) @map("created_at")
+  id         String        @id @default(uuid()) @db.Uuid
+  referrerId String        @map("referrer_id") @db.Uuid
+  tenantId   String?       @map("tenant_id") @db.Uuid
+  amount     Decimal       @db.Decimal(10, 2)
+  currency   String        @default("INR") @db.VarChar(3)
+  status     PaymentStatus @default(PENDING)
+  paidAt     DateTime?     @map("paid_at")
+  reference  String?       @db.VarChar(255)
+  createdAt  DateTime      @default(now()) @map("created_at")
 
   @@index([referrerId])
   @@index([status])

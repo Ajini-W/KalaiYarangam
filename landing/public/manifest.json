@@ -1,0 +1,34 @@
+{
+  "name": "kalaiArangam — Academy & Business Management",
+  "short_name": "kalaiArangam",
+  "description": "One platform to manage your entire academy or business.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FAFAF8",
+  "theme_color": "#F5A623",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "1024x1024",
+      "type": "image/png"
+    }
+  ],
+  "categories": [
+    "business",
+    "education"
+  ],
+  "lang": "en",
+  "scope": "/",
+  "prefer_related_applications": false
+}

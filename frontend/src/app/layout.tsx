@@ -14,9 +14,9 @@ export const metadata: Metadata = {
   keywords: ["ERP", "Training Management", "Rental Management", "Event Management"],
   icons: {
     icon: [
-      { url: "/icons/icon.png", sizes: "any", type: "image/png" },
-      { url: "/icons/icon.png", sizes: "192x192", type: "image/png" },
-      { url: "/icons/icon.png", sizes: "512x512", type: "image/png" },
+      { url: "/icons/logo.png", sizes: "any", type: "image/png" },
+      { url: "/icons/logo.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/logo.png", sizes: "512x512", type: "image/png" },
     ],
     apple: [
       { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
@@ -82,13 +82,13 @@ export const metadata: Metadata = {
     siteName: "KalaiArangam",
     locale: "en_US",
     type: "website",
-    images: [{ url: "/icons/icon.png", width: 512, height: 512, alt: "KalaiArangam" }],
+    images: [{ url: "/icons/logo.png", width: 512, height: 512, alt: "KalaiArangam" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "KalaiArangam",
     description: "ERP Platform",
-    images: ["/icons/icon.png"],
+    images: ["/icons/logo.png"],
   },
   alternates: { canonical: "https://KalaiArangam.com" },
 };

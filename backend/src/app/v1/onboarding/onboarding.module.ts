@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { env } from '@/config';
+import { AuditService } from '@/app/v1/security/audit.service';
 import { OnboardingController } from './onboarding.controller';
 import { OnboardingService } from './onboarding.service';
 
@@ -12,7 +13,7 @@ import { OnboardingService } from './onboarding.service';
     }),
   ],
   controllers: [OnboardingController],
-  providers: [OnboardingService],
+  providers: [OnboardingService, AuditService],
   exports: [OnboardingService],
 })
 export class OnboardingModule {}
