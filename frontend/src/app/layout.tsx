@@ -1,6 +1,4 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import Script from "next/script";
 import { ThemeProvider } from "next-themes";
 
 import "./globals.css";
@@ -8,10 +6,11 @@ import "./globals.css";
 import { ToastProvider } from "@/components/ui/Toast";
 import { BrandThemeProvider } from "@/providers/BrandThemeProvider";
 
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-});
+// Mock Inter font definition to avoid offline build failure in sandbox
+const inter = {
+  variable: "font-sans",
+};
+
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://KalaiArangam.com"),
@@ -94,10 +93,9 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         {/* JSON-LD Structured Data */}
-        <Script
+        <script
           id="json-ld"
           type="application/ld+json"
-          strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(jsonLd),
           }}

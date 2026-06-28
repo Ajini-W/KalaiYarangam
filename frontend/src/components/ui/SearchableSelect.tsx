@@ -166,7 +166,7 @@ export function SearchableSelect({
       {error && <p role="alert" className="text-xs text-danger">{error}</p>}
 
       {open && (
-        <div className="absolute z-50 top-full mt-1 w-full rounded-[var(--radius-sm)] border border-border bg-surface shadow-[var(--shadow-3)]">
+        <div className="mt-1 w-full rounded-[var(--radius-sm)] border border-border bg-surface shadow-[var(--shadow-1)]">
           <div className="max-h-48 overflow-y-auto">
             {loading ? (
               <div className="px-3 py-6 text-center text-sm text-text-secondary">Loading...</div>

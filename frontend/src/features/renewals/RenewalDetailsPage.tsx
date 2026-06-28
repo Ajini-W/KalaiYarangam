@@ -55,21 +55,18 @@ export default function RenewalDetailsPage({ id }: { id: string }) {
       switch (actionConfirm.action) {
         case "approve":
           await approveRenewal(renewal.id);
-          toast.success("Renewal approved");
           break;
         case "reject":
           await rejectRenewal(renewal.id);
-          toast.success("Renewal rejected");
           break;
         case "cancel":
           await cancelRenewal(renewal.id);
-          toast.success("Renewal cancelled");
           break;
       }
       setActionConfirm({ open: false, action: null });
       await fetchRenewal();
     } catch {
-      toast.error(`Failed to ${actionConfirm.action} renewal`);
+      // Toast is handled in the hook
     } finally {
       setActionSaving(false);
     }
