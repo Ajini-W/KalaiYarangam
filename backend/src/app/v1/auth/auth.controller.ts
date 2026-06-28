@@ -1,10 +1,11 @@
-import { Body, Controller, Get, HttpCode, Post, Put, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Post, Put, Redirect, Req, UseGuards } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { Request, Response } from 'express';
+import { Request } from 'express';
 import { Throttle } from '@nestjs/throttler';
 import { CurrentUser, Public } from '@/common/decorators';
 import { AuthThrottlerGuard, GoogleOAuthGuard } from '@/common/guards';
 import { AuthenticatedUser } from '@/common/interfaces';
+import { env } from '@/config';
 import { AuthService } from './auth.service';
 import {
   AuthErrorLogDto,
@@ -109,16 +110,14 @@ export class AuthController {
   @Public()
   @Get('google/callback')
   @UseGuards(GoogleOAuthGuard)
+  @Redirect()
   @ApiOperation({ summary: 'Google OAuth callback' })
-  async googleAuthRedirect(@Req() req: Request, @Res() res: Response) {
+  async googleAuthRedirect(@Req() req: Request) {
     const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0] ?? req.ip;
     const result = await this.authService.googleLogin(req as any, ip, req.headers['user-agent']);
 
     const { accessToken, refreshToken } = result.data;
-    const frontendUrl = process.env.APP_URL;
-    res.redirect(
-      `${frontendUrl}/auth/callback?accessToken=${accessToken}&refreshToken=${refreshToken}`,
-    );
+    return { url: `${env.APP_URL}/auth/callback?accessToken=${accessToken}&refreshToken=${refreshToken}` };
   }
 
   @Get('me')

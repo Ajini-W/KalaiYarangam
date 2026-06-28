@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { Card, CardHeader, CardTitle, CardBody } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
@@ -46,6 +47,7 @@ function RequestAccessForm() {
       if (res.data?.tokens) {
         const { accessToken, refreshToken, user } = res.data.tokens;
         setTokens(accessToken, refreshToken);
+        localStorage.setItem("accessToken", accessToken);
         useAuthStore.getState().setUser(user as any);
       }
 
@@ -66,44 +68,64 @@ function RequestAccessForm() {
 
   if (!tenantId) {
     return (
-      <div className="py-12 text-center">
+      <motion.div
+        className="py-12 text-center"
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35 }}
+      >
         <h2 className="text-xl font-semibold text-text-primary">No Organization Selected</h2>
         <p className="mt-2 text-text-secondary">Please search and select an organization first.</p>
         <Button className="mt-4" onClick={() => router.push("/onboarding/tenant-search")}>
           Search Organizations
         </Button>
-      </div>
+      </motion.div>
     );
   }
 
   return (
-    <div>
-      <div className="mb-8">
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: "easeOut" }}
+    >
+      <motion.div
+        className="mb-8"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.05 }}
+      >
         <h1 className="text-2xl font-bold text-text-primary">Request Access</h1>
         <p className="mt-1 text-sm text-text-secondary">
           Submit a request to join this organization. The owner will review and approve it.
         </p>
-      </div>
+      </motion.div>
 
-      <Card className="max-w-xl">
-        <CardBody className="space-y-4">
-          <Input label="Organization ID" value={tenantId} disabled />
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.1 }}
+      >
+        <Card className="max-w-xl">
+          <CardBody className="space-y-4">
+            <Input label="Organization ID" value={tenantId} disabled />
 
-          <Input label="Skills (comma-separated)" placeholder="e.g. Management, Operations, Training" value={skills} onChange={(e) => setSkills(e.target.value)} />
+            <Input label="Skills (comma-separated)" placeholder="e.g. Management, Operations, Training" value={skills} onChange={(e) => setSkills(e.target.value)} />
 
-          <Textarea label="Notes / Message" placeholder="Add any additional information for the owner..." value={notes} onChange={(e) => setNotes(e.target.value)} rows={4} />
+            <Textarea label="Notes / Message" placeholder="Add any additional information for the owner..." value={notes} onChange={(e) => setNotes(e.target.value)} rows={4} />
 
-          <div className="flex justify-end gap-3">
-            <Button variant="ghost" onClick={() => router.push("/onboarding/tenant-search")}>
-              Back
-            </Button>
-            <Button onClick={handleSubmit} loading={saving}>
-              Submit Request
-            </Button>
-          </div>
-        </CardBody>
-      </Card>
-    </div>
+            <div className="flex justify-end gap-3">
+              <Button variant="ghost" onClick={() => router.push("/onboarding/tenant-search")}>
+                Back
+              </Button>
+              <Button onClick={handleSubmit} loading={saving}>
+                Submit Request
+              </Button>
+            </div>
+          </CardBody>
+        </Card>
+      </motion.div>
+    </motion.div>
   );
 }
 

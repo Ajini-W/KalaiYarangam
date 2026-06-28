@@ -65,6 +65,7 @@ export default function LoginPage() {
   const initialize = useAuthStore((s) => s.initialize);
   const sendVerificationToken = useAuthStore((s) => s.sendVerificationToken);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const isFirstLogin = useAuthStore((s) => s.isFirstLogin);
   const user = useAuthStore((s) => s.user);
 
   useEffect(() => {
@@ -75,9 +76,15 @@ export default function LoginPage() {
   }, [initialize]);
 
   function needsOnboarding(u: typeof user): boolean {
+    if (!u) return false;
+    // CLIENT onboarding is lightweight - always redirect to client dashboard
     if (u?.role === "CLIENT") return false;
-    if (u?.tenantId) return false;
-    return !["ACCESS_REQUESTED", "PENDING_APPROVAL", "APPROVED", "ACTIVE"].includes(u?.status ?? "");
+    // User already has a tenant and is active - no onboarding needed
+    if (u?.tenantId && u?.status === "ACTIVE") return false;
+    // User has pending access request - no onboarding, just wait
+    if (["ACCESS_REQUESTED", "PENDING_APPROVAL", "APPROVED"].includes(u?.status ?? "")) return false;
+    // Everyone else needs onboarding (OWNER without tenant, any other role without completion)
+    return !["ACTIVE"].includes(u?.status ?? "");
   }
 
   useEffect(() => {
@@ -85,13 +92,14 @@ export default function LoginPage() {
     if (isAuthenticated && user) {
       if (!user.emailVerified) {
         setEmailWarning(user.email);
-      } else if (needsOnboarding(user)) {
+      }
+      if (isFirstLogin || needsOnboarding(user)) {
         router.replace("/onboarding");
       } else {
         router.replace(getDashboardRoute(user.role));
       }
     }
-  }, [isAuthenticated, user, checking, router]);
+  }, [isAuthenticated, isFirstLogin, user, checking, router]);
 
   const handleResend = async () => {
     if (!emailWarning) return;
@@ -124,13 +132,13 @@ export default function LoginPage() {
       const updatedUser = useAuthStore.getState().user;
       if (updatedUser && !updatedUser.emailVerified) {
         setEmailWarning(updatedUser.email);
+      }
+      toast.success("Logged in successfully!");
+      // Use onboardingRequired flag from API if available, else fallback to needsOnboarding
+      if (result?.onboardingRequired || result?.isFirstLogin || needsOnboarding(updatedUser)) {
+        router.push("/onboarding");
       } else {
-        toast.success("Logged in successfully!");
-        if (result?.isFirstLogin || needsOnboarding(updatedUser)) {
-          router.push("/onboarding");
-        } else {
-          router.push(updatedUser ? getDashboardRoute(updatedUser.role) : "/login");
-        }
+        router.push(updatedUser ? getDashboardRoute(updatedUser.role) : "/login");
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Login failed");
@@ -208,7 +216,7 @@ export default function LoginPage() {
                   </div>
                   <button
                     type="button"
-                    onClick={() => { setEmailWarning(null); useAuthStore.getState().logout(); }}
+                    onClick={() => setEmailWarning(null)}
                     className="shrink-0 w-6 h-6 rounded-md flex items-center justify-center text-amber-500 hover:bg-amber-100 dark:hover:bg-amber-800/50 hover:text-amber-700 transition-colors"
                     aria-label="Dismiss"
                   >

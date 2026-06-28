@@ -10,10 +10,11 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
-import { AuthProviderType, UserRole, UserStatus } from '@prisma/client';
+import { AuditAction, AuthProviderType, UserRole, UserStatus } from '@prisma/client';
 import { PrismaService } from '@/database';
 import { env } from '@/config';
 import { MailService } from '@/app/v1/mail/mail.service';
+import { AuditService } from '@/app/v1/security/audit.service';
 import { AuthenticatedUser } from '@/common/interfaces';
 import {
   ChangePasswordDto,
@@ -34,6 +35,7 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly mailService: MailService,
+    private readonly auditService: AuditService,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -347,12 +349,6 @@ export class AuthService {
       throw new UnauthorizedException('Account is inactive or suspended. Please contact support.');
     }
 
-    if (user.status === UserStatus.NEW_USER || user.status === UserStatus.PENDING) {
-      throw new UnauthorizedException(
-        'Please verify your email before logging in. Check your inbox for the verification link.',
-      );
-    }
-
     const valid = await bcrypt.compare(dto.password, user.passwordHash);
 
     if (!valid) {
@@ -380,6 +376,27 @@ export class AuthService {
       },
     });
 
+    await this.auditService.log({
+      userId: user.id,
+      tenantId: user.tenantId ?? undefined,
+      action: AuditAction.LOGIN,
+      entity: 'User',
+      entityId: user.id,
+      ipAddress,
+      userAgent,
+    });
+
+    // Determine if onboarding is needed
+    const onboardingStep = await this.prisma.onboardingProgress.findUnique({
+      where: { userId: user.id },
+      select: { currentStep: true, isCompleted: true },
+    });
+
+    const needsOnboarding = user.role !== UserRole.CLIENT
+      && !user.tenantId
+      && (!onboardingStep?.isCompleted)
+      && !['APPROVED', 'ACTIVE'].includes(user.status);
+
     return {
       message: 'Login successful',
       data: {
@@ -387,6 +404,7 @@ export class AuthService {
         ...tokens,
         rememberMe: dto.rememberMe ?? false,
         isFirstLogin: user.lastLoginAt === null,
+        onboardingRequired: needsOnboarding,
       },
     };
   }
@@ -407,6 +425,13 @@ export class AuthService {
     await this.prisma.refreshToken.update({
       where: { id: storedToken.id },
       data: { revokedAt: new Date() },
+    });
+
+    await this.auditService.log({
+      userId: storedToken.userId,
+      action: AuditAction.LOGOUT,
+      entity: 'RefreshToken',
+      entityId: storedToken.id,
     });
 
     return { message: 'Logged out successfully' };
@@ -765,7 +790,7 @@ export class AuthService {
       name: user.name,
       role: user.role,
       status: user.status ?? '',
-      emailVerified: user.status === 'ACTIVE',
+      emailVerified: user.status !== 'NEW_USER' && user.status !== 'PENDING',
     };
   }
 
