@@ -250,7 +250,12 @@ export class OnboardingService {
           name: dto.businessName,
           slug,
           industry: dto.businessType as IndustryType,
-          ...(dto.address ? {} : {}),
+          address: dto.address,
+          city: dto.city,
+          state: dto.state,
+          pincode: dto.pincode,
+          latitude: dto.latitude,
+          longitude: dto.longitude,
         },
       });
 

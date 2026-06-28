@@ -393,7 +393,6 @@ export class AuthService {
     });
 
     const needsOnboarding = user.role !== UserRole.CLIENT
-      && !user.tenantId
       && (!onboardingStep?.isCompleted)
       && !['APPROVED', 'ACTIVE'].includes(user.status);
 
@@ -405,6 +404,7 @@ export class AuthService {
         rememberMe: dto.rememberMe ?? false,
         isFirstLogin: user.lastLoginAt === null,
         onboardingRequired: needsOnboarding,
+        currentOnboardingStep: onboardingStep?.currentStep ?? null,
       },
     };
   }
@@ -501,8 +501,42 @@ export class AuthService {
     return { message: `User status updated to ${status}`, data: updated };
   }
 
-  me(user: AuthenticatedUser) {
-    return { message: 'User profile retrieved', data: user };
+  async me(user: AuthenticatedUser) {
+    const u = await this.prisma.user.findUnique({
+      where: { id: user.id },
+      select: {
+        id: true, tenantId: true, email: true, name: true, role: true,
+        status: true, verifiedAt: true, phone: true, avatarUrl: true,
+      },
+    });
+    if (!u) throw new NotFoundException('User not found');
+
+    const progress = await this.prisma.onboardingProgress.findUnique({
+      where: { userId: user.id },
+      select: { currentStep: true, isCompleted: true },
+    });
+
+    const needsOnboarding = u.role !== UserRole.CLIENT
+      && (!progress?.isCompleted)
+      && !['APPROVED', 'ACTIVE'].includes(u.status);
+
+    return {
+      message: 'User profile retrieved',
+      data: {
+        id: u.id,
+        tenantId: u.tenantId ?? '',
+        branchId: user.branchId,
+        email: u.email,
+        name: u.name,
+        role: u.role,
+        status: u.status,
+        emailVerified: !!u.verifiedAt,
+        phone: u.phone,
+        avatarUrl: u.avatarUrl,
+        onboardingRequired: needsOnboarding,
+        currentOnboardingStep: progress?.currentStep ?? null,
+      },
+    };
   }
 
   async getPreferences(userId: string) {

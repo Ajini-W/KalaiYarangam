@@ -8,7 +8,7 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
-import { AtSign, Lock, Eye, EyeOff, ArrowRight, Mail } from "lucide-react";
+import { AtSign, Lock, Eye, EyeOff, ArrowRight, Mail, AlertTriangle } from "lucide-react";
 import { AuthMobileNav } from "@/components/ui/AuthBackground";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -62,6 +62,7 @@ export default function LoginPage() {
   const [emailWarning, setEmailWarning] = useState<string | null>(null);
   const [resending, setResending] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
+  const [oauthError, setOauthError] = useState<string | null>(null);
   const login = useAuthStore((s) => s.login);
   const initialize = useAuthStore((s) => s.initialize);
   const sendVerificationToken = useAuthStore((s) => s.sendVerificationToken);
@@ -95,19 +96,20 @@ export default function LoginPage() {
   }, [isTyping, setIsTyping]);
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const err = params.get("error");
+    if (err) {
+      setOauthError(decodeURIComponent(err));
+      window.history.replaceState({}, "", "/login");
+    }
+  }, []);
+
+  useEffect(() => {
     (async () => {
       await initialize();
       setChecking(false);
     })();
   }, [initialize]);
-
-  function needsOnboarding(u: typeof user): boolean {
-    if (!u) return false;
-    if (u?.role === "CLIENT") return false;
-    if (u?.tenantId && u?.status === "ACTIVE") return false;
-    if (["ACCESS_REQUESTED", "PENDING_APPROVAL", "APPROVED"].includes(u?.status ?? "")) return false;
-    return !["ACTIVE"].includes(u?.status ?? "");
-  }
 
   useEffect(() => {
     if (checking) return;
@@ -116,7 +118,8 @@ export default function LoginPage() {
         setEmailWarning(user.email);
         return;
       }
-      if (isFirstLogin || needsOnboarding(user)) {
+      const noOnboardingStatuses = ["ACTIVE", "APPROVED", "ACCESS_REQUESTED", "PENDING_APPROVAL"];
+      if (isFirstLogin || !noOnboardingStatuses.includes(user.status ?? "")) {
         router.replace("/onboarding");
       } else {
         router.replace(getDashboardRoute(user.role));
@@ -152,7 +155,8 @@ export default function LoginPage() {
         return;
       }
       toast.success("Logged in successfully!");
-      if (result?.onboardingRequired || result?.isFirstLogin || needsOnboarding(updatedUser)) {
+      const noOnboardingStatuses = ["ACTIVE", "APPROVED", "ACCESS_REQUESTED", "PENDING_APPROVAL"];
+      if (result?.onboardingRequired || result?.isFirstLogin || !noOnboardingStatuses.includes(updatedUser?.status ?? "")) {
         router.push("/onboarding");
       } else {
         router.push(updatedUser ? getDashboardRoute(updatedUser.role) : "/login");
@@ -200,6 +204,29 @@ export default function LoginPage() {
               Sign in to your account to continue
             </p>
           </motion.div>
+
+          {/* OAuth Error Banner */}
+          {oauthError && (
+            <motion.div variants={itemVariants} className="rounded-xl border border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/30 p-4 text-sm mb-5">
+              <div className="flex items-start gap-3">
+                <div className="shrink-0 w-8 h-8 rounded-lg bg-red-100 dark:bg-red-800/50 flex items-center justify-center">
+                  <AlertTriangle size={16} className="text-red-600 dark:text-red-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-red-800 dark:text-red-200 text-sm">Google Sign-In Failed</p>
+                  <p className="mt-0.5 text-red-700 dark:text-red-300 text-xs leading-relaxed">{oauthError}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setOauthError(null)}
+                  className="shrink-0 w-6 h-6 rounded-md flex items-center justify-center text-red-500 hover:bg-red-100 dark:hover:bg-red-800/50 hover:text-red-700 transition-colors"
+                  aria-label="Dismiss"
+                >
+                  &times;
+                </button>
+              </div>
+            </motion.div>
+          )}
 
           {/* Email Verification Warning */}
           {emailWarning && (

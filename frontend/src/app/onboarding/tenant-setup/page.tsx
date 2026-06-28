@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Building2, MapPin, ChevronRight } from "lucide-react";
+import { Building2, ChevronRight, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
 import { ColorPicker } from "@/components/ui/ColorPicker";
+import { AddressAutocomplete, type AddressResult } from "@/components/ui/AddressAutocomplete";
 import { setupTenant } from "@/services/onboarding";
 import { apiClient } from "@/services/api-client";
 import { useAuthStore } from "@/store/auth.store";
@@ -21,6 +22,12 @@ const tenantSchema = z.object({
   businessName: z.string().min(2, "Business name is required"),
   businessType: z.string().min(1, "Business type is required"),
   address: z.string().optional(),
+  city: z.string().optional(),
+  state: z.string().optional(),
+  pincode: z.string().optional(),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
+  manualAddress: z.string().optional(),
   primaryColor: z.string().optional(),
   secondaryColor: z.string().optional(),
 });
@@ -41,22 +48,44 @@ export default function TenantSetupPage() {
   const router = useRouter();
   const setUser = useAuthStore((s) => s.setUser);
   const [saving, setSaving] = React.useState(false);
+  const [useManual, setUseManual] = React.useState(false);
 
   const form = useForm<TenantFormData>({
     resolver: zodResolver(tenantSchema),
-    defaultValues: { businessName: "", businessType: "", address: "", primaryColor: "", secondaryColor: "" },
+    defaultValues: {
+      businessName: "", businessType: "", address: "",
+      city: "", state: "", pincode: "",
+      manualAddress: "",
+      primaryColor: "", secondaryColor: "",
+    },
   });
 
   const primaryColor = form.watch("primaryColor");
   const secondaryColor = form.watch("secondaryColor");
 
+  const handleAddressSelect = (result: AddressResult) => {
+    form.setValue("address", result.formatted);
+    form.setValue("city", result.city);
+    form.setValue("state", result.state);
+    form.setValue("pincode", result.pincode);
+    form.setValue("latitude", result.latitude);
+    form.setValue("longitude", result.longitude);
+    form.setValue("manualAddress", "");
+  };
+
   const handleSubmit = async (data: TenantFormData) => {
     setSaving(true);
     try {
+      const finalAddress = useManual ? data.manualAddress : data.address;
       const res = await setupTenant({
         businessName: data.businessName,
         businessType: data.businessType,
-        address: data.address || undefined,
+        address: finalAddress || undefined,
+        city: data.city || undefined,
+        state: data.state || undefined,
+        pincode: data.pincode || undefined,
+        latitude: data.latitude || undefined,
+        longitude: data.longitude || undefined,
         primaryColor: data.primaryColor || undefined,
         secondaryColor: data.secondaryColor || undefined,
       });
@@ -101,11 +130,48 @@ export default function TenantSetupPage() {
                 ]}
                 {...form.register("businessType")}
               />
-              <Input
-                label="Address"
-                leftAddon={<MapPin size={15} />}
-                {...form.register("address")}
-              />
+
+              {!useManual ? (
+                <AddressAutocomplete
+                  label="Address"
+                  value={form.watch("address") || ""}
+                  onChange={(v) => form.setValue("address", v)}
+                  onAddressSelect={handleAddressSelect}
+                  error={form.formState.errors.address?.message}
+                  placeholder="Search for an address..."
+                />
+              ) : (
+                <div className="space-y-3">
+                  <Input
+                    label="Address"
+                    error={form.formState.errors.manualAddress?.message}
+                    {...form.register("manualAddress")}
+                  />
+                  <div className="grid grid-cols-3 gap-3">
+                    <Input label="City" {...form.register("city")} />
+                    <Input label="State" {...form.register("state")} />
+                    <Input label="Pincode" {...form.register("pincode")} />
+                  </div>
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={() => {
+                  setUseManual((p) => !p);
+                  if (!useManual) {
+                    form.setValue("address", "");
+                    form.setValue("latitude", undefined);
+                    form.setValue("longitude", undefined);
+                  } else {
+                    form.setValue("manualAddress", "");
+                  }
+                }}
+                className="flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 transition-colors"
+              >
+                <Plus size={12} />
+                {useManual ? "Use auto-detect address" : "Enter address manually"}
+              </button>
             </CardBody>
           </Card>
         </motion.div>

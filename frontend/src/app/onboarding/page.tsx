@@ -6,7 +6,10 @@ import { motion } from "framer-motion";
 import { Building2, Users, BookOpen, Award, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/Button";
-import { selectRole } from "@/services/onboarding";
+import { Spinner } from "@/components/ui/Spinner";
+import { getOnboardingProgress, selectRole } from "@/services/onboarding";
+import { getDashboardRoute } from "@/lib/dashboard-route";
+import { useAuthStore } from "@/store/auth.store";
 
 const ROLE_META: Record<string, { bg: string; fg: string; icon: React.ReactNode }> = {
   OWNER: { bg: "bg-blue-100 dark:bg-blue-900/30", fg: "text-blue-600 dark:text-blue-400", icon: <Building2 size={20} /> },
@@ -36,10 +39,57 @@ const itemVariants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" as const } },
 } as const;
 
+const STEP_ROUTES: Record<string, string> = {
+  ROLE_SELECTION: "/onboarding",
+  PROFILE_SETUP: "/onboarding/profile-setup",
+  TENANT_SETUP: "/onboarding/tenant-setup",
+  BRANCH_SETUP: "/onboarding/branch-setup",
+  MODULE_SELECTION: "/onboarding/module-activation",
+  SUBSCRIPTION: "/onboarding/subscription",
+  SEARCH_TENANT: "/onboarding/tenant-search",
+  SELECT_BRANCH: "/onboarding/branch-setup",
+  SKILLS_SETUP: "/onboarding/skills-setup",
+  COURSE_SELECTION: "/onboarding/course-selection",
+};
+
 export default function OnboardingPage() {
   const router = useRouter();
+  const user = useAuthStore((s) => s.user);
   const [selectedRole, setSelectedRole] = React.useState<string | null>(null);
   const [saving, setSaving] = React.useState(false);
+  const [redirecting, setRedirecting] = React.useState(true);
+
+  React.useEffect(() => {
+    (async () => {
+      try {
+        const res = await getOnboardingProgress();
+        const progress = res.data.progress;
+        if (progress.isCompleted) {
+          router.replace(getDashboardRoute(res.data.user.role));
+          return;
+        }
+        const target = progress.currentStep
+          ? STEP_ROUTES[progress.currentStep]
+          : null;
+        if (target && target !== "/onboarding") {
+          router.replace(target);
+          return;
+        }
+      } catch {
+        // No progress yet — stay on this page
+      } finally {
+        setRedirecting(false);
+      }
+    })();
+  }, [router]);
+
+  if (redirecting) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Spinner />
+      </div>
+    );
+  }
 
   const handleContinue = async () => {
     if (!selectedRole) {

@@ -45,6 +45,11 @@ export interface TenantSetupRequest {
   primaryColor?: string;
   secondaryColor?: string;
   address?: string;
+  city?: string;
+  state?: string;
+  pincode?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface BranchSetupRequest {

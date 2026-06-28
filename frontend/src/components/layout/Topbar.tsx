@@ -9,6 +9,7 @@ import { Breadcrumb } from "./Breadcrumb";
 import { toast } from "sonner";
 import { useAuthStore } from "@/store/auth.store";
 import { useNotificationStore } from "@/store/notification.store";
+import { useProfileModal } from "@/store/profile.store";
 import { notificationService } from "@/services/notification.service";
 
 interface TopbarProps {
@@ -343,14 +344,14 @@ export function Topbar({ onMenuToggle, className }: TopbarProps) {
                 <p className="text-sm font-medium text-text-primary truncate">{user?.name}</p>
                 <p className="text-xs text-text-secondary truncate">{user?.email}</p>
               </div>
-              <Link
-                href="/dashboard/profile"
-                onClick={() => setMenuOpen(false)}
-                className="flex items-center gap-2 px-3 py-2 text-sm text-text-primary hover:bg-surface-overlay transition-colors"
+              <button
+                type="button"
+                onClick={() => { setMenuOpen(false); useProfileModal.getState().setOpen(true); }}
+                className="flex w-full items-center gap-2 px-3 py-2 text-sm text-text-primary hover:bg-surface-overlay transition-colors"
               >
                 <IdCard size={16} className="text-text-secondary" />
                 Profile
-              </Link>
+              </button>
               <Link
                 href="/notifications"
                 onClick={() => setMenuOpen(false)}

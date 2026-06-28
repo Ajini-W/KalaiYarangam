@@ -32,10 +32,9 @@ function CallbackHandler() {
     handleOAuthCallback(accessToken, refreshToken ?? undefined)
       .then((user) => {
         clearTimeout(timeout);
-        const noRedirectStatuses = ["ACCESS_REQUESTED", "PENDING_APPROVAL", "APPROVED", "ACTIVE"];
-        const needsOnboarding = !user.tenantId
-          && user.role !== "CLIENT"
-          && !noRedirectStatuses.includes(user.status);
+        const noOnboardingStatuses = ["ACTIVE", "APPROVED", "ACCESS_REQUESTED", "PENDING_APPROVAL"];
+        const needsOnboarding = user.role !== "CLIENT"
+          && !noOnboardingStatuses.includes(user.status);
         const dest = needsOnboarding ? "/onboarding" : getDashboardRoute(user.role);
         window.location.replace(dest);
       })
