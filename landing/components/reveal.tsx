@@ -1,7 +1,7 @@
 'use client'
 
 import { motion, type Variants } from 'framer-motion'
-import type { ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 
 const variants: Variants = {
   hidden: { opacity: 0, y: 24 },
@@ -19,11 +19,14 @@ export function Reveal({
   className?: string
   as?: 'div' | 'li' | 'span'
 }) {
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => { setMounted(true) }, [])
+
   const MotionTag = motion[as]
   return (
     <MotionTag
       className={className}
-      initial="hidden"
+      initial={mounted ? 'hidden' : 'visible'}
       whileInView="visible"
       viewport={{ once: true, margin: '-80px' }}
       variants={variants}

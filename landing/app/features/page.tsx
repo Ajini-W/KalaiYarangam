@@ -2,7 +2,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Reveal } from "@/components/reveal";
 import { features } from "@/data/features";
-import { ArrowRight } from "lucide-react";
+import { Heart,ArrowRight } from "lucide-react";
 
 const categories = Array.from(new Set(features.map((f) => f.category)));
 
@@ -22,19 +22,15 @@ export default function FeaturesPage() {
             <p className="mx-auto mt-4 max-w-2xl text-pretty text-base leading-relaxed text-muted-foreground sm:text-lg">
               Grouped by what matters most - not a list of 100 features.
             </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
+            <div className="mt-8 flex justify-center">
               <a
-                href={`${process.env.NEXT_PUBLIC_SAAS_URL || "https://app.saas.com"}/register`}
+                href="https://sarran.formaloo.co/zpwci7"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="btn-playful inline-flex items-center gap-2 bg-primary text-primary-foreground"
               >
-                Start Free Trial
-                <ArrowRight className="size-4" />
-              </a>
-              <a
-                href={`${process.env.NEXT_PUBLIC_SAAS_URL || "https://app.saas.com"}/login`}
-                className="btn-playful inline-flex items-center gap-2 border border-border bg-card text-foreground hover:bg-muted"
-              >
-                Login to Dashboard
+                <Heart className="size-4" />
+                Join Wishlist
               </a>
             </div>
           </Reveal>

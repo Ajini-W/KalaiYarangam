@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
   CalendarDays,
@@ -89,6 +89,30 @@ const modules = [
 export function Modules() {
   const [active, setActive] = useState(modules[0]);
   const activeIndex = modules.findIndex((m) => m.id === active.id);
+  const manualRef = useRef(false);
+  const manualTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Auto-cycle every 2.5s unless user manually picked
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!manualRef.current) {
+        setActive((prev) => {
+          const idx = modules.findIndex((m) => m.id === prev.id);
+          return modules[(idx + 1) % modules.length];
+        });
+      }
+    }, 2500);
+    return () => clearInterval(interval);
+  }, []);
+
+  function handleTabClick(m: (typeof modules)[0]) {
+    setActive(m);
+    manualRef.current = true;
+    if (manualTimerRef.current) clearTimeout(manualTimerRef.current);
+    manualTimerRef.current = setTimeout(() => {
+      manualRef.current = false;
+    }, 20000);
+  }
 
   return (
     <section id="modules" className="scroll-mt-24 px-4 py-24">
@@ -113,7 +137,7 @@ export function Modules() {
               return (
                 <button
                   key={m.id}
-                  onClick={() => setActive(m)}
+                  onClick={() => handleTabClick(m)}
                   className={`relative flex items-center gap-2.5 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
                     isActive
                       ? "shadow-lg"

@@ -11,15 +11,15 @@ const steps = [
   },
   {
     icon: Building2,
-    title: "Set Up Academy",
+    title: "Set Up Your Buisness",
     description: "Add your branches, staff, and branding.",
     color: "bg-accent-blue/10 text-accent-blue",
     number: "bg-accent-blue text-white",
   },
   {
     icon: LayoutGrid,
-    title: "Add Students & Batches",
-    description: "Import existing data or start fresh.",
+    title: "Import Your Data",
+    description: "Add customers, students, inventory, events, or existing records.",
     color: "bg-accent-red/10 text-accent-red",
     number: "bg-accent-red text-white",
   },
