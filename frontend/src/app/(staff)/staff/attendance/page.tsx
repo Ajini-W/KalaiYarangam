@@ -1,4 +1,7 @@
-import { PlaceholderPage } from "@/lib/placeholder-page";
-export default function Page() {
-  return <PlaceholderPage title="Attendance" description="Mark and view attendance." />;
+"use client";
+
+import { AttendanceListView } from "@/components/attendance";
+
+export default function StaffAttendancePage() {
+  return <AttendanceListView basePath="/staff/attendance" />;
 }

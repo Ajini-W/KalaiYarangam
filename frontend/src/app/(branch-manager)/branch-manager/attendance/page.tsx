@@ -1,4 +1,7 @@
-import { PlaceholderPage } from "@/lib/placeholder-page";
-export default function Page() {
-  return <PlaceholderPage title="Attendance" description="Manage attendance here." />;
+"use client";
+
+import { AttendanceListView } from "@/components/attendance";
+
+export default function BranchManagerAttendancePage() {
+  return <AttendanceListView basePath="/branch-manager/attendance" />;
 }
