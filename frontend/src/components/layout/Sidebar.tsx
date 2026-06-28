@@ -144,6 +144,7 @@ const ownerNav: NavItem[] = [
   { label: "Integrations", href: "/owner/integrations", icon: Sparkles },
   { label: "Subscription", href: "/owner/subscription", icon: CreditCard },
   { label: "Audit Logs", href: "/owner/audit-logs", icon: ScrollText },
+  { label: "Profile", href: "/owner/profile", icon: IdCard },
 ];
 
 const branchManagerNav: NavItem[] = [
@@ -200,6 +201,7 @@ const branchManagerNav: NavItem[] = [
   },
   { label: "Reports", href: "/branch-manager/reports", icon: BarChart2 },
   { label: "Users", href: "/branch-manager/users", icon: Users },
+  { label: "Profile", href: "/branch-manager/profile", icon: IdCard },
 ];
 
 const staffNav: NavItem[] = [
@@ -255,6 +257,7 @@ const staffNav: NavItem[] = [
     ],
   },
   { label: "Reports", href: "/staff/reports", icon: BarChart2 },
+  { label: "Profile", href: "/staff/profile", icon: IdCard },
 ];
 
 const studentNav: NavItem[] = [

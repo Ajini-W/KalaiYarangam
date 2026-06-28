@@ -114,6 +114,7 @@ export default function LoginPage() {
     if (isAuthenticated && user) {
       if (!user.emailVerified) {
         setEmailWarning(user.email);
+        return;
       }
       if (isFirstLogin || needsOnboarding(user)) {
         router.replace("/onboarding");
@@ -148,6 +149,7 @@ export default function LoginPage() {
       const updatedUser = useAuthStore.getState().user;
       if (updatedUser && !updatedUser.emailVerified) {
         setEmailWarning(updatedUser.email);
+        return;
       }
       toast.success("Logged in successfully!");
       if (result?.onboardingRequired || result?.isFirstLogin || needsOnboarding(updatedUser)) {

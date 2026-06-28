@@ -1,7 +1,5 @@
-"use client";
-
-import ProfilePage from "@/app/dashboard/profile/page";
+import { redirect } from "next/navigation";
 
 export default function StudentProfile() {
-  return <ProfilePage />;
+  redirect("/dashboard/profile/info");
 }
