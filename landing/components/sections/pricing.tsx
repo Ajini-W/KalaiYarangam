@@ -145,12 +145,9 @@ export function Pricing() {
                 </p>
               </div>
             </div>
-            <Button
-              asChild
-              className="rounded-full bg-accent-green px-5 text-white shadow-md shadow-accent-green/20 hover:bg-accent-green/90 hover:shadow-lg hover:shadow-accent-green/30"
-            >
-              <a href="#contact">Start Free Trial</a>
-            </Button>
+            <span className="inline-flex items-center justify-center rounded-full bg-accent-green/15 px-5 py-2 text-sm font-semibold text-accent-green cursor-default">
+                🎉 Launching Soon
+              </span>
           </div>
         </Reveal>
 
@@ -263,21 +260,16 @@ export function Pricing() {
                   </ul>
                 </div>
               )}
-              <Button
-                asChild
-                variant={plan.highlight ? "default" : "outline"}
+              <span
                 className={cn(
-                  "mt-6 w-full rounded-full font-semibold",
+                  "mt-6 w-full inline-flex items-center justify-center rounded-full font-semibold text-sm py-2 px-4 cursor-default",
                   plan.highlight
-                    ? "bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/30"
-                    : "border-2 hover:border-primary/40 hover:bg-primary/5 hover:text-primary",
+                    ? "bg-primary/10 text-primary"
+                    : "border-2 border-border text-muted-foreground",
                 )}
               >
-                <a href="#contact">
-                  {plan.isEnterprise ? "Contact Sales" : "Get started"}
-                  <ArrowRight className="size-4" />
-                </a>
-              </Button>
+                {plan.isEnterprise ? "Contact Sales — Coming Soon" : "Coming Soon"}
+              </span>
             </Reveal>
           ))}
         </div>
