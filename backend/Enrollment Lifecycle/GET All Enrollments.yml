@@ -1,0 +1,15 @@
+info:
+  name: GET All Enrollments
+  type: http
+  seq: 7
+
+http:
+  method: GET
+  url: http://localhost:4000/api/v1/enrollments
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
