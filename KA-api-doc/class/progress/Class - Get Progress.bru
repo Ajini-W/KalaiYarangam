@@ -1,0 +1,20 @@
+meta {
+  name: Class - Get Progress
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{base-url}}/class/progress/{{progressId}}
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

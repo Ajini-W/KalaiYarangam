@@ -1,0 +1,26 @@
+meta {
+  name: Class - Revoke Certificate
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{base-url}}/class/certificates/{{certificateId}}/revoke
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "reason": "Issued in error"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

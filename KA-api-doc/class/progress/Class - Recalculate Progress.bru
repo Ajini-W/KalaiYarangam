@@ -1,0 +1,37 @@
+meta {
+  name: Class - Recalculate Progress
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{base-url}}/class/progress/recalculate
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "studentId": "{{studentId1}}",
+    "batchId": "{{batchId}}"
+  }
+}
+
+vars:pre-request {
+  studentId1: 1ac2e2d1-94ae-46c1-9f2b-4b9c1605364d
+  batchId: 69eaa17e-1903-4de4-a9a0-e6552aa397b2
+}
+
+script:post-response {
+  const body = res.getBody();
+  if (body.data) { bru.setVar("recalculatedProgressId", body.data[0].progress.id); }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
