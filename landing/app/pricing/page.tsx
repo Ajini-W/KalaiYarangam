@@ -106,16 +106,9 @@ export default function PricingPage() {
                   </p>
                 </div>
               </div>
-              <a
-                href={`${SAAS_URL}/register`}
-                className="inline-flex h-12 items-center justify-center gap-2 whitespace-nowrap rounded-2xl px-6 text-sm font-semibold text-white shadow-md shadow-accent-green/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
-                style={{
-                  background:
-                    "linear-gradient(135deg, #22C55E 0%, #16A34A 100%)",
-                }}
-              >
-                Start Free Trial
-              </a>
+              <span className="inline-flex items-center justify-center rounded-2xl px-6 py-3 text-sm font-semibold text-accent-green bg-accent-green/10 cursor-default">
+                🎉 Launching Soon
+              </span>
             </div>
           </Reveal>
 
@@ -181,25 +174,15 @@ export default function PricingPage() {
                       </ul>
                     </div>
                   )}
-                  <a
-                    href={`${SAAS_URL}/register`}
-                    className={`mt-6 inline-flex h-12 items-center justify-center gap-2 whitespace-nowrap rounded-2xl px-6 text-sm font-semibold transition-all duration-300 hover:-translate-y-0.5 ${
+                  <span
+                    className={`mt-6 inline-flex h-12 items-center justify-center gap-2 whitespace-nowrap rounded-2xl px-6 text-sm font-semibold cursor-default w-full ${
                       plan.highlight
-                        ? "text-white shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30"
-                        : "border border-border bg-card text-foreground hover:border-primary/40 hover:bg-primary/5 hover:text-primary"
+                        ? "bg-primary/10 text-primary"
+                        : "border border-border text-muted-foreground"
                     }`}
-                    style={
-                      plan.highlight
-                        ? {
-                            background:
-                              "linear-gradient(135deg, #FFB21D 0%, #FF8A00 100%)",
-                          }
-                        : undefined
-                    }
                   >
-                    Get started
-                    <ArrowRight className="size-4" />
-                  </a>
+                    Coming Soon
+                  </span>
                 </div>
               </Reveal>
             ))}

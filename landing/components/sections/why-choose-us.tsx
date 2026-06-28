@@ -86,7 +86,7 @@ export function WhyChooseUs() {
         <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {reasons.map((reason, i) => (
             <Reveal key={reason.title} delay={(i % 4) * 0.08}>
-              <div className="group rounded-2xl border border-border bg-card p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-black/5">
+              <div className="group rounded-2xl border h-59 border-border bg-card p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-black/5">
                 <div
                   className={`grid size-11 place-items-center rounded-2xl ${reason.color} transition-transform group-hover:scale-110`}
                 >

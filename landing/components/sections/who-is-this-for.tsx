@@ -25,8 +25,9 @@ export function WhoIsThisFor() {
           <h2 className="mt-5 text-balance font-heading text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
             Built for your industry
           </h2>
+          <h3 className="text-xl opacity-50 pt-2 font-bold">Industries We Serve</h3>
           <p className="mx-auto mt-4 max-w-2xl text-pretty text-base leading-relaxed text-muted-foreground sm:text-lg">
-            Each card links to a dedicated page explaining problems, workflows, features, and FAQs for your specific business.
+          Discover how different sectors use our products to work smarter, save money and grow.
           </p>
         </Reveal>
 

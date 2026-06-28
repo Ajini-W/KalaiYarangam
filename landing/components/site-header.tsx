@@ -1,6 +1,6 @@
 'use client'
 
-import { Menu, X, LogIn } from 'lucide-react'
+import { Menu, X, LogIn, Heart } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Logo } from '@/components/logo'
 import { ThemeToggle } from '@/components/theme-toggle'
@@ -103,10 +103,13 @@ export function SiteHeader() {
             Log in
           </a>
           <a
-            href={`${SAAS_URL}/register`}
-            className="hidden rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow-md shadow-primary/20 transition-all hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/30 sm:inline-flex"
+            href="https://sarran.formaloo.co/zpwci7"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hidden items-center gap-1.5 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow-md shadow-primary/20 transition-all hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/30 sm:inline-flex"
           >
-            Sign up free
+            <Heart className="size-3.5" />
+            Wishlist
           </a>
           <button
             ref={triggerRef}
@@ -151,11 +154,14 @@ export function SiteHeader() {
                 Log in
               </a>
               <a
-                href={`${SAAS_URL}/register`}
+                href="https://sarran.formaloo.co/zpwci7"
+                target="_blank"
+                rel="noopener noreferrer"
                 onClick={closeMenu}
                 className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-md shadow-primary/20 transition-all hover:bg-primary/90"
               >
-                Sign up free
+                <Heart className="size-4" />
+                wishlist
               </a>
             </div>
           </nav>

@@ -45,7 +45,7 @@ export function ProblemsWeSolve() {
             Problems We Solve
           </span>
           <h2 className="mt-5 text-balance font-heading text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
-            Stop juggling spreadsheets, WhatsApp, and manual registers
+            Stop juggling spreadsheets, WhatsApp and manual registers
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-pretty text-base leading-relaxed text-muted-foreground sm:text-lg">
             Every problem you face daily - kalaiArangam already has a solution.

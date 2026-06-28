@@ -44,7 +44,7 @@ export function Topbar({ onMenuToggle, className }: TopbarProps) {
     if (unreadCount > prevUnreadRef.current && unreadCount > 0 && "Notification" in window && Notification.permission === "granted") {
       new Notification("KalaiArangam", {
         body: `You have ${unreadCount} new notification${unreadCount > 1 ? "s" : ""}`,
-        icon: "/favicon.ico",
+        icon: "/icons/logo.png",
       });
     }
     prevUnreadRef.current = unreadCount;

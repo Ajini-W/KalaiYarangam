@@ -6,10 +6,14 @@ import {
   BarChart3,
   Building2,
   CalendarCheck,
+  CalendarDays,
   CreditCard,
   GraduationCap,
+  Heart,
+  Layers,
   Package,
-  PlayCircle,
+  Users,
+  Warehouse,
 } from "lucide-react";
 import { DashboardMockup } from "@/components/dashboard-mockup";
 
@@ -44,6 +48,21 @@ const heroFeatures = [
     label: "Reports & Analytics",
     color: "bg-primary/10 text-primary",
   },
+  {
+    icon: CalendarDays,
+    label: "Calendar & Resource Scheduling",
+    color: "bg-accent-blue/10 text-accent-blue",
+  },
+  {
+    icon: Warehouse,
+    label: "Inventory & Asset Management",
+    color: "bg-accent-red/10 text-accent-red",
+  },
+  {
+    icon: BarChart3,
+    label: "Dashboard & Business Insights",
+    color: "bg-accent-green/10 text-accent-green",
+  }
 ];
 
 export function Hero() {
@@ -110,19 +129,14 @@ export function Hero() {
           className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4"
         >
           <a
-            href="#pricing"
-            className="group relative inline-flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-2xl px-6 text-base font-semibold text-white shadow-lg shadow-primary/25 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/30 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:h-14 sm:w-auto sm:px-8 sm:text-lg"
+            href="https://sarran.formaloo.co/zpwci7"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group inline-flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-2xl px-6 text-base font-semibold text-white shadow-lg shadow-primary/25 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/30 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:h-14 sm:w-auto sm:px-8 sm:text-lg"
             style={{ background: 'linear-gradient(135deg, #FFB21D 0%, #FF8A00 100%)' }}
           >
-            Start 20-Day Free Trial
-            <ArrowRight className="size-4 shrink-0 transition-transform duration-300 group-hover:translate-x-0.5 sm:size-5" />
-          </a>
-          <a
-            href="#contact"
-            className="inline-flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-2xl border border-gray-200 bg-white px-6 text-base font-semibold text-gray-900 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-gray-300 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary dark:border-white/15 dark:bg-white/10 dark:text-white dark:hover:border-white/25 dark:hover:bg-white/15 sm:h-14 sm:w-auto sm:px-8 sm:text-lg"
-          >
-            <PlayCircle className="size-4 shrink-0 sm:size-5" />
-            Book Demo
+            <Heart className="size-4 shrink-0 sm:size-5" />
+            Join Wishlist
           </a>
         </motion.div>
 
