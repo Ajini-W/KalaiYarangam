@@ -1,4 +1,7 @@
-import { PlaceholderPage } from "@/lib/placeholder-page";
+"use client";
+
+import { TaskListView } from "@/components/tasks";
+
 export default function Page() {
-  return <PlaceholderPage title="Tasks" description="Your task board." />;
+  return <TaskListView basePath="/staff/tasks" />;
 }
