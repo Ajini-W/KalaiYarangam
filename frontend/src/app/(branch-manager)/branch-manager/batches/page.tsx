@@ -1,4 +1,5 @@
-import { PlaceholderPage } from "@/lib/placeholder-page";
+import { BatchesPage } from "@/features/training/pages/batches-page";
+
 export default function Page() {
-  return <PlaceholderPage title="Batches" description="Manage batches here." />;
+  return <BatchesPage />;
 }
