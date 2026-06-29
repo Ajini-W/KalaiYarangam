@@ -1,4 +1,5 @@
-import { PlaceholderPage } from "@/lib/placeholder-page";
+import { DocumentsPage } from "@/features/training/pages/documents-page";
+
 export default function Page() {
-  return <PlaceholderPage title="Documents" description="Manage documents here." />;
+  return <DocumentsPage />;
 }

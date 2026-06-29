@@ -1,4 +1,5 @@
-import { PlaceholderPage } from "@/lib/placeholder-page";
+import { SchedulesPage } from "@/features/training/pages/schedules-page";
+
 export default function Page() {
-  return <PlaceholderPage title="Schedules" description="Manage schedules here." />;
+  return <SchedulesPage />;
 }

@@ -1,4 +1,5 @@
-import { PlaceholderPage } from "@/lib/placeholder-page";
+import { TrainersPage } from "@/features/training/pages/trainers-page";
+
 export default function Page() {
-  return <PlaceholderPage title="Trainers" description="Manage trainers here." />;
+  return <TrainersPage />;
 }
