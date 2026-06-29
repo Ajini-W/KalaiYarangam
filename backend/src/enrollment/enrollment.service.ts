@@ -1,13 +1,29 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@/database';
-
 import { CreateEnrollmentDto } from './dto/create-enrollment.dto';
 import { CreateTransferDto } from './dto/create-transfer.dto';
 import { CreateRenewalDto } from './dto/create-renewal.dto';
+import { AuditService } from '@/app/v1/security/audit.service';
 
 @Injectable()
 export class EnrollmentService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+  private readonly prisma: PrismaService,
+  private readonly auditService: AuditService,
+) {}
+
+    private async logActivity(
+    activity: string,
+    tenantId?: string,
+    resourceId?: string,
+  ) {
+    await this.auditService.recordActivity({
+      tenantId,
+      activity,
+      resource: 'Enrollment',
+      resourceId,
+    });
+  }
 
   // ==========================================
   // 3.1 ENROLLMENTS LOGIC + VALIDATIONS
@@ -57,6 +73,11 @@ export class EnrollmentService {
         status: 'ACTIVE',
       },
     });
+    await this.logActivity(
+  'ENROLLMENT_CREATED',
+  dto.tenantId,
+  newEnrollment.id,
+);
 
     return newEnrollment;
   }
@@ -71,59 +92,111 @@ export class EnrollmentService {
   }
 
   async pause(id: string) {
-    await this.findOne(id);
-    return this.prisma.enrollment.update({
-      where: { id },
-      data: { status: 'PAUSED' },
-    });
-  }
+  await this.findOne(id);
 
+  const enrollment = await this.prisma.enrollment.update({
+    where: { id },
+    data: { status: 'PAUSED' },
+  });
+
+  await this.logActivity(
+    'ENROLLMENT_PAUSED',
+    enrollment.tenantId,
+    enrollment.id,
+  );
+
+  return enrollment;
+}
   async resume(id: string) {
-    await this.findOne(id);
-    return this.prisma.enrollment.update({
-      where: { id },
-      data: { status: 'ACTIVE' },
-    });
-  }
+  await this.findOne(id);
+
+  const enrollment = await this.prisma.enrollment.update({
+    where: { id },
+    data: { status: 'ACTIVE' },
+  });
+
+  await this.logActivity(
+    'ENROLLMENT_RESUMED',
+    enrollment.tenantId,
+    enrollment.id,
+  );
+
+  return enrollment;
+}
 
   async reactivate(id: string) {
-    await this.findOne(id);
-    return this.prisma.enrollment.update({
-      where: { id },
-      data: { status: 'ACTIVE' },
-    });
-  }
+  await this.findOne(id);
+
+  const enrollment = await this.prisma.enrollment.update({
+    where: { id },
+    data: { status: 'ACTIVE' },
+  });
+
+  await this.logActivity(
+    'ENROLLMENT_REACTIVATED',
+    enrollment.tenantId,
+    enrollment.id,
+  );
+
+  return enrollment;
+}
 
   async cancel(id: string) {
-    await this.findOne(id);
-    return this.prisma.enrollment.update({
-      where: { id },
-      data: { status: 'CANCELLED' },
-    });
-  }
+  await this.findOne(id);
+
+  const enrollment = await this.prisma.enrollment.update({
+    where: { id },
+    data: { status: 'CANCELLED' },
+  });
+
+  await this.logActivity(
+    'ENROLLMENT_CANCELLED',
+    enrollment.tenantId,
+    enrollment.id,
+  );
+
+  return enrollment;
+}
 
   async initiateTransfer(id: string) {
-    await this.findOne(id);
-    return this.prisma.enrollment.update({
-      where: { id },
-      data: { status: 'PAUSED' },
-    });
-  }
+  await this.findOne(id);
+
+  const enrollment = await this.prisma.enrollment.update({
+    where: { id },
+    data: { status: 'PAUSED' },
+  });
+
+  await this.logActivity(
+    'TRANSFER_INITIATED',
+    enrollment.tenantId,
+    enrollment.id,
+  );
+
+  return enrollment;
+}
 
   // ==========================================
   // 3.2 TRANSFERS LOGIC
   // ==========================================
   async handleBatchTransfer(dto: CreateTransferDto) {
-    return this.prisma.transfer.create({
-      data: {
-        enrollmentId: dto.enrollmentId,
-        tenantId: dto.tenantId,        
-        fromBatchId: dto.fromBatchId,
-        toBatchId: dto.toBatchId,      
-        status: 'PENDING',
-      },
-    });
-  }
+  const transfer = await this.prisma.transfer.create({
+    data: {
+      enrollmentId: dto.enrollmentId,
+      tenantId: dto.tenantId,
+      fromBatchId: dto.fromBatchId,
+      toBatchId: dto.toBatchId,
+      status: 'PENDING',
+    },
+  });
+
+  await this.logActivity(
+    'TRANSFER_CREATED',
+    dto.tenantId,
+    transfer.id,
+  );
+
+  return transfer;
+}
 
   async findAllTransfers() {
     return this.prisma.transfer.findMany();
@@ -136,51 +209,88 @@ export class EnrollmentService {
   }
 
   async approveTransfer(id: string) {
-    const transfer = await this.findTransferById(id);
-    await this.prisma.enrollment.update({
-      where: { id: transfer.enrollmentId },
-      data: { status: 'CANCELLED' },
-    });
-    return this.prisma.transfer.update({
-      where: { id },
-      data: { status: 'APPROVED' },
-    });
-  }
+  const transfer = await this.findTransferById(id);
+
+  await this.prisma.enrollment.update({
+    where: { id: transfer.enrollmentId },
+    data: { status: 'CANCELLED' },
+  });
+
+  const updatedTransfer = await this.prisma.transfer.update({
+    where: { id },
+    data: { status: 'APPROVED' },
+  });
+
+  await this.logActivity(
+    'TRANSFER_APPROVED',
+    transfer.tenantId,
+    transfer.id,
+  );
+
+  return updatedTransfer;
+}
 
   async rejectTransfer(id: string) {
-    const transfer = await this.findTransferById(id);
-    await this.prisma.enrollment.update({
-      where: { id: transfer.enrollmentId },
-      data: { status: 'ACTIVE' },
-    });
-    return this.prisma.transfer.update({
-      where: { id },
-      data: { status: 'REJECTED' },
-    });
-  }
+  const transfer = await this.findTransferById(id);
 
-  async cancelTransfer(id: string) {
-    return this.prisma.transfer.update({
-      where: { id },
-      data: { status: 'CANCELLED' },
-    });
-  }
+  await this.prisma.enrollment.update({
+    where: { id: transfer.enrollmentId },
+    data: { status: 'ACTIVE' },
+  });
+
+  const updatedTransfer = await this.prisma.transfer.update({
+    where: { id },
+    data: { status: 'REJECTED' },
+  });
+
+  await this.logActivity(
+    'TRANSFER_REJECTED',
+    transfer.tenantId,
+    transfer.id,
+  );
+
+  return updatedTransfer;
+}
+
+async cancelTransfer(id: string) {
+  const transfer = await this.prisma.transfer.update({
+    where: { id },
+    data: { status: 'CANCELLED' },
+  });
+
+  await this.logActivity(
+    'TRANSFER_CANCELLED',
+    transfer.tenantId,
+    transfer.id,
+  );
+
+  return transfer;
+}
+  
 
   // ==========================================
   // 3.3 RENEWALS LOGIC
   // ==========================================
-  async handleContractRenewal(dto: CreateRenewalDto) {
-    return this.prisma.renewal.create({
-      data: {
-        enrollmentId: dto.enrollmentId,
-        tenantId: dto.tenantId,                      
-        currentEndDate: new Date(dto.currentEndDate),  
-        extendedEndDate: new Date(dto.extendedEndDate),
-        status: 'PENDING',
-        notes: dto.notes,
-      },
-    });
-  }
+ async handleContractRenewal(dto: CreateRenewalDto) {
+  const renewal = await this.prisma.renewal.create({
+    data: {
+      enrollmentId: dto.enrollmentId,
+      tenantId: dto.tenantId,
+      currentEndDate: new Date(dto.currentEndDate),
+      extendedEndDate: new Date(dto.extendedEndDate),
+      status: 'PENDING',
+      notes: dto.notes,
+    },
+  });
+
+  await this.logActivity(
+    'RENEWAL_CREATED',
+    dto.tenantId,
+    renewal.id,
+  );
+
+  return renewal;
+}
 
   async findAllRenewals() {
     return this.prisma.renewal.findMany();
@@ -193,23 +303,50 @@ export class EnrollmentService {
   }
 
   async approveRenewal(id: string) {
-    return this.prisma.renewal.update({
-      where: { id },
-      data: { status: 'APPROVED', approvedAt: new Date() },
-    });
-  }
+  const renewal = await this.prisma.renewal.update({
+    where: { id },
+    data: {
+      status: 'APPROVED',
+      approvedAt: new Date(),
+    },
+  });
+
+  await this.logActivity(
+    'RENEWAL_APPROVED',
+    renewal.tenantId,
+    renewal.id,
+  );
+
+  return renewal;
+}
 
   async rejectRenewal(id: string) {
-    return this.prisma.renewal.update({
-      where: { id },
-      data: { status: 'REJECTED' },
-    });
-  }
+  const renewal = await this.prisma.renewal.update({
+    where: { id },
+    data: { status: 'REJECTED' },
+  });
 
-  async cancelRenewal(id: string) {
-    return this.prisma.renewal.update({
-      where: { id },
-      data: { status: 'CANCELLED' },
-    });
-  }
+  await this.logActivity(
+    'RENEWAL_REJECTED',
+    renewal.tenantId,
+    renewal.id,
+  );
+
+  return renewal;
+}
+
+ async cancelRenewal(id: string) {
+  const renewal = await this.prisma.renewal.update({
+    where: { id },
+    data: { status: 'CANCELLED' },
+  });
+
+  await this.logActivity(
+    'RENEWAL_CANCELLED',
+    renewal.tenantId,
+    renewal.id,
+  );
+
+  return renewal;
+}
 }
