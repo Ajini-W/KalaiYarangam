@@ -1,4 +1,7 @@
-import { PlaceholderPage } from "@/lib/placeholder-page";
+"use client";
+
+import { ReportsSelectionView } from "@/components/reports";
+
 export default function Page() {
-  return <PlaceholderPage title="Reports" description="Manage reports here." />;
+  return <ReportsSelectionView basePath="/staff/reports" />;
 }
