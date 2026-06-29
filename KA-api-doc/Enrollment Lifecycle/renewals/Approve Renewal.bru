@@ -1,0 +1,11 @@
+meta {
+  name: Approve Renewal
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{base-url}}/renewals/:renewalId/approve
+  body: none
+  auth: inherit
+}

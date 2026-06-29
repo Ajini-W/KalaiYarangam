@@ -1,0 +1,11 @@
+meta {
+  name: Cancel Transfer
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{base-url}}/transfers/:transferId/cancel
+  body: none
+  auth: inherit
+}

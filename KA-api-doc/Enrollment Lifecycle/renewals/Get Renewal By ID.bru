@@ -1,0 +1,11 @@
+meta {
+  name: Get Renewal By ID
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{base-url}}/renewals/:renewalId
+  body: none
+  auth: inherit
+}
