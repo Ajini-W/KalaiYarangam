@@ -447,7 +447,11 @@ export class AuthService {
       throw new UnauthorizedException('Invalid or expired refresh token');
     }
 
-    if (stored.user.status !== UserStatus.ACTIVE) {
+    const allowedRefreshStatuses: string[] = [
+      UserStatus.ACTIVE, UserStatus.ACCESS_REQUESTED, UserStatus.APPROVED,
+      UserStatus.REGISTERED, UserStatus.PROFILE_COMPLETED, UserStatus.PENDING_APPROVAL,
+    ];
+    if (!allowedRefreshStatuses.includes(stored.user.status)) {
       throw new UnauthorizedException('Account is inactive');
     }
 
@@ -502,6 +506,7 @@ export class AuthService {
   }
 
   async me(user: AuthenticatedUser) {
+    if (!user?.id) throw new NotFoundException('User not found');
     const u = await this.prisma.user.findUnique({
       where: { id: user.id },
       select: {

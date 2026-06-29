@@ -16,7 +16,7 @@ import { EnrollmentModule } from './enrollment/enrollment.module';
     AppFeaturesModule,
   ],
   providers: [
-    //{ provide: APP_GUARD, useClass: JwtAuthGuard },
+    { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_FILTER, useClass: HttpExceptionFilter },
     { provide: APP_INTERCEPTOR, useClass: ResponseInterceptor },
   ],

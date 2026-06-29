@@ -68,7 +68,7 @@ export class SecurityNotificationService {
         await this.prisma.notification.create({
           data: {
             userId: params.userId,
-            tenantId: params.tenantId ?? user.tenantId,
+            tenantId: params.tenantId || user.tenantId || undefined,
             title: params.title,
             body: params.message,
             link: params.link,

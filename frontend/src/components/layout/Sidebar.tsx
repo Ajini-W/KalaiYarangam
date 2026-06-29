@@ -89,6 +89,7 @@ const superAdminNav: NavItem[] = [
 
 const ownerNav: NavItem[] = [
   { label: "Dashboard", href: "/owner/dashboard", icon: LayoutDashboard },
+  { label: "Access Requests", href: "/owner/access-requests", icon: UserCheck },
   {
     label: "Leads",
     icon: Target,
@@ -151,6 +152,7 @@ const ownerNav: NavItem[] = [
 
 const branchManagerNav: NavItem[] = [
   { label: "Dashboard", href: "/branch-manager/dashboard", icon: LayoutDashboard },
+  { label: "Access Requests", href: "/branch-manager/access-requests", icon: UserCheck },
   {
     label: "Leads",
     icon: Target,
@@ -258,12 +260,14 @@ const staffNav: NavItem[] = [
       { label: "Notifications", href: "/staff/notifications", icon: Bell },
     ],
   },
+  { label: "Access Requests", href: "/staff/access-requests", icon: UserCheck },
   { label: "Reports", href: "/staff/reports", icon: BarChart2 },
   { label: "Profile", icon: IdCard, onClick: () => useProfileModal.getState().setOpen(true) },
 ];
 
 const studentNav: NavItem[] = [
   { label: "Dashboard", href: "/student/dashboard", icon: LayoutDashboard },
+  { label: "My Request", href: "/student/my-request", icon: Clock },
   { label: "My Courses", href: "/student/my-courses", icon: BookOpen },
   { label: "Attendance", href: "/student/attendance", icon: CalendarCheck },
   { label: "Fees", href: "/student/fees", icon: CreditCard },

@@ -567,54 +567,62 @@ export class SecurityService {
     const last7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     const last30d = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
+    const safe = <T>(p: Promise<T>, fallback: T): Promise<T> =>
+      p.catch(() => fallback);
+
     const [
       activeSessions, failedLogins24h, criticalEvents7d, totalAuditLogs,
       totalUsers, totalTenants, tenantsByStatus, pendingAccessRequests,
       suspiciousLogins7d, lockedAccounts, totalSecurityEvents,
-      recentAuditLogs, recentSecurityEvents, recentLoginAttempts,
-      failedLoginTrend, securityEventTrend, sessionsByDeviceType,
     ] = await Promise.all([
-      this.prisma.session.count({ where: { isActive: true } }),
-      this.prisma.userLoginLog.count({ where: { success: false, loginAt: { gte: last24h } } }),
-      this.prisma.securityEvent.count({ where: { severity: 'CRITICAL', createdAt: { gte: last7d } } }),
-      this.prisma.auditLog.count(),
-      this.prisma.user.count(),
-      this.prisma.tenant.count(),
-      this.prisma.tenant.groupBy({ by: ['status'], _count: { status: true } }),
-      this.prisma.tenantAccessRequest.count({ where: { status: 'PENDING' } }),
-      this.prisma.userLoginLog.count({ where: { isSuspicious: true, loginAt: { gte: last7d } } }),
-      this.prisma.user.count({ where: { status: 'SUSPENDED' } }),
-      this.prisma.securityEvent.count(),
-      this.prisma.auditLog.findMany({
-        orderBy: { createdAt: 'desc' },
-        take: 10,
+      safe(this.prisma.session.count({ where: { isActive: true } }), 0),
+      safe(this.prisma.userLoginLog.count({ where: { success: false, loginAt: { gte: last24h } } }), 0),
+      safe(this.prisma.securityEvent.count({ where: { severity: 'CRITICAL', createdAt: { gte: last7d } } }), 0),
+      safe(this.prisma.auditLog.count(), 0),
+      safe(this.prisma.user.count(), 0),
+      safe(this.prisma.tenant.count(), 0),
+      safe(this.prisma.tenant.groupBy({ by: ['status'], _count: { status: true } }), [] as any[]),
+      safe(this.prisma.tenantAccessRequest.count({ where: { status: 'PENDING' } }), 0),
+      safe(this.prisma.userLoginLog.count({ where: { isSuspicious: true, loginAt: { gte: last7d } } }), 0),
+      safe(this.prisma.user.count({ where: { status: 'SUSPENDED' } }), 0),
+      safe(this.prisma.securityEvent.count(), 0),
+    ]);
+
+    const [
+      recentAuditLogs, recentSecurityEvents, recentLoginAttempts,
+    ] = await Promise.all([
+      safe(this.prisma.auditLog.findMany({
+        orderBy: { createdAt: 'desc' }, take: 10,
         include: { user: { select: { id: true, name: true, email: true, role: true } } },
-      }),
-      this.prisma.securityEvent.findMany({
-        orderBy: { createdAt: 'desc' },
-        take: 10,
+      }), [] as any[]),
+      safe(this.prisma.securityEvent.findMany({
+        orderBy: { createdAt: 'desc' }, take: 10,
         include: { user: { select: { id: true, name: true, email: true, role: true } } },
-      }),
-      this.prisma.userLoginLog.findMany({
-        orderBy: { loginAt: 'desc' },
-        take: 10,
+      }), [] as any[]),
+      safe(this.prisma.userLoginLog.findMany({
+        orderBy: { loginAt: 'desc' }, take: 10,
         include: { user: { select: { id: true, name: true, email: true, role: true } } },
-      }),
-      this.prisma.userLoginLog.groupBy({
-        by: ['success'],
-        _count: { success: true },
+      }), [] as any[]),
+    ]);
+
+    const [
+      failedLoginTrend, securityEventTrend, sessionsByDeviceType,
+      activeSubscriptions, trialSubscriptions,
+    ] = await Promise.all([
+      safe(this.prisma.userLoginLog.groupBy({
+        by: ['success'], _count: { success: true },
         where: { loginAt: { gte: last30d } },
-      }),
-      this.prisma.securityEvent.groupBy({
-        by: ['severity'],
-        _count: { severity: true },
+      }), [] as any[]),
+      safe(this.prisma.securityEvent.groupBy({
+        by: ['severity'], _count: { severity: true },
         where: { createdAt: { gte: last30d } },
-      }),
-      this.prisma.session.groupBy({
-        by: ['deviceType'],
-        _count: { deviceType: true },
+      }), [] as any[]),
+      safe(this.prisma.session.groupBy({
+        by: ['deviceType'], _count: { deviceType: true },
         where: { isActive: true },
-      }),
+      }), [] as any[]),
+      safe(this.prisma.subscription.count({ where: { status: 'ACTIVE' } }), 0),
+      safe(this.prisma.subscription.count({ where: { status: 'TRIAL' } }), 0),
     ]);
 
     const statusBreakdown: Record<string, number> = {};
@@ -632,11 +640,6 @@ export class SecurityService {
 
     const deviceBreakdown: Record<string, number> = {};
     for (const row of sessionsByDeviceType) deviceBreakdown[row.deviceType] = (row._count as any).deviceType ?? (row as any)._count ?? 0;
-
-    const [activeSubscriptions, trialSubscriptions] = await Promise.all([
-      this.prisma.subscription.count({ where: { status: 'ACTIVE' } }),
-      this.prisma.subscription.count({ where: { status: 'TRIAL' } }),
-    ]);
 
     return {
       message: 'Platform dashboard stats',
