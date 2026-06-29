@@ -1,0 +1,15 @@
+info:
+  name: POST Resume Enrollment
+  type: http
+  seq: 8
+
+http:
+  method: POST
+  url: http://localhost:4000/api/v1/1acbe156-aec5-4196-9aa2-37802e9aeeeb/resume
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
