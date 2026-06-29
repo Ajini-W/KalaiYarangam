@@ -1,4 +1,7 @@
-import { PlaceholderPage } from "@/lib/placeholder-page";
+"use client";
+
+import { StudentProgressView } from "@/components/progress";
+
 export default function Page() {
-  return <PlaceholderPage title="Progress" description="Assessments and trainer notes." />;
+  return <StudentProgressView />;
 }

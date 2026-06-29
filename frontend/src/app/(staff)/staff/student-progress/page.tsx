@@ -1,4 +1,13 @@
-import { PlaceholderPage } from "@/lib/placeholder-page";
+"use client";
+
+import { BatchProgressSummaryView } from "@/components/progress";
+
 export default function Page() {
-  return <PlaceholderPage title="Student Progress" description="Track student assessments." />;
+  return (
+    <BatchProgressSummaryView
+      basePath="/staff/student-progress"
+      title="Student Progress"
+      subtitle="Review individual student learning progress."
+    />
+  );
 }

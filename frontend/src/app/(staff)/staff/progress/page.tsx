@@ -1,4 +1,7 @@
-import { PlaceholderPage } from "@/lib/placeholder-page";
+"use client";
+
+import { BatchProgressSummaryView } from "@/components/progress";
+
 export default function Page() {
-  return <PlaceholderPage title="Progress" description="Manage progress here." />;
+  return <BatchProgressSummaryView basePath="/staff/progress" />;
 }
