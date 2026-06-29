@@ -34,6 +34,7 @@ function CallbackHandler() {
         clearTimeout(timeout);
         const noOnboardingStatuses = ["ACTIVE", "APPROVED", "ACCESS_REQUESTED", "PENDING_APPROVAL"];
         const needsOnboarding = user.role !== "CLIENT"
+          && user.role !== "SUPER_ADMIN"
           && !noOnboardingStatuses.includes(user.status);
         const dest = needsOnboarding ? "/onboarding" : getDashboardRoute(user.role);
         window.location.replace(dest);

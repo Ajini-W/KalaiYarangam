@@ -118,6 +118,10 @@ export default function LoginPage() {
         setEmailWarning(user.email);
         return;
       }
+      if (user.role === "SUPER_ADMIN") {
+        router.replace(getDashboardRoute(user.role));
+        return;
+      }
       const noOnboardingStatuses = ["ACTIVE", "APPROVED", "ACCESS_REQUESTED", "PENDING_APPROVAL"];
       if (isFirstLogin || !noOnboardingStatuses.includes(user.status ?? "")) {
         router.replace("/onboarding");
@@ -155,11 +159,15 @@ export default function LoginPage() {
         return;
       }
       toast.success("Logged in successfully!");
-      const noOnboardingStatuses = ["ACTIVE", "APPROVED", "ACCESS_REQUESTED", "PENDING_APPROVAL"];
-      if (result?.onboardingRequired || result?.isFirstLogin || !noOnboardingStatuses.includes(updatedUser?.status ?? "")) {
-        router.push("/onboarding");
+      if (updatedUser?.role === "SUPER_ADMIN") {
+        router.push(getDashboardRoute(updatedUser.role));
       } else {
-        router.push(updatedUser ? getDashboardRoute(updatedUser.role) : "/login");
+        const noOnboardingStatuses = ["ACTIVE", "APPROVED", "ACCESS_REQUESTED", "PENDING_APPROVAL"];
+        if (result?.onboardingRequired || result?.isFirstLogin || !noOnboardingStatuses.includes(updatedUser?.status ?? "")) {
+          router.push("/onboarding");
+        } else {
+          router.push(updatedUser ? getDashboardRoute(updatedUser.role) : "/login");
+        }
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Login failed");

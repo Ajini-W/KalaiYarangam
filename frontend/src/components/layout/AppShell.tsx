@@ -33,6 +33,7 @@ export function AppShell({ children, className }: AppShellProps) {
     const noRedirectStatuses = ["ACCESS_REQUESTED", "PENDING_APPROVAL", "APPROVED", "ACTIVE"];
     const needsOnboarding = !user.tenantId
       && user.role !== "CLIENT"
+      && user.role !== "SUPER_ADMIN"
       && !noRedirectStatuses.includes(user.status);
     if (needsOnboarding && !pathname.startsWith("/onboarding")) {
       redirectedRef.current = true;
