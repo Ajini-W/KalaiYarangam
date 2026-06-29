@@ -105,7 +105,7 @@ export class NotificationService implements OnModuleInit {
 
     const notifications = users.map((u) => ({
       userId: u.id,
-      tenantId: tenantId ?? undefined,
+      tenantId: tenantId || undefined,
       title: dto.title,
       body: dto.body,
       link: dto.link,

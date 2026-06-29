@@ -1,12 +1,36 @@
 import { BadGatewayException, Injectable, NotFoundException } from '@nestjs/common';
 import { env } from '@/config';
 import { SendMailDto } from './dto/mail.dto';
-import { welcomeTemplate, verifyEmailTemplate, resetPasswordTemplate } from './templates';
+import {
+  welcomeTemplate,
+  verifyEmailTemplate,
+  resetPasswordTemplate,
+  newDeviceLoginTemplate,
+  failedLoginTemplate,
+  passwordChangedTemplate,
+  mfaEnabledTemplate,
+  mfaDisabledTemplate,
+  sessionRevokedTemplate,
+  suspiciousLoginTemplate,
+  accountLockedTemplate,
+  apiKeyCreatedTemplate,
+  adminRoleGrantedTemplate,
+} from './templates';
 
 const templates: Record<string, (vars: Record<string, unknown>) => { subject: string; html: string }> = {
   welcome: welcomeTemplate,
   'verify-email': verifyEmailTemplate,
   'reset-password': resetPasswordTemplate,
+  'new-device-login': newDeviceLoginTemplate,
+  'failed-login': failedLoginTemplate,
+  'password-changed': passwordChangedTemplate,
+  'mfa-enabled': mfaEnabledTemplate,
+  'mfa-disabled': mfaDisabledTemplate,
+  'session-revoked': sessionRevokedTemplate,
+  'suspicious-login': suspiciousLoginTemplate,
+  'account-locked': accountLockedTemplate,
+  'api-key-created': apiKeyCreatedTemplate,
+  'admin-role-granted': adminRoleGrantedTemplate,
 };
 
 @Injectable()
@@ -35,7 +59,7 @@ export class MailService {
       }),
     });
 
-    const result = await response.json();
+    const result = (await response.json()) as any;
 
     if (!response.ok) {
       throw new BadGatewayException(

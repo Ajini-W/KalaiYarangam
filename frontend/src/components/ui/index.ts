@@ -4,6 +4,7 @@ export * from "./Badge";
 export * from "./Input";
 export * from "./Textarea";
 export * from "./Select";
+export * from "./SearchableSelect";
 export * from "./Checkbox";
 export * from "./Radio";
 
@@ -23,3 +24,6 @@ export * from "./Card";
 
 // Overlay
 export * from "./Modal";
+
+// Form
+export * from "./ColorPicker";

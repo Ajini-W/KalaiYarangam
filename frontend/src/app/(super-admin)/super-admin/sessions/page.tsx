@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ShieldAlert, ShieldX, Search, RefreshCw } from "lucide-react";
+import { ShieldX, RefreshCw, Monitor, Smartphone, Tablet, Download, Globe, Clock, MapPin } from "lucide-react";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Card, CardHeader, CardTitle, CardBody } from "@/components/ui/Card";
 import { Table, type Column } from "@/components/ui/Table";
@@ -9,9 +9,19 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Pagination } from "@/components/ui/Pagination";
 import { SearchBar } from "@/components/ui/SearchBar";
-import { Spinner } from "@/components/ui/Spinner";
-import { securityService, type SessionItem, type SecurityStats } from "@/services/security.service";
+import { Select } from "@/components/ui/Select";
+import { securityService, type SessionItem, type SecurityStats, downloadBlob } from "@/services/security.service";
 import { toast } from "sonner";
+
+const DEVICE_ICONS: Record<string, React.ElementType> = {
+  DESKTOP: Monitor,
+  MOBILE: Smartphone,
+  TABLET: Tablet,
+};
+
+function getDeviceIcon(deviceType: string) {
+  return DEVICE_ICONS[deviceType] || Globe;
+}
 
 export default function SessionsPage() {
   const [sessions, setSessions] = React.useState<SessionItem[]>([]);
@@ -21,41 +31,102 @@ export default function SessionsPage() {
   const [pageSize] = React.useState(15);
   const [total, setTotal] = React.useState(0);
   const [search, setSearch] = React.useState("");
+  const [statusFilter, setStatusFilter] = React.useState("");
+  const [deviceFilter, setDeviceFilter] = React.useState("");
 
-  const fetch = React.useCallback(async () => {
+  const fetchData = React.useCallback(async () => {
     setLoading(true);
     try {
-      const res = await securityService.listSessions({ page, pageSize, search: search || undefined });
-      setSessions(res.data);
-      setTotal(res.meta.total);
+      const res = await securityService.listSessions({
+        page, pageSize, search: search || undefined,
+        isActive: statusFilter ? statusFilter === "active" : undefined,
+        deviceType: deviceFilter || undefined,
+      });
+      setSessions(res.data ?? []);
+      setTotal(res.meta?.total ?? 0);
       const s = await securityService.getStats();
       setStats(s);
     } catch { toast.error("Failed to load sessions"); }
     finally { setLoading(false); }
-  }, [page, pageSize, search]);
+  }, [page, pageSize, search, statusFilter, deviceFilter]);
 
-  React.useEffect(() => { fetch(); }, [fetch]);
+  React.useEffect(() => { fetchData(); }, [fetchData]);
 
   const handleRevoke = async (id: string) => {
     try {
       await securityService.revokeSession(id);
       toast.success("Session revoked");
-      fetch();
+      fetchData();
     } catch { toast.error("Failed to revoke session"); }
   };
 
+  const handleExport = async () => {
+    try {
+      const blob = await securityService.exportSessionsCsv({
+        isActive: statusFilter ? statusFilter === "active" : undefined,
+      });
+      downloadBlob(blob, `sessions_${Date.now()}.csv`);
+      toast.success("Export downloaded");
+    } catch { toast.error("Failed to export"); }
+  };
+
   const columns: Column<SessionItem>[] = [
-    { key: "userName", header: "User", render: (r) => <span className="font-medium">{r.user.name}</span> },
-    { key: "email", header: "Email", render: (r) => <span className="text-text-secondary text-sm">{r.user.email}</span> },
-    { key: "ipAddress", header: "IP Address", render: (r) => r.ipAddress || "—" },
-    { key: "deviceInfo", header: "Device", render: (r) => r.deviceInfo || "—" },
+    {
+      key: "user",
+      header: "User",
+      render: (r) => (
+        <div>
+          <p className="font-medium text-text-primary">{r.user.name}</p>
+          <p className="text-xs text-text-secondary">{r.user.email}</p>
+        </div>
+      ),
+    },
+    {
+      key: "device",
+      header: "Device & Browser",
+      render: (r) => {
+        const Icon = getDeviceIcon(r.deviceType);
+        return (
+          <div className="flex items-center gap-2">
+            <Icon size={14} className="text-text-secondary shrink-0" />
+            <div>
+              <p className="text-sm font-medium">{r.browser || "Unknown"}{r.browserVersion ? ` ${r.browserVersion}` : ""}</p>
+              <p className="text-xs text-text-secondary">{r.os || "Unknown"}{r.osVersion ? ` ${r.osVersion}` : ""}</p>
+            </div>
+          </div>
+        );
+      },
+    },
+    {
+      key: "ipAddress",
+      header: "IP & Location",
+      render: (r) => (
+        <div>
+          <p className="font-mono text-xs">{r.ipAddress || "—"}</p>
+          {r.location && <p className="text-xs text-text-secondary flex items-center gap-1"><MapPin size={10} />{r.location}</p>}
+        </div>
+      ),
+    },
+    {
+      key: "loginMethod",
+      header: "Method",
+      render: (r) => <Badge variant="outline" size="sm">{r.loginMethod}</Badge>,
+    },
     {
       key: "isActive",
       header: "Status",
       render: (r) => r.isActive ? <Badge variant="success">Active</Badge> : <Badge variant="danger">Revoked</Badge>,
     },
-    { key: "lastActivity", header: "Last Activity", render: (r) => new Date(r.lastActivity).toLocaleString() },
-    { key: "createdAt", header: "Created", render: (r) => new Date(r.createdAt).toLocaleDateString() },
+    {
+      key: "lastActivity",
+      header: "Last Activity",
+      render: (r) => (
+        <div className="flex items-center gap-1 text-sm text-text-secondary">
+          <Clock size={12} />
+          {new Date(r.lastActivity).toLocaleString()}
+        </div>
+      ),
+    },
     {
       key: "id",
       header: "",
@@ -71,8 +142,8 @@ export default function SessionsPage() {
   const statCards = stats ? [
     { label: "Active Sessions", value: stats.activeSessions, color: "text-success" },
     { label: "Failed Logins (24h)", value: stats.failedLoginsLast24h, color: "text-warning" },
+    { label: "Suspicious (7d)", value: stats.suspiciousLoginsLast7d, color: "text-danger" },
     { label: "Critical Events (7d)", value: stats.criticalEventsLast7d, color: "text-danger" },
-    { label: "Total Audit Logs", value: stats.totalAuditLogs, color: "text-info" },
   ] : [];
 
   return (
@@ -90,16 +161,60 @@ export default function SessionsPage() {
         </div>
       )}
 
+      {stats?.sessionsByDeviceType && Object.keys(stats.sessionsByDeviceType).length > 0 && (
+        <Card className="mb-6">
+          <CardBody className="py-3">
+            <div className="flex items-center gap-4 flex-wrap">
+              <span className="text-sm font-medium text-text-secondary">Sessions by Device:</span>
+              {Object.entries(stats.sessionsByDeviceType).map(([type, count]) => {
+                const Icon = getDeviceIcon(type);
+                return (
+                  <div key={type} className="flex items-center gap-1.5 text-sm">
+                    <Icon size={14} className="text-text-secondary" />
+                    <span className="font-medium">{count}</span>
+                    <span className="text-text-secondary">{type.toLowerCase()}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </CardBody>
+        </Card>
+      )}
+
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>Sessions</CardTitle>
-            <Button variant="ghost" size="sm" onClick={fetch} leftIcon={<RefreshCw size={14} />}>Refresh</Button>
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" onClick={handleExport} leftIcon={<Download size={14} />}>Export CSV</Button>
+              <Button variant="ghost" size="sm" onClick={fetchData} leftIcon={<RefreshCw size={14} />}>Refresh</Button>
+            </div>
           </div>
         </CardHeader>
         <CardBody className="pt-0">
-          <div className="mb-4">
-            <SearchBar value={search} onChange={setSearch} placeholder="Search by user, email, or IP…" className="max-w-sm" />
+          <div className="flex items-center gap-3 mb-4 flex-wrap">
+            <SearchBar value={search} onChange={setSearch} placeholder="Search user, email, IP…" className="max-w-sm" />
+            <Select
+              value={statusFilter}
+              onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+              options={[
+                { value: "", label: "All Status" },
+                { value: "active", label: "Active" },
+                { value: "revoked", label: "Revoked" },
+              ]}
+              className="w-36"
+            />
+            <Select
+              value={deviceFilter}
+              onChange={(e) => { setDeviceFilter(e.target.value); setPage(1); }}
+              options={[
+                { value: "", label: "All Devices" },
+                { value: "DESKTOP", label: "Desktop" },
+                { value: "MOBILE", label: "Mobile" },
+                { value: "TABLET", label: "Tablet" },
+              ]}
+              className="w-36"
+            />
           </div>
           <Table columns={columns} data={sessions} loading={loading}
             emptyTitle="No sessions found"

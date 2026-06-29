@@ -1,0 +1,56 @@
+[
+  {
+    "slug": "introduction",
+    "title": "Introduction",
+    "description": "Welcome to the kalaiArangam documentation. Learn what the platform offers and how it can transform your business.",
+    "content": "## What is kalaiArangam?\n\nkalaiArangam is a multi-tenant SaaS ERP platform designed for Training Institutes, Rental Businesses, and Event Management Companies.\n\n### Core Modules\n\n- **Training Management**: Student lifecycle from enquiry to certification\n- **Rental Management**: Inventory, bookings, dispatch, and returns\n- **Event Management**: Event pipeline from lead to closure\n\n### Key Features\n\n- Multi-branch operations\n- Role-based access control\n- Automated notifications\n- Real-time analytics\n- Mobile-first design",
+    "category": "Overview",
+    "order": 1,
+    "group": "Getting Started"
+  },
+  {
+    "slug": "quick-start",
+    "title": "Quick Start Guide",
+    "description": "Get up and running with kalaiArangam in under 10 minutes.",
+    "content": "## Prerequisites\n\n- A valid email address\n- Your business details\n- 10 minutes of your time\n\n## Step 1: Sign Up\n\nVisit the registration page and create your account.\n\n## Step 2: Create Organization\n\nEnter your business name, select your industry, and add your primary branch.\n\n## Step 3: Select Modules\n\nChoose which modules to activate. You can start with one and add more later.\n\n## Step 4: Add Team Members\n\nInvite your staff by email and assign appropriate roles.\n\n## Step 5: Start Using\n\nBegin adding data, creating batches, or setting up inventory.",
+    "category": "Overview",
+    "order": 2,
+    "group": "Getting Started"
+  },
+  {
+    "slug": "training-module-overview",
+    "title": "Training Module Overview",
+    "description": "Comprehensive guide to the Training Management module including students, batches, attendance, and fees.",
+    "content": "## Module Overview\n\nThe Training Module manages the complete student lifecycle.\n\n### Core Features\n\n| Feature | Description |\n|---------|-------------|\n| Lead Management | Capture and track enquiries |\n| Batch Management | Create and schedule classes |\n| Enrollment | Register students into batches |\n| Fee Management | Track payments and dues |\n| Attendance | Mark and report attendance |\n| Progress | Track student performance |\n| Certificates | Generate completion certificates |\n\n### Lead Pipeline\n\nEvery enquiry enters the lead pipeline with a status:\n\n1. **New** - Just captured\n2. **Contacted** - Follow-up initiated\n3. **Interested** - Active conversation\n4. **Enrolled** - Converted to student\n\n### Fee Collection\n\nConfigure fee plans per batch and track collections in real time. Automated reminders reduce follow-up effort by 60%.",
+    "category": "Modules",
+    "order": 3,
+    "group": "Modules"
+  },
+  {
+    "slug": "rental-module-overview",
+    "title": "Rental Module Overview",
+    "description": "Guide to inventory management, booking lifecycle, dispatch, and return processing.",
+    "content": "## Module Overview\n\nThe Rental Module manages the complete asset rental lifecycle.\n\n### Core Features\n\n| Feature | Description |\n|---------|-------------|\n| Inventory | Add and manage rental items |\n| Catalogue | Public-facing item listings |\n| Bookings | Reserve and confirm rentals |\n| Dispatch | Track item handover |\n| Returns | Process returns and inspections |\n| Damage | Assess and charge for damages |\n\n### Booking Lifecycle\n\n1. **Enquiry** - Customer inquiry received\n2. **Quotation** - Price estimate sent\n3. **Confirmed** - Booking confirmed with payment\n4. **Dispatched** - Item handed to customer\n5. **Returned** - Item received and inspected\n6. **Closed** - Booking complete",
+    "category": "Modules",
+    "order": 4,
+    "group": "Modules"
+  },
+  {
+    "slug": "event-module-overview",
+    "title": "Event Module Overview",
+    "description": "Guide to event planning, team assignment, budget tracking, and closure reports.",
+    "content": "## Module Overview\n\nThe Event Module manages complete event execution.\n\n### Core Features\n\n| Feature | Description |\n|---------|-------------|\n| CRM | Track client enquiries |\n| Quotations | Create and send proposals |\n| Planning | Define scope, teams, timelines |\n| Tasks | Assign and track team tasks |\n| Budget | Monitor spending vs budget |\n| Closure | Final billing and reports |\n\n### Event Lifecycle\n\n1. **Enquiry** - Client reaches out\n2. **Proposal** - Quotation sent\n3. **Confirmed** - Client approves\n4. **Planning** - Team and tasks assigned\n5. **Execution** - Event day management\n6. **Closure** - Final billing and report",
+    "category": "Modules",
+    "order": 5,
+    "group": "Modules"
+  },
+  {
+    "slug": "api-authentication",
+    "title": "API Authentication",
+    "description": "How to authenticate API requests using API keys and OAuth tokens.",
+    "content": "## Authentication Methods\n\nkalaiArangam supports two authentication methods:\n\n### API Key\n\nInclude your API key in the request header:\n\n```\nAuthorization: Bearer YOUR_API_KEY\n```\n\n### OAuth 2.0\n\nFor third-party integrations, use OAuth 2.0 flow:\n\n1. Redirect user to authorization URL\n2. Receive authorization code\n3. Exchange code for access token\n4. Use token in API requests\n\n## Rate Limits\n\n- **Free tier**: 100 requests per minute\n- **Solo plan**: 500 requests per minute\n- **Business plan**: 2,000 requests per minute\n- **Complete plan**: 10,000 requests per minute",
+    "category": "API",
+    "order": 6,
+    "group": "API Reference"
+  }
+]

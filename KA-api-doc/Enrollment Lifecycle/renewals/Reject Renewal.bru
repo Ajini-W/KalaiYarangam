@@ -1,0 +1,11 @@
+meta {
+  name: Reject Renewal
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{base-url}}/renewals/:renewalId/reject
+  body: none
+  auth: inherit
+}
