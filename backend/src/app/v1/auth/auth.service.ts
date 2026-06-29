@@ -10,22 +10,24 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
-import { AuthProviderType, UserRole, UserStatus } from '@prisma/client';
 import { PrismaService } from '@/database';
-import { env } from '@/config';
 import { MailService } from '@/app/v1/mail/mail.service';
+import { env } from '@/config';
+import { UserRole, UserStatus } from '@prisma/client';
 import { AuthenticatedUser } from '@/common/interfaces';
+import { AuthErrorLogDto } from './dto/auth.dto';
+
 import {
-  ChangePasswordDto,
-  ForgotPasswordDto,
   LoginDto,
   RegisterDto,
   RefreshTokenDto,
+  ForgotPasswordDto,
   ResetPasswordDto,
+  ChangePasswordDto,
+  VerifyEmailDto,
   SendVerificationTokenDto,
   UpdateProfileDto,
   UpdateUserStatusDto,
-  VerifyEmailDto,
 } from './dto/auth.dto';
 
 @Injectable()
@@ -36,759 +38,364 @@ export class AuthService {
     private readonly mailService: MailService,
   ) {}
 
+  // ================= REGISTER =================
   async register(dto: RegisterDto) {
-    const [existingEmailUser, existingPhoneUser] = await Promise.all([
-      this.prisma.user.findUnique({ where: { email: dto.email } }),
-      dto.phone
-        ? this.prisma.user.findUnique({ where: { phone: dto.phone } })
-        : null,
-    ]);
-
-    if (existingPhoneUser && existingPhoneUser.email !== dto.email) {
-      throw new ConflictException('A user with this phone number already exists');
-    }
-
-    const passwordHash = await bcrypt.hash(dto.password, 10);
-    const verificationToken = randomBytes(32).toString('hex');
-    const verificationTokenExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
-
-    // If user already exists (e.g. from Google OAuth), link the account
-    if (existingEmailUser) {
-      // Check if email/password provider already linked
-      const existingProvider = await this.prisma.authProvider.findUnique({
-        where: { userId_provider: { userId: existingEmailUser.id, provider: AuthProviderType.EMAIL } },
-      });
-
-      if (!existingProvider) {
-        await this.prisma.authProvider.create({
-          data: { userId: existingEmailUser.id, provider: AuthProviderType.EMAIL, email: dto.email },
-        });
-      }
-
-      const updated = await this.prisma.user.update({
-        where: { id: existingEmailUser.id },
-        data: {
-          passwordHash,
-          passwordSet: true,
-          name: dto.name,
-          phone: dto.phone || existingEmailUser.phone,
-          verificationToken,
-          verificationTokenExpiresAt,
-          status: existingEmailUser.status === UserStatus.ACTIVE
-            ? UserStatus.ACTIVE
-            : UserStatus.NEW_USER,
-        },
-      });
-
-      try {
-        await this.mailService.send({
-          to: dto.email,
-          template: 'verify-email',
-          variables: {
-            name: dto.name,
-            email: dto.email,
-            verificationLink: `${env.APP_URL}/verify-email?token=${verificationToken}`,
-          },
-        });
-      } catch {
-        // Email failure should not block registration
-      }
-
-      return {
-        message: 'Registration successful. Please check your email to verify your account.',
-        data: await this.buildAuthResponse(updated),
-      };
-    }
-
-    const user = await this.prisma.$transaction(async (tx) => {
-      const u = await tx.user.create({
-        data: {
-          email: dto.email,
-          passwordHash,
-          passwordSet: true,
-          name: dto.name,
-          phone: dto.phone,
-          role: UserRole.STAFF,
-          status: UserStatus.NEW_USER,
-          verificationToken,
-          verificationTokenExpiresAt,
-        },
-      });
-
-      await tx.authProvider.create({
-        data: { userId: u.id, provider: AuthProviderType.EMAIL, email: dto.email },
-      });
-
-      await tx.onboardingProgress.create({
-        data: { userId: u.id },
-      });
-
-      return u;
-    });
-
-    try {
-      await this.mailService.send({
-        to: dto.email,
-        template: 'verify-email',
-        variables: {
-          name: dto.name,
-          email: dto.email,
-          verificationLink: `${env.APP_URL}/verify-email?token=${verificationToken}`,
-        },
-      });
-    } catch {
-      // Email failure should not block registration
-    }
-
-    return {
-      message: 'Registration successful. Please check your email to verify your account.',
-      data: await this.buildAuthResponse(user),
-    };
-  }
-
-  async verifyEmail(dto: VerifyEmailDto) {
-    const user = await this.prisma.user.findUnique({
-      where: { verificationToken: dto.token },
-    });
-
-    if (!user) {
-      throw new BadRequestException('Invalid verification token');
-    }
-
-    if (user.status === UserStatus.ACTIVE) {
-      throw new BadRequestException('Email is already verified');
-    }
-
-    if (
-      user.verificationTokenExpiresAt &&
-      user.verificationTokenExpiresAt < new Date()
-    ) {
-      throw new GoneException('Verification token expired');
-    }
-
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: {
-        status: UserStatus.REGISTERED,
-        verificationToken: null,
-        verificationTokenExpiresAt: null,
-        verifiedAt: new Date(),
-      },
-    });
-
-    return { message: 'Email verified successfully', data: { emailVerified: true } };
-  }
-
-  async sendVerificationToken(dto: SendVerificationTokenDto) {
-    const user = await this.prisma.user.findUnique({
+    const existing = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
 
-    if (!user) {
-      throw new NotFoundException('User not found with this email');
-    }
-
-    if (user.status === UserStatus.ACTIVE) {
-      throw new BadRequestException('Email is already verified');
-    }
-
-    const verificationToken = randomBytes(32).toString('hex');
-    const verificationTokenExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
-
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: { verificationToken, verificationTokenExpiresAt },
-    });
-
-    try {
-      await this.mailService.send({
-        to: dto.email,
-        template: 'verify-email',
-        variables: {
-          name: user.name,
-          email: dto.email,
-          verificationLink: `${env.APP_URL}/verify-email?token=${verificationToken}`,
-        },
-      });
-    } catch {
-      // Email failure should not block the response
-    }
-
-    return { message: 'Verification email sent. Please check your inbox.' };
-  }
-
-  async forgotPassword(dto: ForgotPasswordDto) {
-    const user = await this.prisma.user.findUnique({
-      where: { email: dto.email },
-    });
-
-    if (!user) {
-      throw new NotFoundException('User not found with this email');
-    }
-
-    const resetToken = randomBytes(32).toString('hex');
-    const resetPasswordExpiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
-
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: { resetPasswordToken: resetToken, resetPasswordExpiresAt },
-    });
-
-    try {
-      await this.mailService.send({
-        to: dto.email,
-        template: 'reset-password',
-        variables: {
-          name: user.name,
-          email: dto.email,
-          resetLink: `${env.APP_URL}/reset-password?token=${resetToken}`,
-        },
-      });
-    } catch {
-      // Email failure should not block the response
-    }
-
-    return { message: 'Password reset link sent to your email.' };
-  }
-
-  async resetPassword(dto: ResetPasswordDto) {
-    const user = await this.prisma.user.findFirst({
-      where: { resetPasswordToken: dto.token },
-    });
-
-    if (!user) {
-      throw new BadRequestException('Invalid reset token');
-    }
-
-    if (
-      user.resetPasswordExpiresAt &&
-      user.resetPasswordExpiresAt < new Date()
-    ) {
-      throw new GoneException('Reset token expired');
-    }
+    if (existing) throw new ConflictException('Email already exists');
 
     const passwordHash = await bcrypt.hash(dto.password, 10);
+    const token = randomBytes(32).toString('hex');
 
-    await this.prisma.user.update({
-      where: { id: user.id },
+    const user = await this.prisma.user.create({
       data: {
+        email: dto.email,
         passwordHash,
+        name: dto.name,
+        phone: dto.phone,
+        role: UserRole.STAFF,
+        status: UserStatus.NEW_USER,
+        verificationToken: token,
+        verificationTokenExpiresAt: new Date(Date.now() + 86400000),
         passwordSet: true,
-        resetPasswordToken: null,
-        resetPasswordExpiresAt: null,
       },
     });
 
-    return { message: 'Password reset successfully.' };
+    await this.mailService.send({
+      to: dto.email,
+      template: 'verify-email',
+      variables: {
+        name: dto.name,
+        verificationLink: `${env.APP_URL}/verify-email?token=${token}`,
+      },
+    });
+
+    return this.buildAuthResponse(user);
   }
 
-  async changePassword(dto: ChangePasswordDto, userId: string) {
+  // ================= VERIFY EMAIL =================
+ async verifyEmail(dto: VerifyEmailDto) {
+  const user = await this.prisma.user.findFirst({
+    where: { verificationToken: dto.token },
+  });
+
+  if (!user) {
+    throw new BadRequestException('Invalid verification token');
+  }
+
+  if (
+    !user.verificationTokenExpiresAt ||
+    user.verificationTokenExpiresAt < new Date()
+  ) {
+    throw new GoneException('Verification token expired');
+  }
+
+  await this.prisma.user.update({
+    where: { id: user.id },
+    data: {
+      status: UserStatus.ACTIVE,
+      verifiedAt: new Date(),
+      verificationToken: null,
+      verificationTokenExpiresAt: null,
+    },
+  });
+
+  return { message: 'Email verified successfully' };
+}
+
+  // ================= LOGIN =================
+  async login(dto: LoginDto, ip?: string, userAgent?: string) {
     const user = await this.prisma.user.findUnique({
-      where: { id: userId },
+      where: { email: dto.email },
     });
 
-    if (!user) {
-      throw new NotFoundException('User not found');
+    if (!user) throw new UnauthorizedException('Invalid credentials');
+
+    if (user.status !== UserStatus.ACTIVE) {
+      throw new ForbiddenException('Verify email first');
     }
 
-    const valid = await bcrypt.compare(dto.currentPassword, user.passwordHash);
-
-    if (!valid) {
-      throw new UnauthorizedException('Current password is incorrect');
-    }
-
-    const passwordHash = await bcrypt.hash(dto.newPassword, 10);
-
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { passwordHash, passwordSet: true },
-    });
-
-    return { message: 'Password changed successfully.' };
-  }
-
-  async setPassword(dto: { newPassword: string }, userId: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-    });
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    if (user.passwordSet) {
-      throw new BadRequestException('Password already set. Use change-password instead.');
-    }
-
-    const passwordHash = await bcrypt.hash(dto.newPassword, 10);
-
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { passwordHash, passwordSet: true },
-    });
-
-    return { message: 'Password set successfully.' };
-  }
-
-  async login(dto: LoginDto, ipAddress?: string, userAgent?: string) {
-    const user = await this.prisma.user.findFirst({
-      where:
-        dto.type === 'phone' && dto.phone
-          ? { phone: dto.phone }
-          : { email: dto.email },
-    });
-
-    if (!user) {
-      const field = dto.type === 'phone' ? 'phone number' : 'email';
-      throw new UnauthorizedException(`User not found with this ${field}. Please check or register.`);
-    }
-
-    if (user.status === UserStatus.INACTIVE || user.status === UserStatus.SUSPENDED) {
-      throw new UnauthorizedException('Account is inactive or suspended. Please contact support.');
-    }
-
-    if (user.status === UserStatus.NEW_USER || user.status === UserStatus.PENDING) {
-      throw new UnauthorizedException(
-        'Please verify your email before logging in. Check your inbox for the verification link.',
-      );
-    }
-
-    const valid = await bcrypt.compare(dto.password, user.passwordHash);
-
-    if (!valid) {
-      await this.prisma.userLoginLog.create({
-        data: { userId: user.id, ipAddress, userAgent, success: false },
-      });
-      throw new UnauthorizedException('Invalid password');
-    }
+    const ok = await bcrypt.compare(dto.password, user.passwordHash);
+    if (!ok) throw new UnauthorizedException('Invalid credentials');
 
     await this.prisma.user.update({
       where: { id: user.id },
       data: { lastLoginAt: new Date() },
     });
 
-    const tokens = await this.generateTokens(user, dto.rememberMe);
+   const tokens = await this.generateTokens(user);
 
-    await this.prisma.userLoginLog.create({
-      data: {
-        userId: user.id,
-        ipAddress,
-        userAgent,
-        accessToken: tokens.accessToken,
-        refreshToken: tokens.refreshToken,
-        success: true,
-      },
-    });
+const response = {
+  user: this.toPayload(user),
+  ...tokens,
+};
 
-    return {
-      message: 'Login successful',
-      data: {
-        user: this.toPayload(user),
-        ...tokens,
-        rememberMe: dto.rememberMe ?? false,
-        isFirstLogin: user.lastLoginAt === null,
-      },
-    };
+console.log('LOGIN RESPONSE:', response);
+
+return response;
+   
+  }async logout(refreshToken: string) {
+  const token = await this.prisma.refreshToken.findUnique({
+    where: { token: refreshToken },
+  });
+
+  if (!token) throw new UnauthorizedException('Invalid token');
+
+  await this.prisma.refreshToken.update({
+    where: { id: token.id },
+    data: { revokedAt: new Date() },
+  });
+
+  return { message: 'Logged out' };
+}
+async googleLogin(req: any, ip?: string, userAgent?: string) {
+  const googleUser = req.user;
+
+  if (!googleUser?.email) {
+    throw new UnauthorizedException('Google login failed');
   }
 
-  async logout(refreshToken: string) {
-    const storedToken = await this.prisma.refreshToken.findUnique({
-      where: { token: refreshToken },
+  let user = await this.prisma.user.findUnique({
+    where: { email: googleUser.email },
+  });
+
+  if (!user) {
+    user = await this.prisma.user.create({
+      data: {
+        email: googleUser.email,
+        name: googleUser.name ?? 'Google User',
+        passwordHash: '', // required by Prisma
+        status: UserStatus.ACTIVE,
+      },
     });
-
-    if (!storedToken) {
-      throw new UnauthorizedException('Invalid refresh token');
-    }
-
-    if (storedToken.revokedAt) {
-      throw new UnauthorizedException('Token is already revoked');
-    }
-
-    await this.prisma.refreshToken.update({
-      where: { id: storedToken.id },
-      data: { revokedAt: new Date() },
-    });
-
-    return { message: 'Logged out successfully' };
   }
 
+  const accessToken = this.jwtService.sign({ sub: user.id });
+  const refreshToken = this.jwtService.sign(
+    { sub: user.id },
+    { expiresIn: '7d' },
+  );
+
+  return { accessToken, refreshToken };
+}
+
+  // ================= REFRESH =================
   async refresh(dto: RefreshTokenDto) {
     const stored = await this.prisma.refreshToken.findUnique({
       where: { token: dto.refreshToken },
       include: { user: true },
     });
 
-    if (!stored || stored.revokedAt || stored.expiresAt < new Date()) {
-      throw new UnauthorizedException('Invalid or expired refresh token');
+    if (!stored || stored.revokedAt) {
+      throw new UnauthorizedException('Invalid refresh token');
     }
 
-    if (stored.user.status !== UserStatus.ACTIVE) {
-      throw new UnauthorizedException('Account is inactive');
-    }
+    const tokens = await this.generateTokens(stored.user);
 
     await this.prisma.refreshToken.update({
       where: { id: stored.id },
       data: { revokedAt: new Date() },
     });
 
-    const tokens = await this.generateTokens(stored.user);
-
     return {
-      message: 'Token refreshed',
-      data: { user: this.toPayload(stored.user), ...tokens },
+      user: this.toPayload(stored.user),
+      ...tokens,
     };
   }
 
-  async updateUserStatus(dto: UpdateUserStatusDto) {
-    let adminUser: AuthenticatedUser;
-    try {
-      adminUser = this.jwtService.verify(dto.accessToken);
-    } catch {
-      throw new UnauthorizedException('Invalid or expired accessToken');
-    }
-
-    if (
-      adminUser.role !== UserRole.OWNER &&
-      adminUser.role !== UserRole.SUPER_ADMIN
-    ) {
-      throw new ForbiddenException('Forbidden resource');
-    }
-
-    const targetId = dto.userId || adminUser.id;
-    const target = await this.prisma.user.findUnique({ where: { id: targetId } });
-
-    if (!target) {
-      throw new NotFoundException('User not found');
-    }
-
-    if (adminUser.role !== UserRole.SUPER_ADMIN && target.tenantId !== adminUser.tenantId) {
-      throw new ForbiddenException('You can only manage users in your own tenant');
-    }
-
-    const status = dto.status as UserStatus;
-
-    const updated = await this.prisma.user.update({
-      where: { id: targetId },
-      data: { status },
-      select: { id: true, email: true, name: true, role: true, status: true },
-    });
-
-    return { message: `User status updated to ${status}`, data: updated };
-  }
-
-  me(user: AuthenticatedUser) {
-    return { message: 'User profile retrieved', data: user };
-  }
-
-  async getPreferences(userId: string) {
+  // ================= FORGOT PASSWORD =================
+  async forgotPassword(dto: ForgotPasswordDto) {
     const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { preferences: true },
+      where: { email: dto.email },
     });
-    if (!user) throw new NotFoundException('User not found');
-    return {
-      message: 'Preferences retrieved',
-      data: (user.preferences as Record<string, unknown>) ?? {},
-    };
+
+    if (!user) return { message: 'If exists, email sent' };
+
+    const token = randomBytes(32).toString('hex');
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        resetPasswordToken: token,
+        resetPasswordExpiresAt: new Date(Date.now() + 3600000),
+      },
+    });
+
+    await this.mailService.send({
+      to: dto.email,
+      template: 'reset-password',
+      variables: {
+        resetLink: `${env.APP_URL}/reset-password?token=${token}`,
+      },
+    });
+
+    return { message: 'Reset email sent' };
   }
 
-  async updatePreferences(userId: string, preferences: Record<string, unknown>) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { preferences: true },
+  // ================= RESET PASSWORD =================
+  async resetPassword(dto: ResetPasswordDto) {
+    const user = await this.prisma.user.findFirst({
+      where: { resetPasswordToken: dto.token },
     });
-    if (!user) throw new NotFoundException('User not found');
 
-    const merged = { ...((user.preferences as Record<string, unknown>) ?? {}), ...preferences };
+    if (!user) throw new BadRequestException('Invalid token');
+
+    const hash = await bcrypt.hash(dto.password, 10);
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordHash: hash,
+        resetPasswordToken: null,
+        resetPasswordExpiresAt: null,
+      },
+    });
+
+    return { message: 'Password reset successful' };
+  }
+
+  // ================= CHANGE PASSWORD =================
+  async changePassword(dto: ChangePasswordDto, userId: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+
+    if (!user) throw new NotFoundException();
+
+    const ok = await bcrypt.compare(dto.currentPassword, user.passwordHash);
+    if (!ok) throw new UnauthorizedException();
+
+    const hash = await bcrypt.hash(dto.newPassword, 10);
+
     await this.prisma.user.update({
       where: { id: userId },
-      data: { preferences: merged as any },
+      data: { passwordHash: hash },
     });
 
-    return { message: 'Preferences updated', data: merged };
+    return { message: 'Password changed' };
+  }
+  async setPassword(dto: { newPassword: string }, userId: string) {
+  const user = await this.prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (!user) throw new NotFoundException('User not found');
+
+  const hash = await bcrypt.hash(dto.newPassword, 10);
+
+  await this.prisma.user.update({
+    where: { id: userId },
+    data: {
+      passwordHash: hash,
+      passwordSet: true,
+    },
+  });
+
+  return { message: 'Password set successfully' };
+}
+
+  // ================= SEND VERIFY TOKEN =================
+  async sendVerificationToken(dto: SendVerificationTokenDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { email: dto.email },
+    });
+
+    if (!user) throw new NotFoundException();
+
+    const token = randomBytes(32).toString('hex');
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        verificationToken: token,
+        verificationTokenExpiresAt: new Date(Date.now() + 86400000),
+      },
+    });
+
+    return { message: 'Verification sent' };
+  }
+
+  // ================= USER PROFILE METHODS =================
+  me(user: AuthenticatedUser) {
+    return user;
   }
 
   async getProfile(userId: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      include: { profile: true },
-    });
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    return {
-      message: 'Profile retrieved',
-      data: {
-        id: user.id,
-        tenantId: user.tenantId,
-        email: user.email,
-        name: user.name,
-        phone: user.phone,
-        role: user.role,
-        status: user.status,
-        avatarUrl: user.avatarUrl,
-        lastLoginAt: user.lastLoginAt,
-        createdAt: user.createdAt,
-        hasPassword: user.passwordSet,
-        preferences: user.preferences as Record<string, unknown> | null,
-        profile: user.profile
-          ? {
-              dateOfBirth: user.profile.dateOfBirth?.toISOString().split('T')[0],
-              gender: user.profile.gender,
-              addressLine1: user.profile.addressLine1,
-              addressLine2: user.profile.addressLine2,
-              city: user.profile.city,
-              state: user.profile.state,
-              pincode: user.profile.pincode,
-              emergencyName: user.profile.emergencyName,
-              emergencyPhone: user.profile.emergencyPhone,
-              bio: user.profile.bio,
-            }
-          : null,
-      },
-    };
+    return this.prisma.user.findUnique({ where: { id: userId } });
   }
 
   async updateProfile(userId: string, dto: UpdateProfileDto) {
-    const user = await this.prisma.user.findUnique({
+    return this.prisma.user.update({
       where: { id: userId },
-      include: { profile: true },
+      data: dto,
     });
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    // Update User-level fields
-    const userUpdate: Record<string, unknown> = {};
-    if (dto.name !== undefined) userUpdate.name = dto.name;
-    if (dto.phone !== undefined) userUpdate.phone = dto.phone;
-    if (dto.avatarUrl !== undefined) userUpdate.avatarUrl = dto.avatarUrl;
-
-    if (Object.keys(userUpdate).length > 0) {
-      await this.prisma.user.update({
-        where: { id: userId },
-        data: userUpdate,
-      });
-    }
-
-    // Update UserProfile-level fields — upsert
-    const profileUpdate: Record<string, unknown> = {};
-    if (dto.dateOfBirth !== undefined) profileUpdate.dateOfBirth = dto.dateOfBirth ? new Date(dto.dateOfBirth) : null;
-    if (dto.gender !== undefined) profileUpdate.gender = dto.gender;
-    if (dto.addressLine1 !== undefined) profileUpdate.addressLine1 = dto.addressLine1;
-    if (dto.addressLine2 !== undefined) profileUpdate.addressLine2 = dto.addressLine2;
-    if (dto.city !== undefined) profileUpdate.city = dto.city;
-    if (dto.state !== undefined) profileUpdate.state = dto.state;
-    if (dto.pincode !== undefined) profileUpdate.pincode = dto.pincode;
-    if (dto.emergencyName !== undefined) profileUpdate.emergencyName = dto.emergencyName;
-    if (dto.emergencyPhone !== undefined) profileUpdate.emergencyPhone = dto.emergencyPhone;
-    if (dto.bio !== undefined) profileUpdate.bio = dto.bio;
-
-    if (Object.keys(profileUpdate).length > 0) {
-      await this.prisma.userProfile.upsert({
-        where: { userId },
-        create: { userId, ...profileUpdate } as any,
-        update: profileUpdate,
-      });
-    }
-
-    return this.getProfile(userId);
   }
 
-  private async generateTokens(user: {
-    id: string;
-    tenantId: string | null;
-    email: string;
-    name: string;
-    role: AuthenticatedUser['role'];
-    status?: string;
-  }, rememberMe?: boolean) {
+  async getPreferences(userId: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    return user?.preferences ?? {};
+  }
+
+  async updatePreferences(userId: string, preferences: any) {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { preferences },
+    });
+  }
+
+  async updateUserStatus(dto: UpdateUserStatusDto) {
+    return this.prisma.user.update({
+      where: { id: dto.userId },
+      data: { status: dto.status as UserStatus },
+    });
+  }
+
+ async logAuthError(dto: AuthErrorLogDto) {
+  return this.prisma.authErrorLog.create({
+    data: {
+      errorCode: dto.errorCode,
+      errorMessage: dto.errorMessage,
+      provider: dto.provider,
+      userId: dto.userId,
+      metadata: dto.metadata ? JSON.parse(JSON.stringify(dto.metadata)) : {}
+    },
+  });
+}
+
+  // ================= TOKENS =================
+  private async generateTokens(user: any) {
     const payload = this.toPayload(user);
 
-    const accessToken = this.jwtService.sign(payload);
+    const accessToken = this.jwtService.sign(payload, {
+      secret: env.JWT_SECRET,
+      expiresIn: '15m',
+    });
 
-    const refreshExpiresIn = rememberMe ? '30d' : env.JWT_REFRESH_EXPIRES_IN;
     const refreshToken = this.jwtService.sign(
       { sub: user.id },
-      { secret: env.JWT_REFRESH_SECRET, expiresIn: refreshExpiresIn as any },
+      {
+        secret: env.JWT_REFRESH_SECRET,
+        expiresIn: '7d',
+      },
     );
-
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + (rememberMe ? 30 : 7));
-
-    await this.prisma.refreshToken.create({
-      data: { userId: user.id, token: refreshToken, expiresAt },
-    });
 
     return { accessToken, refreshToken };
   }
 
-  async googleLogin(req: any, ipAddress?: string, userAgent?: string) {
-    if (!req.user) {
-      throw new UnauthorizedException('No user from google');
-    }
-
-    const googleUser = req.user;
-
-    // Try to find user by Google provider ID first (linking support)
-    let user = await this.prisma.user.findFirst({
-      where: {
-        authProviders: {
-          some: {
-            provider: AuthProviderType.GOOGLE,
-            providerId: googleUser.id,
-          },
-        },
-      },
-    });
-
-    // If no user found by provider ID, try by email
-    if (!user) {
-      user = await this.prisma.user.findFirst({
-        where: { email: googleUser.email },
-      });
-    }
-
-    const now = new Date();
-
-    if (!user) {
-      // Create new user from Google OAuth
-      user = await this.prisma.$transaction(async (tx) => {
-        const u = await tx.user.create({
-          data: {
-            email: googleUser.email,
-            passwordHash: await bcrypt.hash(Math.random().toString(36).slice(-8), 10),
-            name: googleUser.firstName
-              ? `${googleUser.firstName} ${googleUser.lastName || ''}`.trim()
-              : googleUser.email,
-            role: 'STAFF',
-            status: UserStatus.REGISTERED,
-            verifiedAt: now,
-          },
-        });
-
-        await tx.authProvider.create({
-          data: {
-            userId: u.id,
-            provider: AuthProviderType.GOOGLE,
-            providerId: googleUser.id,
-            email: googleUser.email,
-          },
-        });
-
-        await tx.onboardingProgress.create({
-          data: { userId: u.id },
-        });
-
-        return u;
-      });
-    } else {
-      // Existing user — link Google provider if not already linked
-      const existingGoogleProvider = await this.prisma.authProvider.findUnique({
-        where: { userId_provider: { userId: user.id, provider: AuthProviderType.GOOGLE } },
-      });
-
-      if (!existingGoogleProvider) {
-        await this.prisma.authProvider.create({
-          data: {
-            userId: user.id,
-            provider: AuthProviderType.GOOGLE,
-            providerId: googleUser.id,
-            email: googleUser.email,
-          },
-        });
-      }
-
-      // If user registered via email but not verified, mark verified
-      if (user.status === UserStatus.NEW_USER || user.status === UserStatus.PENDING) {
-        user = await this.prisma.user.update({
-          where: { id: user.id },
-          data: {
-            status: user.status === UserStatus.NEW_USER ? UserStatus.NEW_USER : UserStatus.REGISTERED,
-            verifiedAt: user.verifiedAt ?? now,
-            verificationToken: null,
-            verificationTokenExpiresAt: null,
-          },
-        });
-      } else if (
-        user.status !== UserStatus.ACTIVE &&
-        user.status !== UserStatus.REGISTERED &&
-        user.status !== UserStatus.PROFILE_COMPLETED &&
-        user.status !== UserStatus.ACCESS_REQUESTED &&
-        user.status !== UserStatus.PENDING_APPROVAL &&
-        user.status !== UserStatus.APPROVED
-      ) {
-        throw new UnauthorizedException('Account is inactive or suspended');
-      }
-    }
-
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: { lastLoginAt: now },
-    });
-
-    const tokens = await this.generateTokens({
-      ...user,
-      role: user.role as AuthenticatedUser['role']
-    });
-
-    await this.prisma.userLoginLog.create({
-      data: {
-        userId: user.id,
-        ipAddress,
-        userAgent,
-        accessToken: tokens.accessToken,
-        refreshToken: tokens.refreshToken,
-        success: true,
-      },
-    });
-
-    return { message: 'Google login successful', data: { user: this.toPayload(user as any), ...tokens } };
-  }
-
-  private toPayload(user: {
-    id: string;
-    tenantId: string | null;
-    email: string;
-    name: string;
-    role: AuthenticatedUser['role'];
-    status?: string;
-  }) {
+  private toPayload(user: any): AuthenticatedUser {
     return {
       id: user.id,
-      tenantId: user.tenantId ?? '',
-      branchId: null,
       email: user.email,
       name: user.name,
       role: user.role,
-      status: user.status ?? '',
-      emailVerified: user.status === 'ACTIVE',
+      tenantId: user.tenantId ?? '',
+      branchId: user.branchId ?? null,
+      status: user.status,
+      emailVerified: user.emailVerified ?? false,
     };
   }
 
-  async logAuthError(errorCode: string, errorMessage: string, provider?: string, userId?: string, metadata: Record<string, unknown> = {}) {
-    await this.prisma.authErrorLog.create({
-      data: {
-        errorCode,
-        errorMessage,
-        provider,
-        userId,
-        metadata: metadata as any,
-      },
-    });
-  }
-
-  private async buildAuthResponse(user: {
-    id: string;
-    tenantId: string | null;
-    email: string;
-    name: string;
-    role: AuthenticatedUser['role'];
-    status: string;
-  }) {
+  private async buildAuthResponse(user: any) {
     const tokens = await this.generateTokens(user);
     return {
       user: this.toPayload(user),
@@ -796,4 +403,3 @@ export class AuthService {
     };
   }
 }
-
