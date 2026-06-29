@@ -6,7 +6,7 @@ export class SearchService {
   constructor(private readonly prisma: PrismaService) {}
 
   async searchStudents(query: string) {
-    return this.prisma.student.findMany({
+    const students = await this.prisma.student.findMany({
       where: {
         name: {
           contains: query,
@@ -15,10 +15,14 @@ export class SearchService {
       },
       take: 20,
     });
+
+    return {
+      data: students,
+    };
   }
 
   async searchLeads(query: string) {
-    return this.prisma.lead.findMany({
+    const leads = await this.prisma.lead.findMany({
       where: {
         name: {
           contains: query,
@@ -27,10 +31,14 @@ export class SearchService {
       },
       take: 20,
     });
+
+    return {
+      data: leads,
+    };
   }
 
   async searchBatches(query: string) {
-    return this.prisma.batch.findMany({
+    const batches = await this.prisma.batch.findMany({
       where: {
         name: {
           contains: query,
@@ -39,10 +47,14 @@ export class SearchService {
       },
       take: 20,
     });
+
+    return {
+      data: batches,
+    };
   }
 
   async searchTrainers(query: string) {
-    return this.prisma.user.findMany({
+    const trainers = await this.prisma.user.findMany({
       where: {
         name: {
           contains: query,
@@ -51,21 +63,59 @@ export class SearchService {
       },
       take: 20,
     });
+
+    return {
+      data: trainers,
+    };
   }
 
   async globalSearch(query: string) {
     const [students, leads, batches, trainers] = await Promise.all([
-      this.searchStudents(query),
-      this.searchLeads(query),
-      this.searchBatches(query),
-      this.searchTrainers(query),
+      this.prisma.student.findMany({
+        where: {
+          name: {
+            contains: query,
+            mode: 'insensitive',
+          },
+        },
+        take: 20,
+      }),
+      this.prisma.lead.findMany({
+        where: {
+          name: {
+            contains: query,
+            mode: 'insensitive',
+          },
+        },
+        take: 20,
+      }),
+      this.prisma.batch.findMany({
+        where: {
+          name: {
+            contains: query,
+            mode: 'insensitive',
+          },
+        },
+        take: 20,
+      }),
+      this.prisma.user.findMany({
+        where: {
+          name: {
+            contains: query,
+            mode: 'insensitive',
+          },
+        },
+        take: 20,
+      }),
     ]);
 
     return {
-      students,
-      leads,
-      batches,
-      trainers,
+      data: {
+        students,
+        leads,
+        batches,
+        trainers,
+      },
     };
   }
 }

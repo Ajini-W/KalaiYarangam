@@ -55,6 +55,7 @@ export class TrainingService {
   }
 
   async findStudents(user: AuthenticatedUser, query: QueryPaginationDto) {
+
     const { skip, take, page, pageSize } = paginationArgs(query.page, query.pageSize);
     const where = { tenantId: user.tenantId };
 
