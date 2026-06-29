@@ -1,4 +1,14 @@
-import { PlaceholderPage } from "@/lib/placeholder-page";
+"use client";
+
+import { CertificateListView } from "@/components/certificates";
+
 export default function Page() {
-  return <PlaceholderPage title="Certificates" description="Download your certificates." />;
+  return (
+    <CertificateListView
+      basePath="/student/certificates"
+      title="My Certificates"
+      subtitle="View your earned certificates."
+      readOnly
+    />
+  );
 }

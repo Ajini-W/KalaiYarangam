@@ -1,4 +1,7 @@
-import { PlaceholderPage } from "@/lib/placeholder-page";
+"use client";
+
+import { CertificateListView } from "@/components/certificates";
+
 export default function Page() {
-  return <PlaceholderPage title="Certificates" description="Manage certificates here." />;
+  return <CertificateListView basePath="/branch-manager/certificates" />;
 }
