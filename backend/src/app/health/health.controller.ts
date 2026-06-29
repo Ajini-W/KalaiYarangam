@@ -1,9 +1,16 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, UseInterceptors, NestInterceptor, CallHandler, ExecutionContext } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { Observable } from 'rxjs';
 import { Public } from '@/common/decorators';
 import { PrismaService } from '@/database';
 import { env } from '@/config';
 import * as os from 'os';
+
+class PassThroughInterceptor implements NestInterceptor {
+  intercept(_ctx: ExecutionContext, next: CallHandler): Observable<unknown> {
+    return next.handle();
+  }
+}
 
 const START_TIME = Date.now();
 
@@ -13,6 +20,7 @@ export class HealthController {
   constructor(private readonly prisma: PrismaService) {}
 
   @Public()
+  @UseInterceptors(PassThroughInterceptor)
   @Get()
   @ApiOperation({ summary: 'Health check with system details' })
   @ApiResponse({ status: 200, description: 'Service is healthy' })
