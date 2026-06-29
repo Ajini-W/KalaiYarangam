@@ -70,6 +70,17 @@ const superAdminNav: NavItem[] = [
     ],
   },
   { label: "Tenants", href: "/super-admin/tenants", icon: Building2 },
+    {
+      label: "Finance",
+      icon: CreditCard,
+      children: [
+        { label: "Fee Plans", href: "/super-admin/fee-plans", icon: Receipt },
+        { label: "Invoices", href: "/super-admin/invoices", icon: FileText },
+        { label: "Payments", href: "/super-admin/payments", icon: Wallet },
+        { label: "Payment History", href: "/super-admin/payment-history", icon: History },
+        { label: "Due Tracking", href: "/super-admin/due-tracking", icon: AlertTriangle },
+      ],
+    },
   {
     label: "Security",
     icon: ShieldAlert,
@@ -119,15 +130,17 @@ const ownerNav: NavItem[] = [
       { label: "Renewals", href: "/owner/renewals", icon: RefreshCw },
     ],
   },
-  {
-    label: "Finance",
-    icon: CreditCard,
-    children: [
-      { label: "Fee Plans", href: "/owner/fee-plans", icon: Receipt },
-      { label: "Invoices", href: "/owner/invoices", icon: FileText },
-      { label: "Payments", href: "/owner/payments", icon: Wallet },
-    ],
-  },
+    {
+      label: "Finance",
+      icon: CreditCard,
+      children: [
+        { label: "Fee Plans", href: "/owner/fee-plans", icon: Receipt },
+        { label: "Invoices", href: "/owner/invoices", icon: FileText },
+        { label: "Payments", href: "/owner/payments", icon: Wallet },
+        { label: "Payment History", href: "/owner/payment-history", icon: History },
+        { label: "Due Tracking", href: "/owner/due-tracking", icon: AlertTriangle },
+      ],
+    },
   {
     label: "Operations",
     icon: ClipboardCheck,
@@ -180,15 +193,17 @@ const branchManagerNav: NavItem[] = [
       { label: "Renewals", href: "/branch-manager/renewals", icon: RefreshCw },
     ],
   },
-  {
-    label: "Finance",
-    icon: CreditCard,
-    children: [
-      { label: "Fee Plans", href: "/branch-manager/fee-plans", icon: Receipt },
-      { label: "Invoices", href: "/branch-manager/invoices", icon: FileText },
-      { label: "Payments", href: "/branch-manager/payments", icon: Wallet },
-    ],
-  },
+    {
+      label: "Finance",
+      icon: CreditCard,
+      children: [
+        { label: "Fee Plans", href: "/branch-manager/fee-plans", icon: Receipt },
+        { label: "Invoices", href: "/branch-manager/invoices", icon: FileText },
+        { label: "Payments", href: "/branch-manager/payments", icon: Wallet },
+        { label: "Payment History", href: "/branch-manager/payment-history", icon: History },
+        { label: "Due Tracking", href: "/branch-manager/due-tracking", icon: AlertTriangle },
+      ],
+    },
   {
     label: "Operations",
     icon: ClipboardCheck,
@@ -236,15 +251,17 @@ const staffNav: NavItem[] = [
       { label: "Renewals", href: "/staff/renewals", icon: RefreshCw },
     ],
   },
-  {
-    label: "Finance",
-    icon: CreditCard,
-    children: [
-      { label: "Fee Plans", href: "/staff/fee-plans", icon: Receipt },
-      { label: "Invoices", href: "/staff/invoices", icon: FileText },
-      { label: "Payments", href: "/staff/payments", icon: Wallet },
-    ],
-  },
+    {
+      label: "Finance",
+      icon: CreditCard,
+      children: [
+        { label: "Fee Plans", href: "/staff/fee-plans", icon: Receipt },
+        { label: "Invoices", href: "/staff/invoices", icon: FileText },
+        { label: "Payments", href: "/staff/payments", icon: Wallet },
+        { label: "Payment History", href: "/staff/payment-history", icon: History },
+        { label: "Due Tracking", href: "/staff/due-tracking", icon: AlertTriangle },
+      ],
+    },
   {
     label: "Operations",
     icon: ClipboardCheck,
@@ -277,6 +294,8 @@ const clientNav: NavItem[] = [
   { label: "Events", href: "/client/events", icon: CalendarDays },
   { label: "Invoices", href: "/client/invoices", icon: FileText },
   { label: "Payments", href: "/client/payments", icon: CreditCard },
+  { label: "Payment History", href: "/client/payment-history", icon: History },
+  { label: "Due Tracking", href: "/client/due-tracking", icon: AlertTriangle },
   { label: "Quotations", href: "/client/quotations", icon: FileText },
   { label: "Notifications", href: "/client/notifications", icon: Bell },
   { label: "Profile", href: "/client/profile", icon: IdCard },
