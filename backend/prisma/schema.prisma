@@ -142,10 +142,26 @@ enum LeadSource {
 
 enum EnrollmentStatus {
   ACTIVE
+  PAUSED
+  CANCELLED
   COMPLETED
   DROPPED
   SUSPENDED
   TRANSFERRED
+}
+
+enum TransferStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum RenewalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
 }
 
 enum BatchStatus {
@@ -927,23 +943,32 @@ model LeadFollowup {
 }
 
 model Enrollment {
-  id          String           @id @default(uuid()) @db.Uuid
-  tenantId    String           @map("tenant_id") @db.Uuid
-  studentId   String           @map("student_id") @db.Uuid
-  batchId     String           @map("batch_id") @db.Uuid
-  feePlanId   String?          @map("fee_plan_id") @db.Uuid
-  status      EnrollmentStatus @default(ACTIVE)
-  enrolledAt  DateTime         @default(now()) @map("enrolled_at")
-  completedAt DateTime?        @map("completed_at")
-  droppedAt   DateTime?        @map("dropped_at")
-  remarks     String?          @db.Text
-  createdAt   DateTime         @default(now()) @map("created_at")
-  updatedAt   DateTime         @updatedAt @map("updated_at")
+  id              String           @id @default(uuid()) @db.Uuid
+  tenantId        String           @map("tenant_id") @db.Uuid
+  studentId       String           @map("student_id") @db.Uuid
+  batchId         String           @map("batch_id") @db.Uuid
+  feePlanId       String?          @map("fee_plan_id") @db.Uuid
+  status          EnrollmentStatus @default(ACTIVE)
+  enrolledAt      DateTime         @default(now()) @map("enrolled_at")
+  
+  // Pause/Resume tracking parameters
+  pausedAt        DateTime?        @map("paused_at")
+  totalPausedDays Int              @default(0) @map("total_paused_days")
+  
+  completedAt     DateTime?        @map("completed_at")
+  droppedAt       DateTime?        @map("dropped_at")
+  remarks         String?          @db.Text
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
 
-  tenant  Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  student Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  batch   Batch    @relation(fields: [batchId], references: [id])
-  feePlan FeePlan? @relation(fields: [feePlanId], references: [id])
+  tenant      Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  student     Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  batch       Batch        @relation(fields: [batchId], references: [id])
+  feePlan     FeePlan?     @relation(fields: [feePlanId], references: [id])
+  
+  // Relations to your new tracking modules
+  transfers   Transfer[]
+  renewals    Renewal[]
 
   @@unique([studentId, batchId])
   @@index([tenantId])
@@ -1977,4 +2002,43 @@ model CommissionPayout {
   @@index([referrerId])
   @@index([status])
   @@map("commission_payouts")
+}
+
+model Transfer {
+  id            String         @id @default(uuid()) @db.Uuid
+  tenantId      String         @map("tenant_id") @db.Uuid
+  enrollmentId  String         @map("enrollment_id") @db.Uuid
+  fromBatchId   String         @map("from_batch_id") @db.Uuid
+  toBatchId     String         @map("to_batch_id") @db.Uuid
+  status        TransferStatus @default(PENDING)
+  reason        String?        @db.Text
+  approvedAt    DateTime?      @map("approved_at")
+  rejectedAt    DateTime?      @map("rejected_at")
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+
+  enrollment    Enrollment     @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+
+  @@index([enrollmentId])
+  @@index([status])
+  @@map("transfers")
+}
+
+model Renewal {
+  id               String        @id @default(uuid()) @db.Uuid
+  tenantId         String        @map("tenant_id") @db.Uuid
+  enrollmentId     String        @map("enrollment_id") @db.Uuid
+  currentEndDate   DateTime      @map("current_end_date") @db.Date
+  extendedEndDate  DateTime      @map("extended_end_date") @db.Date
+  status           RenewalStatus @default(PENDING)
+  notes            String?       @db.Text
+  approvedAt       DateTime?     @map("approved_at")
+  createdAt        DateTime      @default(now()) @map("created_at")
+  updatedAt        DateTime      @updatedAt @map("updated_at")
+
+  enrollment       Enrollment    @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+
+  @@index([enrollmentId])
+  @@index([status])
+  @@map("renewals")
 }

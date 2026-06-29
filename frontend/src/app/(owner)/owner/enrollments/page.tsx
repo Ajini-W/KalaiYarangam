@@ -1,4 +1,1 @@
-import { PlaceholderPage } from "@/lib/placeholder-page";
-export default function Page() {
-  return <PlaceholderPage title="Enrollments" description="Manage enrollments here." />;
-}
+export { default } from "@/features/enrollments/EnrollmentsPage";
