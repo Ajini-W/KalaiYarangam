@@ -39,11 +39,11 @@ export function Breadcrumb({ className }: BreadcrumbProps) {
   if (segments.length === 0) return null;
 
   const crumbs = [
-    {
-      label: "Dashboard",
-      href: "/" + segments[0],
-      isLast: segments.length === 1,
-    },
+    // {
+    //   label: "Dashboard",
+    //   href: "/" + segments[0],
+    //   isLast: segments.length === 1,
+    // },
     ...segments.slice(1).map((seg, index) => ({
       label: toLabel(seg),
       href: "/" + segments.slice(0, index + 2).join("/"),

@@ -338,7 +338,7 @@ export class AuthService {
         dto.type === 'phone' && dto.phone
           ? { phone: dto.phone }
           : { email: dto.email },
-      include: { tenant: { select: { name: true } } },
+      include: { tenant: { select: { name: true, logoUrl: true } } },
     });
 
     if (!user) {
@@ -400,7 +400,7 @@ export class AuthService {
     return {
       message: 'Login successful',
       data: {
-        user: this.toPayload({ ...user, tenantName: user.tenant?.name ?? null }),
+        user: this.toPayload({ ...user, tenantName: user.tenant?.name ?? null, tenantLogoUrl: user.tenant?.logoUrl ?? null }),
         ...tokens,
         rememberMe: dto.rememberMe ?? false,
         isFirstLogin: user.lastLoginAt === null,
@@ -513,7 +513,7 @@ export class AuthService {
       select: {
         id: true, tenantId: true, email: true, name: true, role: true,
         status: true, verifiedAt: true, phone: true, avatarUrl: true,
-        tenant: { select: { name: true } },
+        tenant: { select: { name: true, logoUrl: true } },
       },
     });
     if (!u) throw new NotFoundException('User not found');
@@ -541,6 +541,7 @@ export class AuthService {
         phone: u.phone,
         avatarUrl: u.avatarUrl,
         tenantName: u.tenant?.name ?? null,
+        tenantLogoUrl: u.tenant?.logoUrl ?? null,
         onboardingRequired: needsOnboarding,
         currentOnboardingStep: progress?.currentStep ?? null,
       },
@@ -599,6 +600,7 @@ export class AuthService {
         lastLoginAt: user.lastLoginAt,
         createdAt: user.createdAt,
         hasPassword: user.passwordSet,
+        emailVerified: !!user.verifiedAt,
         preferences: user.preferences as Record<string, unknown> | null,
         profile: user.profile
           ? {
@@ -824,6 +826,7 @@ export class AuthService {
     role: AuthenticatedUser['role'];
     status?: string;
     tenantName?: string | null;
+    tenantLogoUrl?: string | null;
   }) {
     return {
       id: user.id,
@@ -835,6 +838,7 @@ export class AuthService {
       status: user.status ?? '',
       emailVerified: user.status !== 'NEW_USER' && user.status !== 'PENDING',
       tenantName: user.tenantName ?? null,
+      tenantLogoUrl: user.tenantLogoUrl ?? null,
     };
   }
 

@@ -15,7 +15,6 @@ import {
   Settings,
   ChevronDown,
   LogOut,
-  X,
   GraduationCap,
   Sparkles,
   BarChart2,
@@ -37,7 +36,6 @@ import {
   HelpCircle,
   FileText,
   CalendarDays,
-  ShoppingBag,
   Target,
   PhoneCall,
   BookMarked,
@@ -51,6 +49,8 @@ import {
   FileCheck,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { toast } from "sonner";
+import { Modal } from "@/components/ui/Modal";
 
 interface NavItem {
   label: string;
@@ -295,7 +295,7 @@ function getNav(role: string): NavItem[] {
   switch (role) {
     case "OWNER": return ownerNav;
     case "BRANCH_MANAGER": return branchManagerNav;
-    case "TRAINER":return staffNav;
+    case "TRAINER": return staffNav;
     case "STAFF": return staffNav;
     case "STUDENT": return studentNav;
     case "CLIENT": return clientNav;
@@ -303,150 +303,225 @@ function getNav(role: string): NavItem[] {
   }
 }
 
+interface SidebarContentProps {
+  isCollapsed?: boolean;
+  onItemClick?: () => void;
+}
+
+function SidebarContent({ isCollapsed = false, onItemClick }: SidebarContentProps) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
+  const [expandedItems, setExpandedItems] = React.useState<string[]>([]);
+  const [showLogoutDialog, setShowLogoutDialog] = React.useState(false);
+
+  const toggleExpanded = (key: string) => {
+    setExpandedItems((prev) =>
+      prev.includes(key) ? prev.filter((item) => item !== key) : [...prev, key]
+    );
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    setShowLogoutDialog(false);
+    toast.success("Logged out successfully");
+    router.push("/login");
+  };
+
+  const isActive = (href: string) => {
+    if (href.endsWith("/dashboard")) return pathname === href;
+    return pathname.startsWith(href);
+  };
+
+  const navItems = user?.role === "SUPER_ADMIN" ? superAdminNav : getNav(user?.role ?? "");
+
+  const renderNavItem = (item: NavItem, level = 0) => {
+    const active = item.href ? isActive(item.href) : false;
+    const expandKey = item.label;
+    const expanded = expandedItems.includes(expandKey);
+    const hasChildren = item.children && item.children.length > 0;
+    const Icon = item.icon;
+    const isParentActive = hasChildren && item.children?.some((child) => child.href && isActive(child.href));
+
+    if (item.onClick) {
+      return (
+        <button
+          key={item.label}
+          type="button"
+          onClick={item.onClick}
+          title={isCollapsed ? item.label : undefined}
+          className={cn(
+            "w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
+            level > 0 && "pl-12",
+            "text-text-secondary hover:bg-muted/60 hover:text-text-primary",
+            isCollapsed && "justify-center px-2"
+          )}
+        >
+          <Icon className={cn("h-5 w-5 shrink-0")} />
+          {!isCollapsed && <span>{item.label}</span>}
+        </button>
+      );
+    }
+
+    if (hasChildren) {
+      return (
+        <div key={item.label}>
+          <button
+            onClick={() => toggleExpanded(expandKey)}
+            className={cn(
+              "w-full flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
+              level > 0 && "pl-6",
+              isParentActive
+                ? "bg-primary/10 text-primary border border-primary/20"
+                : "text-text-secondary hover:bg-muted/60 hover:text-text-primary",
+              isCollapsed && "justify-center px-2"
+            )}
+          >
+            <div className="flex items-center gap-3">
+              <Icon className={cn("h-5 w-5 shrink-0", isParentActive && "text-primary")} />
+              {!isCollapsed && <span>{item.label}</span>}
+            </div>
+            {!isCollapsed && (
+              <ChevronDown
+                className={cn(
+                  "h-4 w-4 transition-transform duration-200",
+                  expanded && "rotate-180",
+                  isParentActive && "text-primary"
+                )}
+              />
+            )}
+          </button>
+          {expanded && !isCollapsed && (
+            <div className="mt-0.5 ml-4 space-y-0.5 border-l-2 border-primary/20 pl-3">
+              {item.children?.map((child) => renderNavItem(child, level + 1))}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <Link
+        key={item.href}
+        href={item.href!}
+        onClick={onItemClick}
+        title={isCollapsed ? item.label : undefined}
+        className={cn(
+          "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 relative",
+          level > 0 && "pl-6",
+          active
+            ? "bg-gradient-to-r from-primary/10 via-primary/5 to-transparent text-primary border border-primary/20 shadow-sm"
+            : "text-text-secondary hover:bg-muted/60 hover:text-text-primary",
+          isCollapsed && "justify-center px-2"
+        )}
+      >
+        <Icon className={cn("h-5 w-5 shrink-0", active && "text-primary")} />
+        {!isCollapsed && <span>{item.label}</span>}
+      </Link>
+    );
+  };
+
+  const logoSrc = user?.tenantLogoUrl || "/icons/logo.png";
+
+  return (
+    <div className="flex flex-col h-full">
+      {/* Brand Header */}
+      <div className={cn("px-4 py-5 border-b border-border/50", isCollapsed && "px-3")}>
+        <Link href="/dashboard" className="flex items-center gap-3" onClick={onItemClick}>
+          <img
+            src={logoSrc}
+            alt="Logo"
+            className="h-9 w-9 rounded-xl shadow-md shrink-0 object-cover"
+            onError={(e) => { (e.target as HTMLImageElement).src = "/icons/logo.png"; }}
+          />
+          {!isCollapsed && (
+            <div className="min-w-0">
+              <h2 className="text-base font-bold text-text-primary truncate">
+                {user?.tenantName || "KalaiArangam"}
+              </h2>
+              <p className="text-[10px] text-text-secondary uppercase tracking-wider">
+                {user?.role === "SUPER_ADMIN" ? "Platform Admin" : "ERP Portal"}
+              </p>
+            </div>
+          )}
+        </Link>
+      </div>
+
+      {/* Navigation */}
+      <nav
+        className="flex-1 overflow-y-auto px-3 py-4 space-y-1 scrollbar-none"
+        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        aria-label="Main navigation"
+      >
+        {navItems.map((item) => renderNavItem(item))}
+      </nav>
+
+      {/* Bottom Section - Logout Only */}
+      <div className={cn("border-t border-border/50 px-3 py-3", isCollapsed && "px-2")}>
+        <button
+          onClick={() => setShowLogoutDialog(true)}
+          className={cn(
+            "w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
+            "text-danger hover:bg-danger/10 hover:text-danger border border-transparent hover:border-danger/20",
+            isCollapsed && "justify-center px-2"
+          )}
+        >
+          <LogOut className="h-4 w-4 shrink-0" />
+          {!isCollapsed && <span>Logout</span>}
+        </button>
+      </div>
+
+      {/* Logout Confirmation Modal */}
+      <Modal
+        open={showLogoutDialog}
+        onClose={() => setShowLogoutDialog(false)}
+        title="Confirm Logout"
+        size="sm"
+        footer={
+          <div className="flex gap-3">
+            <button
+              onClick={() => setShowLogoutDialog(false)}
+              className="flex-1 px-4 py-2 text-sm font-medium rounded-xl border border-border hover:bg-muted/60 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleLogout}
+              className="flex-1 px-4 py-2 text-sm font-medium rounded-xl bg-danger text-white hover:bg-danger/90 transition-colors"
+            >
+              Logout
+            </button>
+          </div>
+        }
+      >
+        <div className="flex items-center gap-4 py-2">
+          <div className="h-12 w-12 rounded-full bg-danger/10 flex items-center justify-center shrink-0">
+            <AlertTriangle className="h-6 w-6 text-danger" />
+          </div>
+          <p className="text-sm text-text-secondary">
+            Are you sure you want to logout? You will need to sign in again to access your account.
+          </p>
+        </div>
+      </Modal>
+    </div>
+  );
+}
+
 interface SidebarProps {
   collapsed: boolean;
   onClose?: () => void;
 }
 
-function NavItemRow({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
-  const pathname = usePathname();
-  const [open, setOpen] = React.useState(
-    () => item.children?.some((c) => c.href && pathname.startsWith(c.href)) ?? false
-  );
-
-  const isActive = item.href
-    ? pathname === item.href || pathname.startsWith(item.href + "/")
-    : false;
-  const Icon = item.icon;
-
-  if (item.onClick) {
-    return (
-      <button
-        type="button"
-        onClick={item.onClick}
-        title={collapsed ? item.label : undefined}
-        className={cn(
-          "flex w-full items-center gap-3 rounded-[var(--radius-sm)] px-2.5 py-2 text-sm font-medium transition-colors",
-          "text-text-secondary hover:bg-surface-overlay hover:text-text-primary",
-          collapsed && "justify-center"
-        )}
-      >
-        <Icon size={18} className="shrink-0" />
-        {!collapsed && <span>{item.label}</span>}
-      </button>
-    );
-  }
-
-  if (item.children) {
-    return (
-      <div>
-        <button
-          onClick={() => setOpen((o) => !o)}
-          className={cn(
-            "text-text-secondary hover:bg-surface-overlay hover:text-text-primary flex w-full items-center gap-3 rounded-[var(--radius-sm)] px-2.5 py-2 text-sm font-medium transition-colors",
-            open && "text-text-primary"
-          )}
-          aria-expanded={open}
-        >
-          <Icon size={18} className="shrink-0" />
-          {!collapsed && (
-            <>
-              <span className="flex-1 text-left">{item.label}</span>
-              <ChevronDown size={14} className={cn("transition-transform", open && "rotate-180")} />
-            </>
-          )}
-        </button>
-        {open && !collapsed && (
-          <div className="border-border mt-0.5 ml-4 space-y-0.5 border-l pl-3">
-            {item.children.map((child) => (
-              <NavItemRow key={child.href} item={child} collapsed={false} />
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  return (
-    <Link
-      href={item.href!}
-      title={collapsed ? item.label : undefined}
-      className={cn(
-        "flex items-center gap-3 rounded-[var(--radius-sm)] px-2.5 py-2 text-sm font-medium transition-colors",
-        isActive
-          ? "bg-primary text-primary-foreground"
-          : "text-text-secondary hover:bg-surface-overlay hover:text-text-primary",
-        collapsed && "justify-center"
-      )}
-    >
-      <Icon size={18} className="shrink-0" />
-      {!collapsed && <span>{item.label}</span>}
-    </Link>
-  );
-}
-
 export function Sidebar({ collapsed, onClose }: SidebarProps) {
-  const router = useRouter();
-  const user = useAuthStore((s) => s.user);
-  const logout = useAuthStore((s) => s.logout);
-
-  const handleSignOut = async () => {
-    await logout();
-    router.push("/login");
-  };
-
   return (
     <aside
       className={cn(
-        "border-border bg-surface flex h-full flex-col border-r transition-[width] duration-[var(--duration-drawer)]",
-        collapsed ? "w-16" : "w-60"
+        "border-r border-border/50 bg-surface flex h-full flex-col transition-[width] duration-300 ease-in-out",
+        collapsed ? "w-[68px]" : "w-64"
       )}
     >
-      <div
-        className={cn(
-          "border-border flex h-[60px] shrink-0 items-center border-b px-3",
-          collapsed ? "justify-center" : "justify-between"
-        )}
-      >
-        {!collapsed && (
-          <span className="text-primary truncate text-base font-bold">{user?.tenantName || "KalaiArangam"}</span>
-        )}
-        {onClose && (
-          <button
-            onClick={onClose}
-            className="hover:bg-surface-overlay text-text-secondary rounded p-1"
-            aria-label="Close menu"
-          >
-            <X size={18} />
-          </button>
-        )}
-        {collapsed && <span className="text-primary text-base font-bold">KY</span>}
-      </div>
-
-      <nav className="flex-1 space-y-0.5 overflow-y-auto px-2 py-3" aria-label="Main navigation">
-        {(user?.role === "SUPER_ADMIN" ? superAdminNav : getNav(user?.role ?? "")).map((item) => (
-          <NavItemRow key={item.label} item={item} collapsed={collapsed} />
-        ))}
-      </nav>
-
-      <div className="border-border space-y-0.5 border-t px-2 py-3">
-        {!collapsed && user && (
-          <div className="border-border mb-1 border-b px-2.5 py-2">
-            <p className="text-text-primary truncate text-sm font-medium">{user.name}</p>
-            <p className="text-text-secondary truncate text-xs">{user.email}</p>
-          </div>
-        )}
-        <button
-          onClick={handleSignOut}
-          className={cn(
-            "text-danger hover:bg-danger-light flex w-full items-center gap-3 rounded-[var(--radius-sm)] px-2.5 py-2 text-sm font-medium transition-colors",
-            collapsed && "justify-center"
-          )}
-        >
-          <LogOut size={18} className="shrink-0" />
-          {!collapsed && <span>Sign Out</span>}
-        </button>
-      </div>
+      <SidebarContent isCollapsed={collapsed} onItemClick={onClose} />
     </aside>
   );
 }

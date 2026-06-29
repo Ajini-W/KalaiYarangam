@@ -25,6 +25,7 @@ export interface AuthUser {
   status: string;
   emailVerified: boolean;
   tenantName: string | null;
+  tenantLogoUrl: string | null;
 }
 
 export interface AuthResponse {
@@ -70,6 +71,7 @@ export interface UserProfileData {
   avatarUrl: string | null;
   lastLoginAt: string | null;
   createdAt: string;
+  emailVerified: boolean;
   preferences: Record<string, unknown> | null;
   profile: {
     dateOfBirth: string | null;

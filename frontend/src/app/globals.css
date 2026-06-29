@@ -111,6 +111,9 @@ body {
 ::-webkit-scrollbar-thumb   { background: var(--border); border-radius: var(--radius-full); }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-disabled); }
 
+.scrollbar-none::-webkit-scrollbar { display: none; }
+.scrollbar-none { scrollbar-width: none; -ms-overflow-style: none; }
+
 /* ─── Reduced Motion ────────────────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
