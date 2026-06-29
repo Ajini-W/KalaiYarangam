@@ -24,6 +24,7 @@ export interface AuthUser {
   role: string;
   status: string;
   emailVerified: boolean;
+  tenantName: string | null;
 }
 
 export interface AuthResponse {

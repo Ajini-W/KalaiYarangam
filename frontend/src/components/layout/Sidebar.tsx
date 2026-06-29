@@ -409,7 +409,7 @@ export function Sidebar({ collapsed, onClose }: SidebarProps) {
         )}
       >
         {!collapsed && (
-          <span className="text-primary truncate text-base font-bold">KalaiArangam</span>
+          <span className="text-primary truncate text-base font-bold">{user?.tenantName || "KalaiArangam"}</span>
         )}
         {onClose && (
           <button

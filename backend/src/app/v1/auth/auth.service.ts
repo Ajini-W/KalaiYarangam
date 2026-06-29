@@ -338,6 +338,7 @@ export class AuthService {
         dto.type === 'phone' && dto.phone
           ? { phone: dto.phone }
           : { email: dto.email },
+      include: { tenant: { select: { name: true } } },
     });
 
     if (!user) {
@@ -399,7 +400,7 @@ export class AuthService {
     return {
       message: 'Login successful',
       data: {
-        user: this.toPayload(user),
+        user: this.toPayload({ ...user, tenantName: user.tenant?.name ?? null }),
         ...tokens,
         rememberMe: dto.rememberMe ?? false,
         isFirstLogin: user.lastLoginAt === null,
@@ -512,6 +513,7 @@ export class AuthService {
       select: {
         id: true, tenantId: true, email: true, name: true, role: true,
         status: true, verifiedAt: true, phone: true, avatarUrl: true,
+        tenant: { select: { name: true } },
       },
     });
     if (!u) throw new NotFoundException('User not found');
@@ -538,6 +540,7 @@ export class AuthService {
         emailVerified: !!u.verifiedAt,
         phone: u.phone,
         avatarUrl: u.avatarUrl,
+        tenantName: u.tenant?.name ?? null,
         onboardingRequired: needsOnboarding,
         currentOnboardingStep: progress?.currentStep ?? null,
       },
@@ -820,6 +823,7 @@ export class AuthService {
     name: string;
     role: AuthenticatedUser['role'];
     status?: string;
+    tenantName?: string | null;
   }) {
     return {
       id: user.id,
@@ -830,6 +834,7 @@ export class AuthService {
       role: user.role,
       status: user.status ?? '',
       emailVerified: user.status !== 'NEW_USER' && user.status !== 'PENDING',
+      tenantName: user.tenantName ?? null,
     };
   }
 
