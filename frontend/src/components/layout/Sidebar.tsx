@@ -4,6 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth.store";
+import { useProfileModal } from "@/store/profile.store";
 import {
   LayoutDashboard,
   Users,
@@ -55,6 +56,7 @@ interface NavItem {
   label: string;
   href?: string;
   icon: React.ElementType;
+  onClick?: () => void;
   children?: Omit<NavItem, "children">[];
 }
 
@@ -144,6 +146,7 @@ const ownerNav: NavItem[] = [
   { label: "Integrations", href: "/owner/integrations", icon: Sparkles },
   { label: "Subscription", href: "/owner/subscription", icon: CreditCard },
   { label: "Audit Logs", href: "/owner/audit-logs", icon: ScrollText },
+  { label: "Profile", icon: IdCard, onClick: () => useProfileModal.getState().setOpen(true) },
 ];
 
 const branchManagerNav: NavItem[] = [
@@ -200,6 +203,7 @@ const branchManagerNav: NavItem[] = [
   },
   { label: "Reports", href: "/branch-manager/reports", icon: BarChart2 },
   { label: "Users", href: "/branch-manager/users", icon: Users },
+  { label: "Profile", icon: IdCard, onClick: () => useProfileModal.getState().setOpen(true) },
 ];
 
 const staffNav: NavItem[] = [
@@ -255,6 +259,7 @@ const staffNav: NavItem[] = [
     ],
   },
   { label: "Reports", href: "/staff/reports", icon: BarChart2 },
+  { label: "Profile", icon: IdCard, onClick: () => useProfileModal.getState().setOpen(true) },
 ];
 
 const studentNav: NavItem[] = [
@@ -265,7 +270,7 @@ const studentNav: NavItem[] = [
   { label: "Progress", href: "/student/progress", icon: TrendingUp },
   { label: "Certificates", href: "/student/certificates", icon: Award },
   { label: "Notifications", href: "/student/notifications", icon: Bell },
-  { label: "Profile", href: "/student/profile", icon: IdCard },
+  { label: "Profile", icon: IdCard, onClick: () => useProfileModal.getState().setOpen(true) },
   { label: "Support", href: "/student/support", icon: HelpCircle },
 ];
 
@@ -279,14 +284,14 @@ const clientNav: NavItem[] = [
   { label: "Payments", href: "/client/payments", icon: CreditCard },
   { label: "Quotations", href: "/client/quotations", icon: FileText },
   { label: "Notifications", href: "/client/notifications", icon: Bell },
-  { label: "Profile", href: "/client/profile", icon: IdCard },
+  { label: "Profile", icon: IdCard, onClick: () => useProfileModal.getState().setOpen(true) },
 ];
 
 function getNav(role: string): NavItem[] {
   switch (role) {
     case "OWNER": return ownerNav;
     case "BRANCH_MANAGER": return branchManagerNav;
-    case "TRAINER":
+    case "TRAINER":return staffNav;
     case "STAFF": return staffNav;
     case "STUDENT": return studentNav;
     case "CLIENT": return clientNav;
@@ -309,6 +314,24 @@ function NavItemRow({ item, collapsed }: { item: NavItem; collapsed: boolean }) 
     ? pathname === item.href || pathname.startsWith(item.href + "/")
     : false;
   const Icon = item.icon;
+
+  if (item.onClick) {
+    return (
+      <button
+        type="button"
+        onClick={item.onClick}
+        title={collapsed ? item.label : undefined}
+        className={cn(
+          "flex w-full items-center gap-3 rounded-[var(--radius-sm)] px-2.5 py-2 text-sm font-medium transition-colors",
+          "text-text-secondary hover:bg-surface-overlay hover:text-text-primary",
+          collapsed && "justify-center"
+        )}
+      >
+        <Icon size={18} className="shrink-0" />
+        {!collapsed && <span>{item.label}</span>}
+      </button>
+    );
+  }
 
   if (item.children) {
     return (

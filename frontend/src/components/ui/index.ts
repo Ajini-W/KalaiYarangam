@@ -24,3 +24,6 @@ export * from "./Card";
 
 // Overlay
 export * from "./Modal";
+
+// Form
+export * from "./ColorPicker";
