@@ -1,15 +1,17 @@
 import type { Metadata } from "next";
 import { ThemeProvider } from "next-themes";
 
+import { Inter } from "next/font/google";
 import "./globals.css";
 
 import { ToastProvider } from "@/components/ui/Toast";
 import { BrandThemeProvider } from "@/providers/BrandThemeProvider";
 
 // Mock Inter font definition to avoid offline build failure in sandbox
-const inter = {
-  variable: "font-sans",
-};
+// const inter = {
+//   variable: "font-sans",
+// };
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 
 export const metadata: Metadata = {
