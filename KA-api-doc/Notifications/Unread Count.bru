@@ -1,0 +1,15 @@
+meta {
+  name: Unread Count
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{base-url}}/notification/unread-count
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}

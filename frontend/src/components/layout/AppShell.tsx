@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useRouter, usePathname } from "next/navigation";
 import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
 import { MobileNav } from "./MobileNav";
@@ -10,13 +11,33 @@ import { useAuthStore } from "@/store/auth.store";
 interface AppShellProps { children: React.ReactNode; className?: string }
 
 export function AppShell({ children, className }: AppShellProps) {
+  const router = useRouter();
+  const pathname = usePathname();
   const initialize = useAuthStore((s) => s.initialize);
+  const user = useAuthStore((s) => s.user);
+  const isLoading = useAuthStore((s) => s.isLoading);
   const [collapsed, setCollapsed] = React.useState(false);
   const [mobileOpen, setMobileOpen] = React.useState(false);
+  const redirectedRef = React.useRef(false);
 
   React.useEffect(() => {
     initialize();
   }, [initialize]);
+
+  React.useEffect(() => {
+    if (isLoading || redirectedRef.current) return;
+    if (!user) return;
+
+    // Users who have submitted an access request are waiting for approval — don't redirect back to onboarding
+    const noRedirectStatuses = ["ACCESS_REQUESTED", "PENDING_APPROVAL", "APPROVED", "ACTIVE"];
+    const needsOnboarding = !user.tenantId
+      && user.role !== "CLIENT"
+      && !noRedirectStatuses.includes(user.status);
+    if (needsOnboarding && !pathname.startsWith("/onboarding")) {
+      redirectedRef.current = true;
+      router.replace("/onboarding");
+    }
+  }, [user, isLoading, pathname, router]);
 
   const toggleMenu = () => {
     if (window.innerWidth < 768) {

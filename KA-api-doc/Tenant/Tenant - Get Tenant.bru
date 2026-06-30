@@ -1,0 +1,24 @@
+meta {
+  name: Tenant - Get Tenant
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{base-url}}/training/tenant
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+vars:pre-request {
+  token: yJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjI1ZTU4MWJjLTVkODctNGYwOS1iNGU2LTk3NmQwNmEzMTM2YSIsInRlbmFudElkIjoiIiwiYnJhbmNoSWQiOm51bGwsImVtYWlsIjoic2VtbW96aGl5YW40MEBnbWFpbC5jb20iLCJuYW1lIjoic2VtbW96aGl5YW4iLCJyb2xlIjoiU1RBRkYiLCJzdGF0dXMiOiJSRUdJU1RFUkVEIiwiZW1haWxWZXJpZmllZCI6ZmFsc2UsImlhdCI6MTc4MjQ2NTk4MywiZXhwIjoxNzgzMDcwNzgzfQ.j6DBObTnZrx2oe9rkZv-Hk2SOVLnpEQB2h4ndVpOWfg
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

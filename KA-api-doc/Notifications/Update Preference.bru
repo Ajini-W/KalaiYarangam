@@ -1,0 +1,23 @@
+meta {
+  name: Update Preference
+  type: http
+  seq: 8
+}
+
+put {
+  url: {{base-url}}/notification/preferences
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+body:json {
+  {
+    "channel": "IN_APP",
+    "eventType": "all",
+    "enabled": true
+  }
+}

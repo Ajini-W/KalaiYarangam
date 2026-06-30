@@ -1,0 +1,27 @@
+meta {
+  name: Class - Update Certificate Template
+  type: http
+  seq: 5
+}
+
+patch {
+  url: {{base-url}}/class/certificate-templates/{{templateId}}
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "name": "Updated Certificate",
+    "cssStyles": "body { font-family: Times New Roman; color: #333; }"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

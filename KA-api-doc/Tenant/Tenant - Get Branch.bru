@@ -1,0 +1,20 @@
+meta {
+  name: Tenant - Get Branch
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{base-url}}/training/branches/{{branchId}}
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

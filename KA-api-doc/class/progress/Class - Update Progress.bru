@@ -1,0 +1,28 @@
+meta {
+  name: Class - Update Progress
+  type: http
+  seq: 5
+}
+
+patch {
+  url: {{base-url}}/class/progress/{{progressId}}
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "percentage": 85,
+    "grade": "A",
+    "remarks": "Excellent improvement"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -1,0 +1,20 @@
+meta {
+  name: Tenant - Get Students
+  type: http
+  seq: 19
+}
+
+get {
+  url: {{base-url}}/training/students
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

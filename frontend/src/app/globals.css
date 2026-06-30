@@ -22,6 +22,12 @@
   --color-brand-800: var(--brand-800);
   --color-brand-900: var(--brand-900);
 
+  /* Dynamic tenant brand (maps bg-primary / text-primary etc.) */
+  --color-primary:            var(--primary);
+  --color-primary-foreground:  var(--primary-foreground);
+  --color-secondary:          var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
   /* Semantic */
   --color-success:       var(--success-500);
   --color-success-light: var(--success-50);
@@ -94,7 +100,7 @@ body {
 
 /* ─── Focus Ring ────────────────────────────────────────────────────────────── */
 :focus-visible {
-  outline: 2px solid var(--brand-500);
+  outline: 2px solid var(--primary);
   outline-offset: 2px;
   border-radius: var(--radius-sm);
 }

@@ -1,0 +1,22 @@
+meta {
+  name: Register Device
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{base-url}}/notification/register-device
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+body:json {
+  {
+    "token": "fcm-device-token-here",
+    "platform": "web"
+  }
+}

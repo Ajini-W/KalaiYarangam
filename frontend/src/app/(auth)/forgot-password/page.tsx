@@ -8,8 +8,7 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { Mail, ArrowRight, ArrowLeft, CheckCircle } from "lucide-react";
-import { AuthLeftPanel, AuthMobileNav } from "@/components/ui/AuthBackground";
+import { Mail, ArrowRight, ArrowLeft, CheckCircle, KeyRound, ChevronLeft } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -24,13 +23,13 @@ const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.07, delayChildren: 0.05 },
+    transition: { staggerChildren: 0.06, delayChildren: 0.05 },
   },
 } as const;
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 12 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: "easeOut" as const } },
+  hidden: { opacity: 0, y: 14 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" as const } },
 };
 
 export default function ForgotPasswordPage() {
@@ -64,41 +63,48 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <>
-      <AuthLeftPanel />
-      <div className="flex flex-col bg-white dark:bg-gray-900 rounded-3xl lg:rounded-r-3xl lg:rounded-l-none transition-colors duration-500">
-        <AuthMobileNav />
-        <div className="relative flex flex-1 flex-col items-center justify-center px-6 py-8 sm:px-12 sm:py-10 bg-white dark:bg-gray-900 transition-colors duration-500 lg:rounded-br-3xl">
-          <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20">
-            <ThemeToggle />
-          </div>
+    <div className="w-full max-w-[440px] mx-auto px-4 py-6 sm:px-0 sm:py-0 lg:my-auto">
+      <div className="relative bg-white dark:bg-gray-900 rounded-2xl sm:rounded-3xl shadow-lg sm:shadow-2xl sm:shadow-gray-900/10 dark:sm:shadow-black/40 sm:border sm:border-gray-200/60 dark:sm:border-gray-700/40 transition-colors duration-500">
+        {/* Header row: back + theme toggle */}
+        <div className="flex items-center justify-between px-5 pt-4 sm:px-6 sm:pt-5">
+          <Link
+            href="/login"
+            className="inline-flex items-center gap-1 text-sm font-medium text-gray-400 dark:text-gray-500 hover:text-primary transition-colors"
+          >
+            <ChevronLeft size={16} />
+            Back to login
+          </Link>
+          <ThemeToggle />
+        </div>
+
+        {/* Content */}
+        <div className="px-5 py-6 sm:px-10 sm:py-8 lg:px-10 lg:py-10 pb-[max(2rem,env(safe-area-inset-bottom))]">
           <motion.div
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="w-full max-w-[380px]"
           >
             {sent ? (
               <motion.div variants={itemVariants} className="text-center">
-                <div className="mx-auto w-16 h-16 rounded-full bg-green-50 dark:bg-green-900/30 flex items-center justify-center mb-6">
+                <div className="mx-auto w-16 h-16 rounded-2xl bg-green-50 dark:bg-green-900/30 flex items-center justify-center mb-5">
                   <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
                 </div>
-                <h1 className="text-2xl font-bold text-green-700 dark:text-green-300 uppercase tracking-[0.05em] mb-2">
+                <h1 className="text-xl sm:text-2xl font-bold text-green-700 dark:text-green-300 uppercase tracking-[0.05em] mb-2">
                   Check Your Email
                 </h1>
-                <p className="text-sm text-gray-400 dark:text-gray-400 font-medium mb-2">
+                <p className="text-sm text-gray-400 dark:text-gray-500 font-medium mb-1">
                   We sent a password reset link to
                 </p>
-                <p className="text-sm font-semibold text-primary mb-6">
+                <p className="text-sm font-semibold text-primary mb-5">
                   {submittedEmail}
                 </p>
-                <p className="text-xs text-gray-400 dark:text-gray-500 mb-6">
+                <p className="text-xs text-gray-400 dark:text-gray-500 mb-6 leading-relaxed">
                   The link expires in 1 hour. If you don&apos;t see it, check your spam folder.
                 </p>
                 <div className="space-y-3">
                   <Button
                     onClick={() => router.push("/login")}
-                    className="w-full h-11 text-sm font-bold uppercase tracking-wider bg-primary text-primary-foreground hover:opacity-80 transition-all duration-300 group rounded-xl"
+                    className="w-full h-11 text-sm font-bold uppercase tracking-wider rounded-xl group"
                   >
                     Back to Login
                     <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -115,11 +121,14 @@ export default function ForgotPasswordPage() {
               </motion.div>
             ) : (
               <>
-                <motion.div variants={itemVariants} className="text-center mb-8">
-                  <h1 className="text-2xl font-bold text-primary uppercase tracking-[0.05em] transition-colors duration-500">
+                <motion.div variants={itemVariants} className="text-center mb-7 sm:mb-8">
+                  <div className="mx-auto w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-5">
+                    <KeyRound className="w-8 h-8 text-primary" />
+                  </div>
+                  <h1 className="text-xl sm:text-2xl font-bold text-primary uppercase tracking-[0.06em] transition-colors duration-500">
                     Forgot Password?
                   </h1>
-                  <p className="text-sm text-gray-400 dark:text-gray-400 mt-1.5 font-medium transition-colors duration-500">
+                  <p className="text-[0.82rem] sm:text-sm text-gray-400 dark:text-gray-500 mt-2 font-medium transition-colors duration-500 leading-relaxed">
                     No worries, we&apos;ll send you reset instructions
                   </p>
                 </motion.div>
@@ -140,14 +149,14 @@ export default function ForgotPasswordPage() {
                       error={errors.email?.message}
                       leftAddon={<Mail size={16} />}
                       aria-label="Email address"
-                      className="dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder:text-gray-500 h-10 rounded-xl"
+                      className="dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder:text-gray-500 h-11 rounded-xl"
                       {...register("email")}
                     />
                   </motion.div>
                   <motion.div variants={itemVariants}>
                     <Button
                       type="submit"
-                      className="w-full h-11 text-sm font-bold uppercase tracking-wider bg-primary text-primary-foreground hover:opacity-80 transition-all duration-300 group rounded-xl"
+                      className="w-full h-11 text-sm font-bold uppercase tracking-wider rounded-xl group"
                       loading={isSubmitting}
                     >
                       Send Reset Link
@@ -159,24 +168,9 @@ export default function ForgotPasswordPage() {
                 </form>
               </>
             )}
-
-            {!sent && (
-              <motion.p
-                variants={itemVariants}
-                className="mt-6 text-center text-sm text-gray-500 dark:text-gray-400 lg:hidden"
-              >
-                Remember password?{" "}
-                <Link
-                  href="/login"
-                  className="font-bold text-primary hover:opacity-70 hover:underline transition-colors"
-                >
-                  Sign In
-                </Link>
-              </motion.p>
-            )}
           </motion.div>
         </div>
       </div>
-    </>
+    </div>
   );
 }

@@ -1,0 +1,20 @@
+meta {
+  name: Conversion
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{base-url}}/reports/conversion?startDate=2026-01-01&endDate=2026-12-31
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: bearer {{accessToken}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

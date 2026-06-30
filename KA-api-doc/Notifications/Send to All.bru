@@ -1,0 +1,23 @@
+meta {
+  name: Send to All
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{base-url}}/notification/send
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+body:json {
+  {
+    "title": "Test Announcement",
+    "body": "This is a test notification sent to all users.",
+    "link": "/notifications"
+  }
+}

@@ -1,0 +1,28 @@
+meta {
+  name: Search Tenants
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{base-url}}/onboarding/tenants/search
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+body:json {
+  {
+    "name": "Kalai Academy",
+    "businessType": "TRAINING",
+    "location": "Chennai"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

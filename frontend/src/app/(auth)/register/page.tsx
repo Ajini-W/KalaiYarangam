@@ -8,7 +8,7 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { useState, useMemo } from "react";
-import { Mail, Lock, Eye, EyeOff, ArrowRight, UserPlus, Phone } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, ArrowRight, User, Phone } from "lucide-react";
 import { AuthLeftPanel, AuthMobileNav } from "@/components/ui/AuthBackground";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { Button } from "@/components/ui/Button";
@@ -39,13 +39,13 @@ const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.06, delayChildren: 0.05 },
+    transition: { staggerChildren: 0.05, delayChildren: 0.04 },
   },
 } as const;
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 12 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: "easeOut" as const } },
+  hidden: { opacity: 0, y: 14 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" as const } },
 };
 
 /* ── Component ─────────────────────────────────────────────────────── */
@@ -73,7 +73,8 @@ export default function RegisterPage() {
     if (/[^a-zA-Z0-9]/.test(val)) score++;
     const labels = ["", "Weak", "Fair", "Good", "Strong", "Very Strong"];
     const colors = ["", "bg-red-500", "bg-orange-500", "bg-yellow-500", "bg-green-500", "bg-emerald-500"];
-    return { score, label: labels[score] || "", color: colors[score] || "" };
+    const textColors = ["", "text-red-600 dark:text-red-400", "text-orange-600 dark:text-orange-400", "text-yellow-600 dark:text-yellow-400", "text-green-600 dark:text-green-400", "text-emerald-600 dark:text-emerald-400"];
+    return { score, label: labels[score] || "", color: colors[score] || "", textColor: textColors[score] || "" };
   }, [passwordValue]);
 
   const onSubmit = async (data: FormData) => {
@@ -96,19 +97,19 @@ export default function RegisterPage() {
   };
 
   return (
-    <>
+    <div className="w-full max-w-[1020px] min-h-dvh sm:min-h-0 lg:min-h-[640px] grid grid-cols-1 lg:grid-cols-[38%_62%] lg:rounded-3xl overflow-hidden lg:shadow-2xl lg:shadow-gray-900/10 dark:lg:shadow-black/40 lg:border lg:border-gray-200/60 dark:lg:border-gray-700/40 bg-white dark:bg-gray-900 transition-colors duration-500">
       {/* ── Left Panel (desktop) ───────────────────────────────── */}
       <AuthLeftPanel />
 
       {/* ── Right Panel ────────────────────────────────────────── */}
-      <div className="flex flex-col bg-white dark:bg-gray-900 rounded-3xl lg:rounded-r-3xl lg:rounded-l-none transition-colors duration-500">
+      <div className="flex flex-col bg-white dark:bg-gray-900 lg:rounded-r-3xl lg:rounded-l-none transition-colors duration-500">
         {/* Mobile header + tabs */}
         <AuthMobileNav />
 
         {/* Form area */}
-        <div className="relative flex flex-1 flex-col items-center justify-center px-6 py-6 sm:px-12 sm:py-10 bg-white dark:bg-gray-900 transition-colors duration-500 lg:rounded-br-3xl">
-          {/* Theme toggle — top right */}
-          <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20">
+        <div className="relative flex flex-1 flex-col items-center justify-center px-5 py-6 sm:px-10 sm:py-8 lg:px-12 lg:py-10 bg-white dark:bg-gray-900 transition-colors duration-500 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
+          {/* Theme toggle — top right (desktop only, mobile has it in AuthMobileNav) */}
+          <div className="hidden lg:block absolute top-5 right-5 z-20">
             <ThemeToggle />
           </div>
 
@@ -119,36 +120,29 @@ export default function RegisterPage() {
             className="w-full max-w-[420px]"
           >
             {/* Heading */}
-            <motion.div variants={itemVariants} className="text-center mb-7">
-              <h1 className="text-2xl font-bold text-primary uppercase tracking-[0.05em] transition-colors duration-500">Sign Up</h1>
-              <p className="text-sm text-gray-400 dark:text-gray-400 mt-1.5 font-medium transition-colors duration-500">Create your account to get started</p>
+            <motion.div variants={itemVariants} className="text-center mb-6 sm:mb-7">
+              <h1 className="text-2xl sm:text-[1.65rem] font-bold text-primary uppercase tracking-[0.06em] transition-colors duration-500">
+                Create Account
+              </h1>
+              <p className="text-[0.82rem] sm:text-sm text-gray-400 dark:text-gray-500 mt-2 font-medium transition-colors duration-500">
+                Fill in your details to get started
+              </p>
             </motion.div>
 
             {/* Form */}
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
-              {/* Row: Name + Phone */}
-              <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-3.5 sm:space-y-4" noValidate>
+              {/* Name */}
+              <motion.div variants={itemVariants}>
                 <Input
                   label="Full Name"
                   type="text"
                   placeholder="Abishek Kumar"
                   required
                   error={errors.name?.message}
-                  leftAddon={<UserPlus size={16} />}
+                  leftAddon={<User size={16} />}
                   aria-label="Full name"
-                  className="dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder:text-gray-500 h-10 rounded-xl"
+                  className="dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder:text-gray-500 h-11 rounded-xl"
                   {...register("name")}
-                />
-                <Input
-                  label="Phone"
-                  type="tel"
-                  placeholder="+91 98765 43210"
-                  required
-                  error={errors.phone?.message}
-                  leftAddon={<Phone size={16} />}
-                  aria-label="Phone number"
-                  className="dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder:text-gray-500 h-10 rounded-xl"
-                  {...register("phone")}
                 />
               </motion.div>
 
@@ -162,8 +156,23 @@ export default function RegisterPage() {
                   error={errors.email?.message}
                   leftAddon={<Mail size={16} />}
                   aria-label="Email address"
-                  className="dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder:text-gray-500 h-10 rounded-xl"
+                  className="dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder:text-gray-500 h-11 rounded-xl"
                   {...register("email")}
+                />
+              </motion.div>
+
+              {/* Phone */}
+              <motion.div variants={itemVariants}>
+                <Input
+                  label="Phone"
+                  type="tel"
+                  placeholder="+91 98765 43210"
+                  required
+                  error={errors.phone?.message}
+                  leftAddon={<Phone size={16} />}
+                  aria-label="Phone number"
+                  className="dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder:text-gray-500 h-11 rounded-xl"
+                  {...register("phone")}
                 />
               </motion.div>
 
@@ -188,12 +197,12 @@ export default function RegisterPage() {
                     </button>
                   }
                   aria-label="Password"
-                  className="dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder:text-gray-500 h-10 rounded-xl"
+                  className="dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder:text-gray-500 h-11 rounded-xl"
                   {...register("password")}
                 />
 
                 {passwordValue && (
-                  <div className="mt-2 space-y-1">
+                  <div className="mt-2.5 space-y-1.5">
                     <div className="flex gap-1">
                       {[1, 2, 3, 4, 5].map((i) => (
                         <div
@@ -206,15 +215,7 @@ export default function RegisterPage() {
                         />
                       ))}
                     </div>
-                    <p
-                      className={`text-xs font-medium transition-colors duration-300 ${
-                        passwordStrength.score >= 4
-                          ? "text-green-600 dark:text-green-400"
-                          : passwordStrength.score >= 3
-                            ? "text-yellow-600 dark:text-yellow-400"
-                            : "text-red-600 dark:text-red-400"
-                      }`}
-                    >
+                    <p className={`text-xs font-medium transition-colors duration-300 ${passwordStrength.textColor}`}>
                       {passwordStrength.label}
                     </p>
                   </div>
@@ -225,7 +226,7 @@ export default function RegisterPage() {
               <motion.div variants={itemVariants} className="pt-1">
                 <Button
                   type="submit"
-                  className="w-full h-11 text-sm font-bold uppercase tracking-wider bg-primary text-primary-foreground hover:opacity-80 transition-all duration-300 group rounded-xl"
+                  className="w-full h-11 text-sm font-bold uppercase tracking-wider rounded-xl group"
                   loading={isSubmitting}
                 >
                   Create Account
@@ -237,13 +238,13 @@ export default function RegisterPage() {
             </form>
 
             {/* Divider */}
-            <motion.div variants={itemVariants} className="relative my-5">
+            <motion.div variants={itemVariants} className="relative my-5 sm:my-6">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200 dark:border-gray-700 transition-colors duration-500" />
+                <div className="w-full border-t border-gray-200 dark:border-gray-700/70 transition-colors duration-500" />
               </div>
               <div className="relative flex justify-center text-xs">
                 <span className="bg-white dark:bg-gray-900 px-4 text-gray-400 dark:text-gray-500 font-medium transition-colors duration-500">
-                  Or continue with
+                  or continue with
                 </span>
               </div>
             </motion.div>
@@ -253,30 +254,32 @@ export default function RegisterPage() {
               <button
                 type="button"
                 onClick={handleGoogleSignUp}
-                className="flex items-center gap-3 px-6 h-11 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/60 hover:bg-gray-50 dark:hover:bg-gray-700/60 text-sm font-semibold text-gray-600 dark:text-gray-300 transition-all duration-200 hover:shadow-lg dark:hover:shadow-black/20 hover:border-gray-300 dark:hover:border-gray-600 hover:-translate-y-0.5 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                className="flex items-center justify-center gap-3 w-full h-11 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/50 hover:bg-gray-50 dark:hover:bg-gray-700/60 text-sm font-semibold text-gray-600 dark:text-gray-300 transition-all duration-200 hover:shadow-md dark:hover:shadow-black/20 hover:border-gray-300 dark:hover:border-gray-600 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                 aria-label="Sign up with Google"
               >
                 <GoogleIcon />
-                Google
+                Continue with Google
               </button>
             </motion.div>
 
             {/* Login link (mobile only) */}
-            <motion.p
+            <motion.div
               variants={itemVariants}
-              className="mt-5 text-center text-sm text-gray-500 dark:text-gray-400 lg:hidden transition-colors duration-500"
+              className="mt-6 sm:mt-7 text-center lg:hidden"
             >
-              Already have an account?{" "}
-              <Link
-                href="/login"
-                className="font-bold text-primary hover:opacity-70 hover:underline transition-colors"
-              >
-                Sign In
-              </Link>
-            </motion.p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-500">
+                Already have an account?{" "}
+                <Link
+                  href="/login"
+                  className="font-bold text-primary hover:opacity-70 hover:underline transition-all"
+                >
+                  Sign In
+                </Link>
+              </p>
+            </motion.div>
           </motion.div>
         </div>
       </div>
-    </>
+    </div>
   );
 }

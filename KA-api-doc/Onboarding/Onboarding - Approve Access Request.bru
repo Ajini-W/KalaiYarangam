@@ -1,0 +1,28 @@
+meta {
+  name: Approve Access Request
+  type: http
+  seq: 11
+}
+
+post {
+  url: {{base-url}}/onboarding/access-requests/approve
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+body:json {
+  {
+    "requestId": "{{requestId}}",
+    "branchId": "{{branchId}}",
+    "role": "BRANCH_MANAGER"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

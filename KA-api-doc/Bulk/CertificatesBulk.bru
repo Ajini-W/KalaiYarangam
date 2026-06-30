@@ -1,0 +1,30 @@
+meta {
+  name: Certificates Bulk
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{base-url}}/bulk/certificates
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: bearer {{accessToken}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "batchId": "b0dc78def-8e0b-4747-b77a-1923a999eaf0",
+    "templateId": "template-uuid-here",
+    "studentIds": ["student-uuid-1", "student-uuid-2"],
+    "issuedDate": "2026-06-30T00:00:00.000Z"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

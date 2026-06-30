@@ -17,8 +17,7 @@ const ROLES = [
   { value: "SUPER_ADMIN", label: "Super Admin" },
   { value: "OWNER", label: "Owner" },
   { value: "BRANCH_MANAGER", label: "Branch Manager" },
-  { value: "TRAINER", label: "Trainer" },
-  { value: "STAFF", label: "Staff" },
+  { value: "STAFF", label: "Staff / Trainer" },
   { value: "STUDENT", label: "Student" },
   { value: "CLIENT", label: "Client" },
 ];

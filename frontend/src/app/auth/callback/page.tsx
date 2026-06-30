@@ -4,12 +4,12 @@ import { Suspense, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { useAuthStore } from "@/store/auth.store";
-import { authService } from "@/services/auth.service";
+import { getDashboardRoute } from "@/lib/dashboard-route";
 
 function CallbackHandler() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const setUser = useAuthStore((s) => s.setUser);
+  const handleOAuthCallback = useAuthStore((s) => s.handleOAuthCallback);
   const called = useRef(false);
 
   useEffect(() => {
@@ -20,25 +20,30 @@ function CallbackHandler() {
     const refreshToken = searchParams.get("refreshToken");
 
     if (!accessToken) {
-      router.replace("/login?error=no_token");
+      window.location.replace("/login?error=no_token");
       return;
     }
 
-    localStorage.setItem("accessToken", accessToken);
-    if (refreshToken) {
-      localStorage.setItem("refreshToken", refreshToken);
-    }
+    // Safety timeout — redirect to login if callback takes > 15s
+    const timeout = setTimeout(() => {
+      window.location.replace("/login?error=session_expired");
+    }, 15000);
 
-    authService
-      .me()
+    handleOAuthCallback(accessToken, refreshToken ?? undefined)
       .then((user) => {
-        setUser(user);
-        router.replace("/dashboard");
+        clearTimeout(timeout);
+        const noRedirectStatuses = ["ACCESS_REQUESTED", "PENDING_APPROVAL", "APPROVED", "ACTIVE"];
+        const needsOnboarding = !user.tenantId
+          && user.role !== "CLIENT"
+          && !noRedirectStatuses.includes(user.status);
+        const dest = needsOnboarding ? "/onboarding" : getDashboardRoute(user.role);
+        window.location.replace(dest);
       })
       .catch(() => {
-        router.replace("/login?error=session_expired");
+        clearTimeout(timeout);
+        window.location.replace("/login?error=session_expired");
       });
-  }, [searchParams, router, setUser]);
+  }, [searchParams, handleOAuthCallback]);
 
   return (
     <div className="flex flex-col items-center gap-4">

@@ -16,11 +16,13 @@ interface AuthState {
   refreshToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isFirstLogin: boolean;
 
-  login: (payload: LoginPayload) => Promise<void>;
-  register: (payload: RegisterPayload) => Promise<void>;
-  logout: () => void;
+  login: (payload: LoginPayload) => Promise<{ isFirstLogin?: boolean }>;
+  register: (payload: RegisterPayload) => Promise<{ isFirstLogin?: boolean }>;
+  logout: () => Promise<void>;
   setUser: (user: AuthUser) => void;
+  handleOAuthCallback: (accessToken: string, refreshToken?: string) => Promise<AuthUser>;
   initialize: () => Promise<void>;
   verifyEmail: (token: string) => Promise<void>;
   sendVerificationToken: (email: string) => Promise<void>;
@@ -35,6 +37,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   refreshToken: null,
   isAuthenticated: false,
   isLoading: false,
+  isFirstLogin: false,
 
   login: async (payload) => {
     set({ isLoading: true });
@@ -45,13 +48,16 @@ export const useAuthStore = create<AuthState>((set) => ({
       if (res.refreshToken) {
         localStorage.setItem("refreshToken", res.refreshToken);
       }
+      const isFirstLogin = res.isFirstLogin ?? false;
       set({
         user: res.user,
         accessToken: res.accessToken,
         refreshToken: res.refreshToken,
         isAuthenticated: true,
+        isFirstLogin,
         isLoading: false,
       });
+      return { isFirstLogin };
     } catch (error) {
       set({ isLoading: false });
       throw error;
@@ -72,22 +78,76 @@ export const useAuthStore = create<AuthState>((set) => ({
         accessToken: res.accessToken,
         refreshToken: res.refreshToken,
         isAuthenticated: true,
+        isFirstLogin: true,
         isLoading: false,
       });
+      return { isFirstLogin: true };
     } catch (error) {
       set({ isLoading: false });
       throw error;
     }
   },
 
-  logout: () => {
+  logout: async () => {
+    const refreshToken = localStorage.getItem("refreshToken");
+
+    // Call server to revoke the refresh token (best-effort)
+    if (refreshToken) {
+      try {
+        await authService.logout(refreshToken);
+      } catch {
+        // Server-side token revocation is best-effort
+      }
+    }
+
+    // Clear all browser storage
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
+    sessionStorage.clear();
+
+    // Clear cookies
     removeTokenCookie();
-    set({ user: null, accessToken: null, refreshToken: null, isAuthenticated: false });
+
+    // Clear service worker caches if any
+    if (typeof caches !== "undefined") {
+      try {
+        const keys = await caches.keys();
+        await Promise.all(keys.map((k) => caches.delete(k)));
+      } catch {
+        // Cache clearing is best-effort
+      }
+    }
+
+    // Reset state
+    set({ user: null, accessToken: null, refreshToken: null, isAuthenticated: false, isFirstLogin: false });
   },
 
-  setUser: (user) => set({ user }),
+  setUser: (user) => set({ user, isAuthenticated: true }),
+
+  handleOAuthCallback: async (accessToken: string, refreshToken?: string) => {
+    localStorage.setItem("accessToken", accessToken);
+    setTokenCookie(accessToken);
+    if (refreshToken) localStorage.setItem("refreshToken", refreshToken);
+    set({ isLoading: true });
+    try {
+      const user = await authService.me();
+      set({
+        user,
+        accessToken,
+        refreshToken: refreshToken ?? null,
+        isAuthenticated: true,
+        isFirstLogin: false,
+        isLoading: false,
+      });
+      return user;
+    } catch {
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+      removeTokenCookie();
+      set({ isLoading: false });
+      throw new Error("Failed to verify session");
+    }
+  },
 
   initialize: async () => {
     const accessToken = localStorage.getItem("accessToken");

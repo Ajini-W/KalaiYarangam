@@ -12,11 +12,9 @@ post {
 
 body:json {
   {
-  //   "type": "email",
-  //   "email": "@gmail.com",
-    "type": "phone",
-    "phone": "",
-    "password": "Demo@1234",
+    "type": "email",
+    "email": "demo1@gmail.com",
+    "password": "Demo@123",
     "rememberMe": true
   }
 }
@@ -24,13 +22,19 @@ body:json {
 vars:post-response {
   accessToken: data.accessToken
   refreshToken: data.refreshToken
+  isFirstLogin: data.isFirstLogin
 }
 
 script:post-response {
   const body = res.getBody();
   
-  bru.setVar("accessToken", body.data.accessToken);
-  bru.setVar("refreshToken", body.data.refreshToken);
+  if (body.data) {
+    bru.setVar("accessToken", body.data.accessToken);
+    bru.setVar("refreshToken", body.data.refreshToken);
+    bru.setVar("isFirstLogin", String(body.data.isFirstLogin));
+  } else {
+    console.error("Login failed:", body.message || "Unknown error");
+  }
 }
 
 settings {

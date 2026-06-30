@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Post, Put, Req, Res, UseGuards } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import { Throttle } from '@nestjs/throttler';
@@ -7,6 +7,7 @@ import { AuthThrottlerGuard, GoogleOAuthGuard } from '@/common/guards';
 import { AuthenticatedUser } from '@/common/interfaces';
 import { AuthService } from './auth.service';
 import {
+  AuthErrorLogDto,
   ChangePasswordDto,
   ForgotPasswordDto,
   LoginDto,
@@ -14,6 +15,9 @@ import {
   RefreshTokenDto,
   ResetPasswordDto,
   SendVerificationTokenDto,
+  SetPasswordDto,
+  UpdatePreferencesDto,
+  UpdateProfileDto,
   UpdateUserStatusDto,
   VerifyEmailDto,
 } from './dto/auth.dto';
@@ -63,6 +67,12 @@ export class AuthController {
   @HttpCode(200)
   changePassword(@Body() dto: ChangePasswordDto, @CurrentUser() user: AuthenticatedUser) {
     return this.authService.changePassword(dto, user.id);
+  }
+
+  @Post('set-password')
+  @HttpCode(200)
+  setPassword(@Body() dto: SetPasswordDto, @CurrentUser() user: AuthenticatedUser) {
+    return this.authService.setPassword(dto, user.id);
   }
 
   @Public()
@@ -116,10 +126,42 @@ export class AuthController {
     return this.authService.me(user);
   }
 
+  @Get('profile')
+  getProfile(@CurrentUser() user: AuthenticatedUser) {
+    return this.authService.getProfile(user.id);
+  }
+
+  @Put('profile')
+  updateProfile(@Body() dto: UpdateProfileDto, @CurrentUser() user: AuthenticatedUser) {
+    return this.authService.updateProfile(user.id, dto);
+  }
+
+  @Get('preferences')
+  getPreferences(@CurrentUser() user: AuthenticatedUser) {
+    return this.authService.getPreferences(user.id);
+  }
+
+  @Put('preferences')
+  updatePreferences(@Body() dto: UpdatePreferencesDto, @CurrentUser() user: AuthenticatedUser) {
+    return this.authService.updatePreferences(user.id, dto.preferences ?? {});
+  }
+
   @Public()
   @Post('user-status')
   updateUserStatus(@Body() dto: UpdateUserStatusDto) {
     return this.authService.updateUserStatus(dto);
+  }
+
+  @Public()
+  @Post('error-log')
+  logAuthError(@Body() dto: AuthErrorLogDto) {
+    return this.authService.logAuthError(
+      dto.errorCode,
+      dto.errorMessage,
+      dto.provider,
+      dto.userId,
+      dto.metadata,
+    );
   }
 }
 
