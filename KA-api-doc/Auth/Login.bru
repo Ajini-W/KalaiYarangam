@@ -43,7 +43,7 @@ settings {
 }
 
 example {
-  name: 201
+  name: Login with Email
   
   request: {
     url: {{base-url}}/auth/login
@@ -51,8 +51,10 @@ example {
     mode: json
     body:json: {
       {
+        "type": "email",
         "email": "sivabalanv2005@gmail.com",
-        "password": "Demo@123"
+        "password": "Demo@123",
+        "rememberMe": true
       }
     }
   }
@@ -74,9 +76,9 @@ example {
       access-control-allow-origin: http://localhost:3000
       vary: Origin, Accept-Encoding
       access-control-allow-credentials: true
-      x-ratelimit-limit: 5
-      x-ratelimit-remaining: 0
-      x-ratelimit-reset: 2654
+      x-ratelimit-limit: 15
+      x-ratelimit-remaining: 14
+      x-ratelimit-reset: 3600
       content-type: application/json; charset=utf-8
       content-length: 916
       etag: W/"394-z6LCZgQO/7kVCfRigUu+hEQlN10"
@@ -104,10 +106,13 @@ example {
               "email": "sivabalanv2005@gmail.com",
               "name": "Demo",
               "role": "OWNER",
-              "emailVerified": false
+              "status": "ACTIVE",
+              "emailVerified": true
             },
-            "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM0ZmI3YjE1LTM1MDMtNDRmNy04YWYwLTc0OWYxYjg5MWZhZiIsInRlbmFudElkIjoiMDRlN2FlZmMtYzI2Ni00NjEzLTlhYzYtNjlhNmU1NGZhOWIyIiwiYnJhbmNoSWQiOm51bGwsImVtYWlsIjoic2l2YWJhbGFudjIwMDVAZ21haWwuY29tIiwibmFtZSI6IkRlbW8iLCJyb2xlIjoiT1dORVIiLCJlbWFpbFZlcmlmaWVkIjpmYWxzZSwiaWF0IjoxNzgyMDM5MDk3LCJleHAiOjE3ODIwMzk5OTd9.LqVeVDSPeIr0lcnv0YqYRDvKnnjAtjHoJ9CYk6nAG-k",
-            "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzNGZiN2IxNS0zNTAzLTQ0ZjctOGFmMC03NDlmMWI4OTFmYWYiLCJpYXQiOjE3ODIwMzkwOTcsImV4cCI6MTc4MjY0Mzg5N30.2eaXHTQHVmSQ81u-PSNSScnNHuqbXshBuaRG-BrFcJI"
+            "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM0ZmI3YjE1LTM1MDMtNDRmNy04YWYwLTc0OWYxYjg5MWZhZiIsInRlbmFudElkIjoiMDRlN2FlZmMtYzI2Ni00NjEzLTlhYzYtNjlhNmU1NGZhOWIyIiwiYnJhbmNoSWQiOm51bGwsImVtYWlsIjoic2l2YWJhbGFudjIwMDVAZ21haWwuY29tIiwibmFtZSI6IkRlbW8iLCJyb2xlIjoiT1dORVIiLCJlbWFpbFZlcmlmaWVkIjp0cnVlLCJpYXQiOjE3ODIwMzkwOTcsImV4cCI6MTc4MjAzOTk5N30.LqVeVDSPeIr0lcnv0YqYRDvKnnjAtjHoJ9CYk6nAG-k",
+            "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzNGZiN2IxNS0zNTAzLTQ0ZjctOGFmMC03NDlmMWI4OTFmYWYiLCJpYXQiOjE3ODIwMzkwOTcsImV4cCI6MTc4MjY0Mzg5N30.2eaXHTQHVmSQ81u-PSNSScnNHuqbXshBuaRG-BrFcJI",
+            "isFirstLogin": false,
+            "rememberMe": true
           },
           "timestamp": "2026-06-21T10:51:37.845Z"
         }
@@ -117,7 +122,165 @@ example {
 }
 
 example {
-  name: 429
+  name: Login with Phone
+  
+  request: {
+    url: {{base-url}}/auth/login
+    method: POST
+    mode: json
+    body:json: {
+      {
+        "type": "phone",
+        "phone": "+918838121130",
+        "password": "Demo@123",
+        "rememberMe": false
+      }
+    }
+  }
+  
+  response: {
+    headers: {
+      content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+      cross-origin-opener-policy: same-origin
+      cross-origin-resource-policy: same-origin
+      origin-agent-cluster: ?1
+      referrer-policy: no-referrer
+      strict-transport-security: max-age=31536000; includeSubDomains
+      x-content-type-options: nosniff
+      x-dns-prefetch-control: off
+      x-download-options: noopen
+      x-frame-options: SAMEORIGIN
+      x-permitted-cross-domain-policies: none
+      x-xss-protection: 0
+      access-control-allow-origin: http://localhost:3000
+      vary: Origin, Accept-Encoding
+      access-control-allow-credentials: true
+      x-ratelimit-limit: 15
+      x-ratelimit-remaining: 14
+      x-ratelimit-reset: 3600
+      content-type: application/json; charset=utf-8
+      content-length: 916
+      etag: W/"394-z6LCZgQO/7kVCfRigUu+hEQlN10"
+      date: Sun, 21 Jun 2026 10:51:37 GMT
+      connection: keep-alive
+      keep-alive: timeout=5
+    }
+  
+    status: {
+      code: 201
+      text: Created
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "httpStatusCode": 201,
+          "message": "Login successful",
+          "data": {
+            "user": {
+              "id": "a1b2c3d4-5503-44f7-8af0-749f1b891faf",
+              "tenantId": "04e7aefc-c266-4613-9ac6-69a6e54fa9b2",
+              "branchId": null,
+              "email": "user@example.com",
+              "name": "Demo",
+              "role": "OWNER",
+              "status": "ACTIVE",
+              "emailVerified": true
+            },
+            "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImExYjJjM2Q0LTU1MDMtNDRmNy04YWYwLTc0OWYxYjg5MWZhZiIsInRlbmFudElkIjoiMDRlN2FlZmMtYzI2Ni00NjEzLTlhYzYtNjlhNmU1NGZhOWIyIiwiYnJhbmNoSWQiOm51bGwsImVtYWlsIjoidXNlckBleGFtcGxlLmNvbSIsIm5hbWUiOiJEZW1vIiwicm9sZSI6Ik9XTkVSIiwiZW1haWxWZXJpZmllZCI6dHJ1ZSwiaWF0IjoxNzgyMDM5MDk3LCJleHAiOjE3ODIwMzk5OTd9.abc123def456",
+            "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhMWIyYzNkNC01NTAzLTQ0ZjctOGFmMC03NDlmMWI4OTFmYWYiLCJpYXQiOjE3ODIwMzkwOTcsImV4cCI6MTc4MjY0Mzg5N30.xyz789uvw321",
+            "isFirstLogin": false,
+            "rememberMe": false
+          },
+          "timestamp": "2026-06-21T10:51:37.845Z"
+        }
+      '''
+    }
+  }
+}
+
+example {
+  name: Login - Unverified User (NEW_USER)
+  
+  request: {
+    url: {{base-url}}/auth/login
+    method: POST
+    mode: json
+    body:json: {
+      {
+        "type": "email",
+        "email": "newuser@example.com",
+        "password": "Demo@123",
+        "rememberMe": false
+      }
+    }
+  }
+  
+  response: {
+    headers: {
+      content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+      cross-origin-opener-policy: same-origin
+      cross-origin-resource-policy: same-origin
+      origin-agent-cluster: ?1
+      referrer-policy: no-referrer
+      strict-transport-security: max-age=31536000; includeSubDomains
+      x-content-type-options: nosniff
+      x-dns-prefetch-control: off
+      x-download-options: noopen
+      x-frame-options: SAMEORIGIN
+      x-permitted-cross-domain-policies: none
+      x-xss-protection: 0
+      access-control-allow-origin: http://localhost:3000
+      vary: Origin, Accept-Encoding
+      access-control-allow-credentials: true
+      x-ratelimit-limit: 15
+      x-ratelimit-remaining: 14
+      x-ratelimit-reset: 3600
+      content-type: application/json; charset=utf-8
+      content-length: 916
+      etag: W/"394-z6LCZgQO/7kVCfRigUu+hEQlN10"
+      date: Sun, 21 Jun 2026 10:51:37 GMT
+      connection: keep-alive
+      keep-alive: timeout=5
+    }
+  
+    status: {
+      code: 201
+      text: Created
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "httpStatusCode": 201,
+          "message": "Login successful",
+          "data": {
+            "user": {
+              "id": "e5f6g7h8-5503-44f7-8af0-749f1b891faf",
+              "tenantId": "",
+              "branchId": null,
+              "email": "newuser@example.com",
+              "name": "New User",
+              "role": "STAFF",
+              "status": "NEW_USER",
+              "emailVerified": false
+            },
+            "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImU1ZjZnN2g4LTU1MDMtNDRmNy04YWYwLTc0OWYxYjg5MWZhZiIsInRlbmFudElkIjoiIiwiYnJhbmNoSWQiOm51bGwsImVtYWlsIjoibmV3dXNlckBleGFtcGxlLmNvbSIsIm5hbWUiOiJOZXcgVXNlciIsInJvbGUiOiJTVEFGRiIsImVtYWlsVmVyaWZpZWQiOmZhbHNlLCJpYXQiOjE3ODIwMzkwOTcsImV4cCI6MTc4MjAzOTk5N30.newtoken123",
+            "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlNWY2ZzdoOC01NTAzLTQ0ZjctOGFmMC03NDlmMWI4OTFmYWYiLCJpYXQiOjE3ODIwMzkwOTcsImV4cCI6MTc4MjY0Mzg5N30.refreshtoken456",
+            "isFirstLogin": true,
+            "rememberMe": false
+          },
+          "timestamp": "2026-06-21T10:51:37.845Z"
+        }
+      '''
+    }
+  }
+}
+
+example {
+  name: 429 - Too Many Requests
   
   request: {
     url: {{base-url}}/auth/login

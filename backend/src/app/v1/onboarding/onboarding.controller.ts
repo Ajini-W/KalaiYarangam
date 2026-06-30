@@ -92,6 +92,11 @@ export class OnboardingController {
     return this.onboardingService.rejectAccessRequest(user, dto);
   }
 
+  @Get('my-access-requests')
+  getMyAccessRequests(@CurrentUser() user: AuthenticatedUser) {
+    return this.onboardingService.getMyAccessRequests(user.id);
+  }
+
   @Post('users/:userId/block')
   blockUser(
     @CurrentUser() user: AuthenticatedUser,

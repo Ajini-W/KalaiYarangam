@@ -1,4 +1,4 @@
-import { IsArray, IsBoolean, IsDateString, IsEmail, IsEnum, IsObject, IsOptional, IsString, Matches, MaxLength, MinLength } from 'class-validator';
+import { IsArray, IsBoolean, IsDateString, IsEmail, IsEnum, IsNumber, IsObject, IsOptional, IsString, Matches, MaxLength, MinLength } from 'class-validator';
 import { UserRole } from '@prisma/client';
 
 export class SelectRoleDto {
@@ -81,6 +81,26 @@ export class TenantSetupDto {
   @IsOptional()
   @IsString()
   address?: string;
+
+  @IsOptional()
+  @IsString()
+  city?: string;
+
+  @IsOptional()
+  @IsString()
+  state?: string;
+
+  @IsOptional()
+  @IsString()
+  pincode?: string;
+
+  @IsOptional()
+  @IsNumber()
+  latitude?: number;
+
+  @IsOptional()
+  @IsNumber()
+  longitude?: number;
 }
 
 export class BranchSetupDto {

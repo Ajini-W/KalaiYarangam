@@ -7,6 +7,7 @@ import { Card, CardHeader, CardTitle, CardBody } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { useAuthStore } from "@/store/auth.store";
 import { useRouter } from "next/navigation";
+import { AccessStatusBanner, RejectedAccessBanner } from "@/components/shared/AccessStatusBanner";
 
 export default function TrainerDashboard() {
   const user = useAuthStore((s) => s.user);
@@ -26,6 +27,9 @@ export default function TrainerDashboard() {
           </div>
         </div>
       </div>
+
+      <AccessStatusBanner />
+      <RejectedAccessBanner />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard title="Today&apos;s Classes" value="--" icon={<Calendar size={20} />} />

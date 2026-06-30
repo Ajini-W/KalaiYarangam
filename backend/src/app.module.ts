@@ -6,10 +6,12 @@ import { PrismaModule } from '@/database';
 import { HttpExceptionFilter } from '@/common/filters';
 import { JwtAuthGuard } from '@/common/guards';
 import { ResponseInterceptor } from '@/common/interceptors';
+import { EnrollmentModule } from './enrollment/enrollment.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    EnrollmentModule,
     PrismaModule,
     AppFeaturesModule,
   ],

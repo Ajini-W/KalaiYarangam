@@ -24,6 +24,8 @@ export interface AuthUser {
   role: string;
   status: string;
   emailVerified: boolean;
+  tenantName: string | null;
+  tenantLogoUrl: string | null;
 }
 
 export interface AuthResponse {
@@ -32,6 +34,7 @@ export interface AuthResponse {
   refreshToken: string;
   rememberMe?: boolean;
   isFirstLogin?: boolean;
+  onboardingRequired?: boolean;
 }
 
 export interface VerifyEmailResponse {
@@ -68,6 +71,7 @@ export interface UserProfileData {
   avatarUrl: string | null;
   lastLoginAt: string | null;
   createdAt: string;
+  emailVerified: boolean;
   preferences: Record<string, unknown> | null;
   profile: {
     dateOfBirth: string | null;
@@ -177,10 +181,14 @@ export const authService = {
   },
 };
 
-export function getOnboardingRedirect(role: string, status: string): string | null {
-  if (status === "NEW_USER" || status === "REGISTERED" || status === "PROFILE_COMPLETED") {
+export function getOnboardingRedirect(role: string, status: string, tenantId?: string | null): string | null {
+  // OWNER without tenant needs onboarding
+  if (role === "OWNER" && !tenantId) return "/onboarding";
+  // Non-CLIENT roles with incomplete onboarding
+  if (role !== "CLIENT" && (status === "NEW_USER" || status === "REGISTERED" || status === "PROFILE_COMPLETED")) {
     return "/onboarding";
   }
+  // Users waiting for access approval should go to dashboard (pending state)
   if (status === "ACCESS_REQUESTED" || status === "PENDING_APPROVAL") {
     return "/dashboard";
   }

@@ -1,0 +1,11 @@
+meta {
+  name: Initiate Enrollment Transfer
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{base-url}}/enrollments/:enrollmentId/transfer
+  body: none
+  auth: inherit
+}

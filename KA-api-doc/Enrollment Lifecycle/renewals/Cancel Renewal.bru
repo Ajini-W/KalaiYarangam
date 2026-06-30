@@ -1,0 +1,11 @@
+meta {
+  name: Cancel Renewal
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{base-url}}/renewals/:renewalId/cancel
+  body: none
+  auth: inherit
+}

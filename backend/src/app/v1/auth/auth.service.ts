@@ -10,10 +10,11 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
-import { AuthProviderType, UserRole, UserStatus } from '@prisma/client';
+import { AuditAction, AuthProviderType, UserRole, UserStatus } from '@prisma/client';
 import { PrismaService } from '@/database';
 import { env } from '@/config';
 import { MailService } from '@/app/v1/mail/mail.service';
+import { AuditService } from '@/app/v1/security/audit.service';
 import { AuthenticatedUser } from '@/common/interfaces';
 import {
   ChangePasswordDto,
@@ -34,6 +35,7 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly mailService: MailService,
+    private readonly auditService: AuditService,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -336,6 +338,7 @@ export class AuthService {
         dto.type === 'phone' && dto.phone
           ? { phone: dto.phone }
           : { email: dto.email },
+      include: { tenant: { select: { name: true, logoUrl: true } } },
     });
 
     if (!user) {
@@ -345,12 +348,6 @@ export class AuthService {
 
     if (user.status === UserStatus.INACTIVE || user.status === UserStatus.SUSPENDED) {
       throw new UnauthorizedException('Account is inactive or suspended. Please contact support.');
-    }
-
-    if (user.status === UserStatus.NEW_USER || user.status === UserStatus.PENDING) {
-      throw new UnauthorizedException(
-        'Please verify your email before logging in. Check your inbox for the verification link.',
-      );
     }
 
     const valid = await bcrypt.compare(dto.password, user.passwordHash);
@@ -380,13 +377,35 @@ export class AuthService {
       },
     });
 
+    await this.auditService.log({
+      userId: user.id,
+      tenantId: user.tenantId ?? undefined,
+      action: AuditAction.LOGIN,
+      entity: 'User',
+      entityId: user.id,
+      ipAddress,
+      userAgent,
+    });
+
+    // Determine if onboarding is needed
+    const onboardingStep = await this.prisma.onboardingProgress.findUnique({
+      where: { userId: user.id },
+      select: { currentStep: true, isCompleted: true },
+    });
+
+    const needsOnboarding = user.role !== UserRole.CLIENT
+      && (!onboardingStep?.isCompleted)
+      && !['APPROVED', 'ACTIVE'].includes(user.status);
+
     return {
       message: 'Login successful',
       data: {
-        user: this.toPayload(user),
+        user: this.toPayload({ ...user, tenantName: user.tenant?.name ?? null, tenantLogoUrl: user.tenant?.logoUrl ?? null }),
         ...tokens,
         rememberMe: dto.rememberMe ?? false,
         isFirstLogin: user.lastLoginAt === null,
+        onboardingRequired: needsOnboarding,
+        currentOnboardingStep: onboardingStep?.currentStep ?? null,
       },
     };
   }
@@ -409,6 +428,13 @@ export class AuthService {
       data: { revokedAt: new Date() },
     });
 
+    await this.auditService.log({
+      userId: storedToken.userId,
+      action: AuditAction.LOGOUT,
+      entity: 'RefreshToken',
+      entityId: storedToken.id,
+    });
+
     return { message: 'Logged out successfully' };
   }
 
@@ -422,7 +448,11 @@ export class AuthService {
       throw new UnauthorizedException('Invalid or expired refresh token');
     }
 
-    if (stored.user.status !== UserStatus.ACTIVE) {
+    const allowedRefreshStatuses: string[] = [
+      UserStatus.ACTIVE, UserStatus.ACCESS_REQUESTED, UserStatus.APPROVED,
+      UserStatus.REGISTERED, UserStatus.PROFILE_COMPLETED, UserStatus.PENDING_APPROVAL,
+    ];
+    if (!allowedRefreshStatuses.includes(stored.user.status)) {
       throw new UnauthorizedException('Account is inactive');
     }
 
@@ -476,8 +506,46 @@ export class AuthService {
     return { message: `User status updated to ${status}`, data: updated };
   }
 
-  me(user: AuthenticatedUser) {
-    return { message: 'User profile retrieved', data: user };
+  async me(user: AuthenticatedUser) {
+    if (!user?.id) throw new NotFoundException('User not found');
+    const u = await this.prisma.user.findUnique({
+      where: { id: user.id },
+      select: {
+        id: true, tenantId: true, email: true, name: true, role: true,
+        status: true, verifiedAt: true, phone: true, avatarUrl: true,
+        tenant: { select: { name: true, logoUrl: true } },
+      },
+    });
+    if (!u) throw new NotFoundException('User not found');
+
+    const progress = await this.prisma.onboardingProgress.findUnique({
+      where: { userId: user.id },
+      select: { currentStep: true, isCompleted: true },
+    });
+
+    const needsOnboarding = u.role !== UserRole.CLIENT
+      && (!progress?.isCompleted)
+      && !['APPROVED', 'ACTIVE'].includes(u.status);
+
+    return {
+      message: 'User profile retrieved',
+      data: {
+        id: u.id,
+        tenantId: u.tenantId ?? '',
+        branchId: user.branchId,
+        email: u.email,
+        name: u.name,
+        role: u.role,
+        status: u.status,
+        emailVerified: !!u.verifiedAt,
+        phone: u.phone,
+        avatarUrl: u.avatarUrl,
+        tenantName: u.tenant?.name ?? null,
+        tenantLogoUrl: u.tenant?.logoUrl ?? null,
+        onboardingRequired: needsOnboarding,
+        currentOnboardingStep: progress?.currentStep ?? null,
+      },
+    };
   }
 
   async getPreferences(userId: string) {
@@ -532,6 +600,7 @@ export class AuthService {
         lastLoginAt: user.lastLoginAt,
         createdAt: user.createdAt,
         hasPassword: user.passwordSet,
+        emailVerified: !!user.verifiedAt,
         preferences: user.preferences as Record<string, unknown> | null,
         profile: user.profile
           ? {
@@ -756,6 +825,8 @@ export class AuthService {
     name: string;
     role: AuthenticatedUser['role'];
     status?: string;
+    tenantName?: string | null;
+    tenantLogoUrl?: string | null;
   }) {
     return {
       id: user.id,
@@ -765,7 +836,9 @@ export class AuthService {
       name: user.name,
       role: user.role,
       status: user.status ?? '',
-      emailVerified: user.status === 'ACTIVE',
+      emailVerified: user.status !== 'NEW_USER' && user.status !== 'PENDING',
+      tenantName: user.tenantName ?? null,
+      tenantLogoUrl: user.tenantLogoUrl ?? null,
     };
   }
 
