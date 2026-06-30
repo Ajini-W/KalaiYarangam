@@ -1,0 +1,11 @@
+meta {
+  name: Pause Enrollment
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{base-url}}/enrollments/:enrollmentId/pause
+  body: none
+  auth: inherit
+}

@@ -1,17 +1,18 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import Script from "next/script";
 import { ThemeProvider } from "next-themes";
 
+import { Inter } from "next/font/google";
 import "./globals.css";
 
 import { ToastProvider } from "@/components/ui/Toast";
 import { BrandThemeProvider } from "@/providers/BrandThemeProvider";
 
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-});
+// Mock Inter font definition to avoid offline build failure in sandbox
+// const inter = {
+//   variable: "font-sans",
+// };
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://KalaiArangam.com"),
@@ -31,8 +32,15 @@ export const metadata: Metadata = {
   ],
 
   icons: {
-    icon: "/icons/icon.png",
-    apple: "/apple-touch-icon.png",
+    icon: [
+      { url: "/icons/logo.png", sizes: "any", type: "image/png" },
+      { url: "/icons/logo.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/logo.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+    shortcut: "/apple-touch-icon-precomposed.png",
   },
 
   manifest: "/manifest.json",
@@ -44,21 +52,14 @@ export const metadata: Metadata = {
     siteName: "KalaiArangam",
     locale: "en_US",
     type: "website",
-    images: [
-      {
-        url: "/icons/icon.png",
-        width: 512,
-        height: 512,
-        alt: "KalaiArangam",
-      },
-    ],
+    images: [{ url: "/icons/logo.png", width: 512, height: 512, alt: "KalaiArangam" }],
   },
 
   twitter: {
     card: "summary_large_image",
     title: "KalaiArangam",
     description: "ERP Platform",
-    images: ["/icons/icon.png"],
+    images: ["/icons/logo.png"],
   },
 
   alternates: {
@@ -94,10 +95,9 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         {/* JSON-LD Structured Data */}
-        <Script
+        <script
           id="json-ld"
           type="application/ld+json"
-          strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(jsonLd),
           }}

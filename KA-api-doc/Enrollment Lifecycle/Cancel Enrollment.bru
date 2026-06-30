@@ -1,0 +1,11 @@
+meta {
+  name: Cancel Enrollment
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{base-url}}/enrollments/:enrollmentId/cancel
+  body: none
+  auth: inherit
+}

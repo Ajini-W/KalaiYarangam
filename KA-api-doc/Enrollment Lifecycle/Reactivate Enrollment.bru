@@ -1,0 +1,11 @@
+meta {
+  name: Reactivate Enrollment
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{base-url}}/enrollments/:enrollmentId/reactivate
+  body: none
+  auth: inherit
+}

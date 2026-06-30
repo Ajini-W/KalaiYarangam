@@ -62,11 +62,10 @@ export default function EnrollmentDetailsPage({ id }: { id: string }) {
     setActionSaving(true);
     try {
       await config.handler(enrollment.id);
-      toast.success(`Enrollment ${config.label.toLowerCase()}d`);
       setActionConfirm({ open: false, action: null });
       await fetchEnrollment();
     } catch {
-      toast.error(`Failed to ${config.label.toLowerCase()} enrollment`);
+      // Toast is handled in the hook
     } finally {
       setActionSaving(false);
     }

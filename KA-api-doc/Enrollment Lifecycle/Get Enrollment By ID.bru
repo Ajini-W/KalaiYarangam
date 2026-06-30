@@ -1,0 +1,11 @@
+meta {
+  name: Get Enrollment By ID
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{base-url}}/enrollments/:enrollmentId
+  body: none
+  auth: inherit
+}

@@ -1,7 +1,5 @@
-"use client";
+import { redirect } from "next/navigation";
 
-import ProfilePage from "@/app/dashboard/profile/page";
-
-export default function ClientProfile() {
-  return <ProfilePage />;
+export default function ProfileRedirect() {
+  redirect("/dashboard/profile");
 }

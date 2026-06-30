@@ -56,21 +56,18 @@ export default function TransferDetailsPage({ id }: { id: string }) {
       switch (actionConfirm.action) {
         case "approve":
           await approveTransfer(transfer.id);
-          toast.success("Transfer approved");
           break;
         case "reject":
           await rejectTransfer(transfer.id);
-          toast.success("Transfer rejected");
           break;
         case "cancel":
           await cancelTransfer(transfer.id);
-          toast.success("Transfer cancelled");
           break;
       }
       setActionConfirm({ open: false, action: null });
       await fetchTransfer();
     } catch {
-      toast.error(`Failed to ${actionConfirm.action} transfer`);
+      // Toast is handled in the hook
     } finally {
       setActionSaving(false);
     }
