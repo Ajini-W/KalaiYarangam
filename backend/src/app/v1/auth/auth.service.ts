@@ -80,16 +80,21 @@ export class AuthService {
 
     return this.buildAuthResponse(user);
   }
+  async getProfile(userId: string) {
+  const user = await this.prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (!user) {
+    throw new NotFoundException('User not found');
+  }
+
+  return user;
+}
   async me(user: AuthenticatedUser) {
   return this.toPayload(user);
 }
-async getProfile(userId: string) {
-  return this.prisma.user.findUnique({
-    where: {
-      id: userId,
-    },
-  });
-}
+
 
   // ================= VERIFY EMAIL =================
  async verifyEmail(dto: VerifyEmailDto) {
