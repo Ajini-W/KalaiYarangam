@@ -36,10 +36,20 @@ export interface Batch {
   endDate: string | null;
   status: string;
   course?: Course | null;
+  trainers?: BatchTrainer[];
   isActive?: boolean;
   createdAt: string;
   updatedAt: string;
   _count?: { enrollments?: number; trainers?: number; sessions?: number };
+}
+
+export interface BatchTrainer {
+  id: string;
+  batchId: string;
+  trainerId: string;
+  isPrimary: boolean;
+  assignedAt: string;
+  trainer: { id: string; name: string; email: string };
 }
 
 export interface BatchStats {
@@ -241,7 +251,7 @@ export async function duplicateBatch(id: string, name?: string): Promise<ApiResp
 }
 
 export async function getBatchStats(): Promise<ApiResponse<BatchStats>> {
-  const { data } = await apiClient.get<ApiResponse<BatchStats>>("/training/batches/stats");
+  const { data } = await apiClient.get<ApiResponse<BatchStats>>("/training/batches/statistics");
   return data;
 }
 
@@ -313,8 +323,8 @@ export async function restoreTrainer(id: string): Promise<ApiResponse<void>> {
 }
 
 export async function getTrainerBatches(trainerId: string): Promise<ApiResponse<Batch[]>> {
-  const { data } = await apiClient.get<ApiResponse<Batch[]>>(`/training/trainers/${trainerId}/batches`);
-  return data;
+  const { data } = await apiClient.get<ApiResponse<Array<{ batch: Batch }>>>(`/training/trainers/${trainerId}/batches`);
+  return { ...data, data: data.data?.map((bt) => bt.batch) ?? [] };
 }
 
 export async function getTrainerSchedule(trainerId: string): Promise<ApiResponse<ScheduleEvent[]>> {
