@@ -8,7 +8,7 @@ export interface Course {
   tenantId: string;
   name: string;
   description: string | null;
-  duration: string | null;
+  duration: number | null;
   fee: number | null;
   categoryId: string | null;
   category?: CourseCategory | null;

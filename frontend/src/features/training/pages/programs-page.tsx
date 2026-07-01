@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Plus, Search, MoreHorizontal, BookOpen, Edit3, Trash2, Copy, Archive, Eye } from "lucide-react";
 import { PageContainer } from "@/components/layout";
 import { Button, Table, Badge, Pagination, SearchBar, FilterBar, Modal, ConfirmModal, Card, StatCard, Skeleton } from "@/components/ui";
-import { ProgramForm } from "../components/ProgramForm";
+import { ProgramForm, type FormData } from "../components/ProgramForm";
 import { getCourses, createCourse, updateCourse, archiveCourse, restoreCourse, getCourseStats, type Course, type BatchStats } from "@/services/training";
 import { toast } from "sonner";
 
@@ -47,15 +47,14 @@ export function ProgramsPage() {
   useEffect(() => { fetchCourses(); }, [fetchCourses]);
   useEffect(() => { fetchStats(); }, [fetchStats]);
 
-  const handleSubmit = async (formData: { name: string; description?: string; duration?: string; fee?: string; categoryId?: string }) => {
-    const payload = { ...formData, fee: formData.fee ? Number(formData.fee) : undefined };
+  const handleSubmit = async (formData: FormData) => {
     setSubmitting(true);
     try {
       if (editingCourse) {
-        await updateCourse(editingCourse.id, payload);
+        await updateCourse(editingCourse.id, formData);
         toast.success("Program updated successfully");
       } else {
-        await createCourse(payload);
+        await createCourse(formData);
         toast.success("Program created successfully");
       }
       setModalOpen(false);
