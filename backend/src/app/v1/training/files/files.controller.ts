@@ -1,5 +1,6 @@
-import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Query, Res } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Response } from 'express';
 import { CurrentUser } from '@/common/decorators';
 import { AuthenticatedUser } from '@/common/interfaces';
 import { FilesService } from './files.service';
@@ -24,6 +25,15 @@ export class FilesController {
   @Get(':id')
   findOne(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string) {
     return this.filesService.findOne(user, id);
+  }
+
+  @Get(':id/download')
+  async download(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Res() res: Response,
+  ) {
+    return this.filesService.download(user, id, res);
   }
 
   @Post(':id/archive')

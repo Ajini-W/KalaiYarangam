@@ -1,4 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, StreamableFile } from '@nestjs/common';
+import { Response } from 'express';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { PrismaService } from '@/database';
 import { AuthenticatedUser } from '@/common/interfaces';
 import { paginate, paginationArgs } from '@/common/utils';
@@ -61,6 +64,31 @@ export class FilesService {
     }
 
     return { message: 'File fetched successfully', data: file };
+  }
+
+  async download(user: AuthenticatedUser, id: string, res: Response) {
+    if (!user.tenantId) {
+      throw new NotFoundException('Tenant not found');
+    }
+
+    const file = await this.prisma.trainingFile.findFirst({
+      where: { id, tenantId: user.tenantId },
+    });
+
+    if (!file) {
+      throw new NotFoundException('File not found');
+    }
+
+    if (file.storagePath && fs.existsSync(file.storagePath)) {
+      const stream = fs.createReadStream(file.storagePath);
+      res.set({
+        'Content-Type': file.mimeType || 'application/octet-stream',
+        'Content-Disposition': `attachment; filename="${file.originalName}"`,
+      });
+      stream.pipe(res);
+    } else {
+      res.redirect(file.storagePath || '/');
+    }
   }
 
   async archive(user: AuthenticatedUser, id: string) {
