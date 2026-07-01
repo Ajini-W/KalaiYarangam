@@ -1,10 +1,12 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { AuditAction, IndustryType, OnboardingStep, UserRole, UserStatus, AccessRequestStatus } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '@/database';
 import { AuthenticatedUser } from '@/common/interfaces';
 import { AuditService } from '@/app/v1/security/audit.service';
+import { NotificationService } from '@/app/v1/notification/notification.service';
+import { MailService } from '@/app/v1/mail/mail.service';
 import { env } from '@/config';
 import {
   ApproveAccessDto,
@@ -33,10 +35,14 @@ function toPayload(user: { id: string; tenantId: string | null; email: string; n
 
 @Injectable()
 export class OnboardingService {
+  private readonly logger = new Logger(OnboardingService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly auditService: AuditService,
+    private readonly notificationService: NotificationService,
+    private readonly mailService: MailService,
   ) {}
 
   async getProgress(userId: string) {
@@ -610,6 +616,24 @@ export class OnboardingService {
       newValues: { tenantId: dto.tenantId, status: AccessRequestStatus.PENDING },
     });
 
+    // Notify tenant owners/managers about new access request
+    try {
+      const tenantUsers = await this.prisma.user.findMany({
+        where: { tenantId: dto.tenantId, role: { in: [UserRole.OWNER, UserRole.BRANCH_MANAGER] }, status: 'ACTIVE' },
+        select: { id: true },
+      });
+      if (tenantUsers.length > 0) {
+        await this.notificationService.sendNotification({
+          userIds: tenantUsers.map((u) => u.id),
+          title: 'New Access Request',
+          body: `${user.name} (${user.email}) has requested access to your organization as ${user.role}.`,
+          link: '/owner/access-requests',
+        });
+      }
+    } catch (err) {
+      this.logger.warn(`Failed to send access request notification: ${(err as Error).message}`);
+    }
+
     return {
       message: 'Access request submitted. Waiting for approval.',
       data: {
@@ -652,14 +676,19 @@ export class OnboardingService {
       throw new BadRequestException('You must belong to a tenant to manage access requests');
     }
 
-    // Only OWNER and BRANCH_MANAGER can view requests
-    if (user.role !== UserRole.OWNER && user.role !== UserRole.BRANCH_MANAGER && user.role !== UserRole.SUPER_ADMIN) {
+    const allowedRoles: string[] = [UserRole.OWNER, UserRole.BRANCH_MANAGER, UserRole.SUPER_ADMIN, UserRole.STAFF];
+    if (!allowedRoles.includes(user.role)) {
       throw new BadRequestException('You do not have permission to view access requests');
     }
 
     const where: any = { tenantId: user.tenantId };
     if (statusFilter) {
       where.status = statusFilter;
+    }
+
+    // Staff can only see student requests
+    if (user.role === UserRole.STAFF) {
+      where.role = UserRole.STUDENT;
     }
 
     const requests = await this.prisma.tenantAccessRequest.findMany({
@@ -679,6 +708,11 @@ export class OnboardingService {
   async approveAccessRequest(user: AuthenticatedUser, dto: ApproveAccessDto) {
     if (!user.tenantId) throw new BadRequestException('No tenant context');
 
+    const allowedRoles: string[] = [UserRole.OWNER, UserRole.BRANCH_MANAGER, UserRole.SUPER_ADMIN, UserRole.STAFF];
+    if (!allowedRoles.includes(user.role)) {
+      throw new BadRequestException('You do not have permission to approve access requests');
+    }
+
     const request = await this.prisma.tenantAccessRequest.findUnique({
       where: { id: dto.requestId },
       include: { user: true },
@@ -690,6 +724,11 @@ export class OnboardingService {
     }
     if (request.status !== AccessRequestStatus.PENDING) {
       throw new BadRequestException(`Request is already ${request.status.toLowerCase()}`);
+    }
+
+    // Staff can only approve student requests
+    if (user.role === UserRole.STAFF && request.role !== UserRole.STUDENT) {
+      throw new BadRequestException('Staff can only approve student access requests');
     }
 
     const branchId = dto.branchId || request.preferredBranchId;
@@ -765,14 +804,41 @@ export class OnboardingService {
       details: { requestId: dto.requestId, targetUserId: request.userId },
     });
 
+    // Notify the approved user
+    try {
+      const approver = await this.prisma.user.findUnique({ where: { id: user.id }, select: { name: true } });
+      const tenant = await this.prisma.tenant.findUnique({ where: { id: user.tenantId! }, select: { name: true } });
+      await this.notificationService.sendNotification({
+        userIds: [request.userId],
+        title: 'Access Request Approved',
+        body: `Your access request to ${tenant?.name ?? 'the organization'} has been approved by ${approver?.name ?? 'an administrator'}. You can now log in.`,
+        link: '/dashboard',
+      });
+      try {
+        await this.mailService.send({
+          to: request.user.email,
+          template: 'welcome',
+          variables: { name: request.user.name, email: request.user.email, appUrl: env.APP_URL },
+        });
+      } catch { /* email failure non-blocking */ }
+    } catch (err) {
+      this.logger.warn(`Failed to send approval notification: ${(err as Error).message}`);
+    }
+
     return { message: 'Access request approved', data: { status: AccessRequestStatus.APPROVED } };
   }
 
   async rejectAccessRequest(user: AuthenticatedUser, dto: RejectAccessDto) {
     if (!user.tenantId) throw new BadRequestException('No tenant context');
 
+    const allowedRoles: string[] = [UserRole.OWNER, UserRole.BRANCH_MANAGER, UserRole.SUPER_ADMIN, UserRole.STAFF];
+    if (!allowedRoles.includes(user.role)) {
+      throw new BadRequestException('You do not have permission to reject access requests');
+    }
+
     const request = await this.prisma.tenantAccessRequest.findUnique({
       where: { id: dto.requestId },
+      include: { user: true },
     });
 
     if (!request) throw new NotFoundException('Access request not found');
@@ -781,6 +847,11 @@ export class OnboardingService {
     }
     if (request.status !== AccessRequestStatus.PENDING) {
       throw new BadRequestException(`Request is already ${request.status.toLowerCase()}`);
+    }
+
+    // Staff can only reject student requests
+    if (user.role === UserRole.STAFF && request.role !== UserRole.STUDENT) {
+      throw new BadRequestException('Staff can only reject student access requests');
     }
 
     await this.prisma.tenantAccessRequest.update({
@@ -793,6 +864,12 @@ export class OnboardingService {
       },
     });
 
+    // Also update user status back to PROFILE_COMPLETED so they can request elsewhere
+    await this.prisma.user.update({
+      where: { id: request.userId },
+      data: { status: UserStatus.PROFILE_COMPLETED },
+    });
+
     await this.auditService.log({
       userId: user.id,
       action: AuditAction.UPDATE,
@@ -801,7 +878,43 @@ export class OnboardingService {
       newValues: { status: AccessRequestStatus.REJECTED, reason: dto.reason },
     });
 
+    await this.auditService.recordActivity({
+      userId: user.id,
+      tenantId: user.tenantId,
+      activity: 'ACCESS_REQUEST_REJECTED',
+      details: { requestId: dto.requestId, targetUserId: request.userId, reason: dto.reason },
+    });
+
+    // Notify the rejected user
+    try {
+      const tenant = await this.prisma.tenant.findUnique({ where: { id: user.tenantId! }, select: { name: true } });
+      await this.notificationService.sendNotification({
+        userIds: [request.userId],
+        title: 'Access Request Rejected',
+        body: dto.reason
+          ? `Your access request to ${tenant?.name ?? 'the organization'} was rejected. Reason: ${dto.reason}`
+          : `Your access request to ${tenant?.name ?? 'the organization'} was not approved.`,
+        link: '/dashboard',
+      });
+    } catch (err) {
+      this.logger.warn(`Failed to send rejection notification: ${(err as Error).message}`);
+    }
+
     return { message: 'Access request rejected', data: { status: AccessRequestStatus.REJECTED } };
+  }
+
+  async getMyAccessRequests(userId: string) {
+    const requests = await this.prisma.tenantAccessRequest.findMany({
+      where: { userId },
+      include: {
+        tenant: { select: { id: true, name: true, logoUrl: true } },
+        branch: { select: { id: true, name: true } },
+        reviewer: { select: { id: true, name: true, email: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return { message: 'Your access requests retrieved', data: requests };
   }
 
   async blockUser(user: AuthenticatedUser, userId: string) {

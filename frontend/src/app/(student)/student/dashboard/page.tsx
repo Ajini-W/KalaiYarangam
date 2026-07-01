@@ -1,14 +1,17 @@
 "use client";
 
-import { BookOpen, Calendar, Award, Clock, TrendingUp, MessageSquare } from "lucide-react";
+import { BookOpen, Calendar, Award, Clock, TrendingUp, UserCheck } from "lucide-react";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { StatCard } from "@/components/ui/Card";
 import { Card, CardHeader, CardTitle, CardBody } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { useAuthStore } from "@/store/auth.store";
+import { AccessStatusBanner, RejectedAccessBanner } from "@/components/shared/AccessStatusBanner";
+import { useRouter } from "next/navigation";
 
 export default function StudentDashboard() {
   const user = useAuthStore((s) => s.user);
+  const router = useRouter();
   if (!user) return null;
 
   const initials = user.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
@@ -25,6 +28,9 @@ export default function StudentDashboard() {
         </div>
       </div>
 
+      <AccessStatusBanner />
+      <RejectedAccessBanner />
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard title="Enrolled Courses" value="--" icon={<BookOpen size={20} />} />
         <StatCard title="Upcoming Classes" value="--" icon={<Calendar size={20} />} />
@@ -37,12 +43,12 @@ export default function StudentDashboard() {
         <CardBody className="pt-0">
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
             {[
-              { label: "Courses", icon: <BookOpen size={18} />, href: "/student/courses" },
-              { label: "Schedule", icon: <Calendar size={18} />, href: "/student/schedule" },
+              { label: "My Request", icon: <UserCheck size={18} />, href: "/student/my-request" },
+              { label: "Courses", icon: <BookOpen size={18} />, href: "/student/my-courses" },
+              { label: "Schedule", icon: <Calendar size={18} />, href: "/student/attendance" },
               { label: "Progress", icon: <TrendingUp size={18} />, href: "/student/progress" },
-              { label: "Messages", icon: <MessageSquare size={18} />, href: "/student/messages" },
             ].map((a) => (
-              <Button key={a.label} variant="outline" className="justify-start gap-2.5 h-auto py-3 px-3" onClick={() => {}}>
+              <Button key={a.label} variant="outline" className="justify-start gap-2.5 h-auto py-3 px-3" onClick={() => router.push(a.href)}>
                 <span className="shrink-0">{a.icon}</span>
                 {a.label}
               </Button>

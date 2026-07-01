@@ -8,7 +8,7 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
-import { AtSign, Lock, Eye, EyeOff, ArrowRight, Mail, AlertTriangle } from "lucide-react";
+import { AtSign, Lock, Eye, EyeOff, ArrowRight, Mail, AlertTriangle, Phone, CheckCircle2 } from "lucide-react";
 import { AuthMobileNav } from "@/components/ui/AuthBackground";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -18,17 +18,31 @@ import { getDashboardRoute } from "@/lib/dashboard-route";
 import { useAuthForm } from "@/store/auth-form.context";
 
 /* ── Validation ────────────────────────────────────────────────────── */
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const phoneRegex = /^[6-9]\d{9}$/;
+
 const schema = z.object({
-  identifier: z.string().refine(
-    (val) =>
-      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val) ||
-      /^\+?[\d\s\-()]{7,15}$/.test(val),
-    "Enter a valid email or phone number"
+  identifier: z.string().min(1, "Email or phone number is required").refine(
+    (val) => {
+      const cleaned = val.replace(/[\s\-()]/g, "");
+      return emailRegex.test(val) || phoneRegex.test(cleaned);
+    },
+    {
+      message: "Enter a valid email (e.g. user@example.com) or 10-digit mobile number (e.g. 9876543210)",
+    }
   ),
   password: z.string().min(6, "Password must be at least 6 characters"),
   rememberMe: z.boolean().optional(),
 });
 type FormData = z.infer<typeof schema>;
+
+function detectInputType(value: string): "email" | "phone" | "empty" {
+  if (!value) return "empty";
+  if (emailRegex.test(value)) return "email";
+  const cleaned = value.replace(/[\s\-()]/g, "");
+  if (/^\d+$/.test(cleaned)) return "phone";
+  return "empty";
+}
 
 /* ── Social Icons ──────────────────────────────────────────────────── */
 const GoogleIcon = () => (
@@ -118,6 +132,10 @@ export default function LoginPage() {
         setEmailWarning(user.email);
         return;
       }
+      if (user.role === "SUPER_ADMIN") {
+        router.replace(getDashboardRoute(user.role));
+        return;
+      }
       const noOnboardingStatuses = ["ACTIVE", "APPROVED", "ACCESS_REQUESTED", "PENDING_APPROVAL"];
       if (isFirstLogin || !noOnboardingStatuses.includes(user.status ?? "")) {
         router.replace("/onboarding");
@@ -155,11 +173,15 @@ export default function LoginPage() {
         return;
       }
       toast.success("Logged in successfully!");
-      const noOnboardingStatuses = ["ACTIVE", "APPROVED", "ACCESS_REQUESTED", "PENDING_APPROVAL"];
-      if (result?.onboardingRequired || result?.isFirstLogin || !noOnboardingStatuses.includes(updatedUser?.status ?? "")) {
-        router.push("/onboarding");
+      if (updatedUser?.role === "SUPER_ADMIN") {
+        router.push(getDashboardRoute(updatedUser.role));
       } else {
-        router.push(updatedUser ? getDashboardRoute(updatedUser.role) : "/login");
+        const noOnboardingStatuses = ["ACTIVE", "APPROVED", "ACCESS_REQUESTED", "PENDING_APPROVAL"];
+        if (result?.onboardingRequired || result?.isFirstLogin || !noOnboardingStatuses.includes(updatedUser?.status ?? "")) {
+          router.push("/onboarding");
+        } else {
+          router.push(updatedUser ? getDashboardRoute(updatedUser.role) : "/login");
+        }
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Login failed");
@@ -267,10 +289,36 @@ export default function LoginPage() {
               <Input
                 label="Email or Phone"
                 type="text"
-                placeholder="you@example.com / +91 98765 43210"
+                placeholder="you@example.com / 9876543210"
                 required
                 error={errors.identifier?.message}
-                leftAddon={<AtSign size={16} />}
+                hint={
+                  watch("identifier")
+                    ? detectInputType(watch("identifier")) === "email"
+                      ? "Email address detected"
+                      : detectInputType(watch("identifier")) === "phone"
+                        ? "10-digit mobile number"
+                        : "Type email or 10-digit number"
+                    : undefined
+                }
+                leftAddon={
+                  watch("identifier") ? (
+                    detectInputType(watch("identifier")) === "email" ? (
+                      <Mail size={16} className="text-primary" />
+                    ) : detectInputType(watch("identifier")) === "phone" ? (
+                      <Phone size={16} className="text-primary" />
+                    ) : (
+                      <AtSign size={16} />
+                    )
+                  ) : (
+                    <AtSign size={16} />
+                  )
+                }
+                rightAddon={
+                  watch("identifier") && !errors.identifier ? (
+                    <CheckCircle2 size={16} className="text-success" />
+                  ) : undefined
+                }
                 aria-label="Email or phone number"
                 className="dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder:text-gray-500 h-11 rounded-xl"
                 {...register("identifier")}

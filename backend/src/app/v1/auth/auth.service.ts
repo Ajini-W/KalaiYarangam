@@ -338,6 +338,7 @@ export class AuthService {
         dto.type === 'phone' && dto.phone
           ? { phone: dto.phone }
           : { email: dto.email },
+      include: { tenant: { select: { name: true, logoUrl: true } } },
     });
 
     if (!user) {
@@ -399,7 +400,7 @@ export class AuthService {
     return {
       message: 'Login successful',
       data: {
-        user: this.toPayload(user),
+        user: this.toPayload({ ...user, tenantName: user.tenant?.name ?? null, tenantLogoUrl: user.tenant?.logoUrl ?? null }),
         ...tokens,
         rememberMe: dto.rememberMe ?? false,
         isFirstLogin: user.lastLoginAt === null,
@@ -447,7 +448,11 @@ export class AuthService {
       throw new UnauthorizedException('Invalid or expired refresh token');
     }
 
-    if (stored.user.status !== UserStatus.ACTIVE) {
+    const allowedRefreshStatuses: string[] = [
+      UserStatus.ACTIVE, UserStatus.ACCESS_REQUESTED, UserStatus.APPROVED,
+      UserStatus.REGISTERED, UserStatus.PROFILE_COMPLETED, UserStatus.PENDING_APPROVAL,
+    ];
+    if (!allowedRefreshStatuses.includes(stored.user.status)) {
       throw new UnauthorizedException('Account is inactive');
     }
 
@@ -502,11 +507,13 @@ export class AuthService {
   }
 
   async me(user: AuthenticatedUser) {
+    if (!user?.id) throw new NotFoundException('User not found');
     const u = await this.prisma.user.findUnique({
       where: { id: user.id },
       select: {
         id: true, tenantId: true, email: true, name: true, role: true,
         status: true, verifiedAt: true, phone: true, avatarUrl: true,
+        tenant: { select: { name: true, logoUrl: true } },
       },
     });
     if (!u) throw new NotFoundException('User not found');
@@ -533,6 +540,8 @@ export class AuthService {
         emailVerified: !!u.verifiedAt,
         phone: u.phone,
         avatarUrl: u.avatarUrl,
+        tenantName: u.tenant?.name ?? null,
+        tenantLogoUrl: u.tenant?.logoUrl ?? null,
         onboardingRequired: needsOnboarding,
         currentOnboardingStep: progress?.currentStep ?? null,
       },
@@ -591,6 +600,7 @@ export class AuthService {
         lastLoginAt: user.lastLoginAt,
         createdAt: user.createdAt,
         hasPassword: user.passwordSet,
+        emailVerified: !!user.verifiedAt,
         preferences: user.preferences as Record<string, unknown> | null,
         profile: user.profile
           ? {
@@ -815,6 +825,8 @@ export class AuthService {
     name: string;
     role: AuthenticatedUser['role'];
     status?: string;
+    tenantName?: string | null;
+    tenantLogoUrl?: string | null;
   }) {
     return {
       id: user.id,
@@ -825,6 +837,8 @@ export class AuthService {
       role: user.role,
       status: user.status ?? '',
       emailVerified: user.status !== 'NEW_USER' && user.status !== 'PENDING',
+      tenantName: user.tenantName ?? null,
+      tenantLogoUrl: user.tenantLogoUrl ?? null,
     };
   }
 

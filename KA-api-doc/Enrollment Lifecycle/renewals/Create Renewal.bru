@@ -1,0 +1,19 @@
+meta {
+  name: Create Renewal
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base-url}}/renewals
+  body: json
+  auth: inherit
+
+  {
+    "enrollmentId": "your-enrollment-uuid",
+    "tenantId": "your-tenant-uuid",
+    "currentEndDate": "2026-06-27T00:00:00.000Z",
+    "extendedEndDate": "2026-12-27T00:00:00.000Z",
+    "notes": "Testing standard enrollment renewal process"
+  }
+}

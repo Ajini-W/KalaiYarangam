@@ -63,6 +63,10 @@ export default function OnboardingPage() {
     (async () => {
       try {
         const res = await getOnboardingProgress();
+        if (res.data.user.role === "SUPER_ADMIN") {
+          router.replace(getDashboardRoute(res.data.user.role));
+          return;
+        }
         const progress = res.data.progress;
         if (progress.isCompleted) {
           router.replace(getDashboardRoute(res.data.user.role));

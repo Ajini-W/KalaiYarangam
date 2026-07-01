@@ -191,3 +191,8 @@ export async function rejectAccessRequest(data: RejectAccessRequest): Promise<Ap
   const response = await apiClient.post<ApiResponse<{ status: string }>>("/onboarding/access-requests/reject", data);
   return response.data;
 }
+
+export async function getMyAccessRequests(): Promise<ApiResponse<AccessRequest[]>> {
+  const response = await apiClient.get<ApiResponse<AccessRequest[]>>("/onboarding/my-access-requests");
+  return response.data;
+}

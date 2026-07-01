@@ -59,7 +59,7 @@ export class MailService {
       }),
     });
 
-    const result = await response.json();
+    const result = (await response.json()) as any;
 
     if (!response.ok) {
       throw new BadGatewayException(

@@ -1,5 +1,5 @@
 meta {
-  name: Health
+  name: Health Check
   type: http
   seq: 1
 }
@@ -8,4 +8,21 @@ get {
   url: {{base-url}}/health
   body: none
   auth: inherit
+}
+
+script:after-response {
+  const res = res.body;
+  if (res.status !== "ok") {
+    console.warn(`⚠ Health status: ${res.status}`);
+  }
+  console.log(`${res.service} v${res.version} [${res.environment}] — ${res.uptime.humanReadable} uptime`);
+  if (res.checks.database?.details) {
+    console.log(`DB: ${res.checks.database.latencyMs}ms | ${res.checks.database.details.users} users, ${res.checks.database.details.tenants} tenants`);
+  }
+  if (res.checks.memory?.details) {
+    console.log(`Memory: ${res.checks.memory.details.heapUsedMB}MB / ${res.checks.memory.details.heapTotalMB}MB heap`);
+  }
+  if (res.checks.cpu?.details) {
+    console.log(`CPU: ${res.checks.cpu.details.cores} cores | load ${res.checks.cpu.details.loadAverage["1m"]}`);
+  }
 }

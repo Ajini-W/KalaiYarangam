@@ -51,7 +51,7 @@ export default function BranchesSettingsPage() {
       const res = await getBranches();
       setBranches(res.data);
     } catch {
-      toast.error("Failed to load branches");
+      setBranches([]);
     } finally {
       setLoading(false);
     }
