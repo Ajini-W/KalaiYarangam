@@ -1290,8 +1290,8 @@ model TrainingFile {
   tenantId     String   @map("tenant_id") @db.Uuid
   originalName String   @map("original_name") @db.VarChar(255)
   storagePath  String   @map("storage_path") @db.VarChar(500)
-  mimeType     String   @map("mime_type") @db.VarChar(100)
-  size         Int
+  mimeType     String?  @map("mime_type") @db.VarChar(100)
+  size         Int?
   category     String?  @db.VarChar(50)
   uploadedBy   String   @map("uploaded_by") @db.Uuid
   isArchived   Boolean  @default(false) @map("is_archived")

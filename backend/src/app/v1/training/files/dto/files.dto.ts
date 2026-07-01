@@ -3,7 +3,7 @@ import { Type } from 'class-transformer';
 
 export class CreateFileDto {
   @IsString()
-  originalName: string;
+  originalName!: string;
 
   @IsOptional()
   @IsString()
