@@ -1,21 +1,21 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sun, Moon } from "lucide-react";
 
 export function ThemeToggle() {
-  const [isDark, setIsDark] = useState(false);
+  const { theme, setTheme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    setIsDark(document.documentElement.classList.contains("dark"));
-  }, []);
+  useEffect(() => setMounted(true), []);
 
-  const toggle = () => {
-    const next = !isDark;
-    setIsDark(next);
-    document.documentElement.classList.toggle("dark", next);
-  };
+  if (!mounted) return null;
+
+  const isDark = resolvedTheme === "dark";
+
+  const toggle = () => setTheme(isDark ? "light" : "dark");
 
   return (
     <button
@@ -32,7 +32,6 @@ export function ThemeToggle() {
           : "inset 0 1px 3px rgba(0,0,0,0.12), 0 0 0 1px rgba(203,213,225,0.8)",
       }}
     >
-      {/* Background glow behind knob */}
       <motion.div
         className="absolute inset-0 rounded-full pointer-events-none"
         animate={{
@@ -43,7 +42,6 @@ export function ThemeToggle() {
         transition={{ duration: 0.5 }}
       />
 
-      {/* Rolling knob */}
       <motion.div
         className="relative z-10 flex items-center justify-center w-5 h-5 rounded-full"
         animate={{

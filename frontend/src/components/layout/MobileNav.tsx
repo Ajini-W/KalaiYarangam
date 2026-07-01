@@ -18,11 +18,13 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useAuthStore } from "@/store/auth.store";
+import { useProfileModal } from "@/store/profile.store";
 
 interface MobileTab {
   label: string;
-  href: string;
+  href?: string;
   icon: React.ElementType;
+  onClick?: () => void;
 }
 
 const roleTabs: Record<string, MobileTab[]> = {
@@ -59,14 +61,14 @@ const roleTabs: Record<string, MobileTab[]> = {
     { label: "Courses", href: "/student/my-courses", icon: BookMarked },
     { label: "Payments", href: "/student/fees", icon: CreditCard },
     { label: "Alerts", href: "/student/notifications", icon: Bell },
-    { label: "Profile", href: "/student/profile", icon: IdCard },
+    { label: "Profile", icon: IdCard, onClick: () => useProfileModal.getState().setOpen(true) },
   ],
   CLIENT: [
     { label: "Home", href: "/client/dashboard", icon: LayoutDashboard },
     { label: "Bookings", href: "/client/bookings", icon: Calendar },
     { label: "Invoices", href: "/client/invoices", icon: FileText },
     { label: "Alerts", href: "/client/notifications", icon: Bell },
-    { label: "Profile", href: "/client/profile", icon: IdCard },
+    { label: "Profile", icon: IdCard, onClick: () => useProfileModal.getState().setOpen(true) },
   ],
 };
 
@@ -80,20 +82,40 @@ export function MobileNav() {
       className="fixed bottom-0 left-0 right-0 z-50 flex border-t border-border bg-surface md:hidden"
       aria-label="Mobile navigation"
     >
-      {tabs.map(({ label, href, icon: Icon }) => {
-        const active = pathname === href || pathname.startsWith(href + "/");
+      {tabs.map(({ label, href, onClick, icon: Icon }) => {
+        const active = href ? (pathname === href || pathname.startsWith(href + "/")) : false;
+        const content = (
+          <>
+            <Icon size={20} />
+            <span>{label}</span>
+          </>
+        );
+        if (onClick) {
+          return (
+            <button
+              key={label}
+              type="button"
+              onClick={onClick}
+              className={cn(
+                "flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-xs transition-colors",
+                "text-text-secondary",
+              )}
+            >
+              {content}
+            </button>
+          );
+        }
         return (
           <Link
             key={href}
-            href={href}
+            href={href!}
             className={cn(
               "flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-xs transition-colors",
               active ? "text-primary" : "text-text-secondary",
             )}
             aria-current={active ? "page" : undefined}
           >
-            <Icon size={20} />
-            <span>{label}</span>
+            {content}
           </Link>
         );
       })}

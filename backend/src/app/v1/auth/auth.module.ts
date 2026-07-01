@@ -5,6 +5,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { env } from '@/config';
 import { AuthThrottlerGuard, RolesGuard } from '@/common/guards';
 import { MailModule } from '@/app/v1/mail/mail.module';
+import { AuditService } from '@/app/v1/security/audit.service';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './jwt.strategy';
@@ -24,7 +25,7 @@ import { GoogleStrategy } from './google.strategy';
     MailModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, GoogleStrategy, AuthThrottlerGuard, RolesGuard],
+  providers: [AuthService, JwtStrategy, GoogleStrategy, AuthThrottlerGuard, RolesGuard, AuditService],
   exports: [AuthService],
 })
 export class AuthModule {}

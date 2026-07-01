@@ -1,0 +1,11 @@
+meta {
+  name: Reject Transfer
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{base-url}}/transfers/:transferId/reject
+  body: none
+  auth: inherit
+}

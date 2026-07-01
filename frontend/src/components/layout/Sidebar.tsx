@@ -4,6 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth.store";
+import { useProfileModal } from "@/store/profile.store";
 import {
   LayoutDashboard,
   Users,
@@ -55,6 +56,7 @@ interface NavItem {
   label: string;
   href?: string;
   icon: React.ElementType;
+  onClick?: () => void;
   children?: Omit<NavItem, "children">[];
 }
 
@@ -70,6 +72,17 @@ const superAdminNav: NavItem[] = [
     ],
   },
   { label: "Tenants", href: "/super-admin/tenants", icon: Building2 },
+    {
+      label: "Finance",
+      icon: CreditCard,
+      children: [
+        { label: "Fee Plans", href: "/super-admin/fee-plans", icon: Receipt },
+        { label: "Invoices", href: "/super-admin/invoices", icon: FileText },
+        { label: "Payments", href: "/super-admin/payments", icon: Wallet },
+        { label: "Payment History", href: "/super-admin/payment-history", icon: History },
+        { label: "Due Tracking", href: "/super-admin/due-tracking", icon: AlertTriangle },
+      ],
+    },
   {
     label: "Security",
     icon: ShieldAlert,
@@ -87,6 +100,7 @@ const superAdminNav: NavItem[] = [
 
 const ownerNav: NavItem[] = [
   { label: "Dashboard", href: "/owner/dashboard", icon: LayoutDashboard },
+  { label: "Access Requests", href: "/owner/access-requests", icon: UserCheck },
   {
     label: "Leads",
     icon: Target,
@@ -119,15 +133,17 @@ const ownerNav: NavItem[] = [
       { label: "Renewals", href: "/owner/renewals", icon: RefreshCw },
     ],
   },
-  {
-    label: "Finance",
-    icon: CreditCard,
-    children: [
-      { label: "Fee Plans", href: "/owner/fee-plans", icon: Receipt },
-      { label: "Invoices", href: "/owner/invoices", icon: FileText },
-      { label: "Payments", href: "/owner/payments", icon: Wallet },
-    ],
-  },
+    {
+      label: "Finance",
+      icon: CreditCard,
+      children: [
+        { label: "Fee Plans", href: "/owner/fee-plans", icon: Receipt },
+        { label: "Invoices", href: "/owner/invoices", icon: FileText },
+        { label: "Payments", href: "/owner/payments", icon: Wallet },
+        { label: "Payment History", href: "/owner/payment-history", icon: History },
+        { label: "Due Tracking", href: "/owner/due-tracking", icon: AlertTriangle },
+      ],
+    },
   {
     label: "Operations",
     icon: ClipboardCheck,
@@ -144,10 +160,12 @@ const ownerNav: NavItem[] = [
   { label: "Integrations", href: "/owner/integrations", icon: Sparkles },
   { label: "Subscription", href: "/owner/subscription", icon: CreditCard },
   { label: "Audit Logs", href: "/owner/audit-logs", icon: ScrollText },
+  { label: "Profile", icon: IdCard, onClick: () => useProfileModal.getState().setOpen(true) },
 ];
 
 const branchManagerNav: NavItem[] = [
   { label: "Dashboard", href: "/branch-manager/dashboard", icon: LayoutDashboard },
+  { label: "Access Requests", href: "/branch-manager/access-requests", icon: UserCheck },
   {
     label: "Leads",
     icon: Target,
@@ -180,15 +198,17 @@ const branchManagerNav: NavItem[] = [
       { label: "Renewals", href: "/branch-manager/renewals", icon: RefreshCw },
     ],
   },
-  {
-    label: "Finance",
-    icon: CreditCard,
-    children: [
-      { label: "Fee Plans", href: "/branch-manager/fee-plans", icon: Receipt },
-      { label: "Invoices", href: "/branch-manager/invoices", icon: FileText },
-      { label: "Payments", href: "/branch-manager/payments", icon: Wallet },
-    ],
-  },
+    {
+      label: "Finance",
+      icon: CreditCard,
+      children: [
+        { label: "Fee Plans", href: "/branch-manager/fee-plans", icon: Receipt },
+        { label: "Invoices", href: "/branch-manager/invoices", icon: FileText },
+        { label: "Payments", href: "/branch-manager/payments", icon: Wallet },
+        { label: "Payment History", href: "/branch-manager/payment-history", icon: History },
+        { label: "Due Tracking", href: "/branch-manager/due-tracking", icon: AlertTriangle },
+      ],
+    },
   {
     label: "Operations",
     icon: ClipboardCheck,
@@ -200,6 +220,7 @@ const branchManagerNav: NavItem[] = [
   },
   { label: "Reports", href: "/branch-manager/reports", icon: BarChart2 },
   { label: "Users", href: "/branch-manager/users", icon: Users },
+  { label: "Profile", icon: IdCard, onClick: () => useProfileModal.getState().setOpen(true) },
 ];
 
 const staffNav: NavItem[] = [
@@ -236,15 +257,17 @@ const staffNav: NavItem[] = [
       { label: "Renewals", href: "/staff/renewals", icon: RefreshCw },
     ],
   },
-  {
-    label: "Finance",
-    icon: CreditCard,
-    children: [
-      { label: "Fee Plans", href: "/staff/fee-plans", icon: Receipt },
-      { label: "Invoices", href: "/staff/invoices", icon: FileText },
-      { label: "Payments", href: "/staff/payments", icon: Wallet },
-    ],
-  },
+    {
+      label: "Finance",
+      icon: CreditCard,
+      children: [
+        { label: "Fee Plans", href: "/staff/fee-plans", icon: Receipt },
+        { label: "Invoices", href: "/staff/invoices", icon: FileText },
+        { label: "Payments", href: "/staff/payments", icon: Wallet },
+        { label: "Payment History", href: "/staff/payment-history", icon: History },
+        { label: "Due Tracking", href: "/staff/due-tracking", icon: AlertTriangle },
+      ],
+    },
   {
     label: "Operations",
     icon: ClipboardCheck,
@@ -254,18 +277,21 @@ const staffNav: NavItem[] = [
       { label: "Notifications", href: "/staff/notifications", icon: Bell },
     ],
   },
+  { label: "Access Requests", href: "/staff/access-requests", icon: UserCheck },
   { label: "Reports", href: "/staff/reports", icon: BarChart2 },
+  { label: "Profile", icon: IdCard, onClick: () => useProfileModal.getState().setOpen(true) },
 ];
 
 const studentNav: NavItem[] = [
   { label: "Dashboard", href: "/student/dashboard", icon: LayoutDashboard },
+  { label: "My Request", href: "/student/my-request", icon: Clock },
   { label: "My Courses", href: "/student/my-courses", icon: BookOpen },
   { label: "Attendance", href: "/student/attendance", icon: CalendarCheck },
   { label: "Fees", href: "/student/fees", icon: CreditCard },
   { label: "Progress", href: "/student/progress", icon: TrendingUp },
   { label: "Certificates", href: "/student/certificates", icon: Award },
   { label: "Notifications", href: "/student/notifications", icon: Bell },
-  { label: "Profile", href: "/student/profile", icon: IdCard },
+  { label: "Profile", icon: IdCard, onClick: () => useProfileModal.getState().setOpen(true) },
   { label: "Support", href: "/student/support", icon: HelpCircle },
 ];
 
@@ -277,16 +303,18 @@ const clientNav: NavItem[] = [
   { label: "Events", href: "/client/events", icon: CalendarDays },
   { label: "Invoices", href: "/client/invoices", icon: FileText },
   { label: "Payments", href: "/client/payments", icon: CreditCard },
+  { label: "Payment History", href: "/client/payment-history", icon: History },
+  { label: "Due Tracking", href: "/client/due-tracking", icon: AlertTriangle },
   { label: "Quotations", href: "/client/quotations", icon: FileText },
   { label: "Notifications", href: "/client/notifications", icon: Bell },
-  { label: "Profile", href: "/client/profile", icon: IdCard },
+  { label: "Profile", icon: IdCard, onClick: () => useProfileModal.getState().setOpen(true) },
 ];
 
 function getNav(role: string): NavItem[] {
   switch (role) {
     case "OWNER": return ownerNav;
     case "BRANCH_MANAGER": return branchManagerNav;
-    case "TRAINER":
+    case "TRAINER":return staffNav;
     case "STAFF": return staffNav;
     case "STUDENT": return studentNav;
     case "CLIENT": return clientNav;
@@ -309,6 +337,24 @@ function NavItemRow({ item, collapsed }: { item: NavItem; collapsed: boolean }) 
     ? pathname === item.href || pathname.startsWith(item.href + "/")
     : false;
   const Icon = item.icon;
+
+  if (item.onClick) {
+    return (
+      <button
+        type="button"
+        onClick={item.onClick}
+        title={collapsed ? item.label : undefined}
+        className={cn(
+          "flex w-full items-center gap-3 rounded-[var(--radius-sm)] px-2.5 py-2 text-sm font-medium transition-colors",
+          "text-text-secondary hover:bg-surface-overlay hover:text-text-primary",
+          collapsed && "justify-center"
+        )}
+      >
+        <Icon size={18} className="shrink-0" />
+        {!collapsed && <span>{item.label}</span>}
+      </button>
+    );
+  }
 
   if (item.children) {
     return (
@@ -382,7 +428,7 @@ export function Sidebar({ collapsed, onClose }: SidebarProps) {
         )}
       >
         {!collapsed && (
-          <span className="text-primary truncate text-base font-bold">KalaiArangam</span>
+          <span className="text-primary truncate text-base font-bold">{user?.tenantName || "KalaiArangam"}</span>
         )}
         {onClose && (
           <button

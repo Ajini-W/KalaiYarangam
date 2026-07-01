@@ -1,0 +1,16 @@
+meta {
+  name: User Status
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{base-url}}/auth/user-status
+  body: json
+  auth: inherit
+
+  {
+    "accessToken": "<your-access-token>",
+    "status": "ACTIVE"
+  }
+}

@@ -10,10 +10,15 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
+import { env } from '@/config';
+import { AuditAction, AuthProviderType, UserRole, UserStatus } from '@prisma/client';
+
 import { PrismaService } from '@/database';
 import { MailService } from '@/app/v1/mail/mail.service';
-import { env } from '@/config';
-import { UserRole, UserStatus } from '@prisma/client';
+
+
+import { AuditService } from '@/app/v1/security/audit.service';
+
 import { AuthenticatedUser } from '@/common/interfaces';
 import { AuthErrorLogDto } from './dto/auth.dto';
 
@@ -36,6 +41,7 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly mailService: MailService,
+    private readonly auditService: AuditService,
   ) {}
 
   // ================= REGISTER =================
@@ -74,6 +80,16 @@ export class AuthService {
 
     return this.buildAuthResponse(user);
   }
+  async me(user: AuthenticatedUser) {
+  return this.toPayload(user);
+}
+async getProfile(userId: string) {
+  return this.prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+  });
+}
 
   // ================= VERIFY EMAIL =================
  async verifyEmail(dto: VerifyEmailDto) {
@@ -150,36 +166,10 @@ return response;
 
   return { message: 'Logged out' };
 }
-async googleLogin(req: any, ip?: string, userAgent?: string) {
-  const googleUser = req.user;
 
-  if (!googleUser?.email) {
-    throw new UnauthorizedException('Google login failed');
-  }
 
-  let user = await this.prisma.user.findUnique({
-    where: { email: googleUser.email },
-  });
+ 
 
-  if (!user) {
-    user = await this.prisma.user.create({
-      data: {
-        email: googleUser.email,
-        name: googleUser.name ?? 'Google User',
-        passwordHash: '', // required by Prisma
-        status: UserStatus.ACTIVE,
-      },
-    });
-  }
-
-  const accessToken = this.jwtService.sign({ sub: user.id });
-  const refreshToken = this.jwtService.sign(
-    { sub: user.id },
-    { expiresIn: '7d' },
-  );
-
-  return { accessToken, refreshToken };
-}
 
   // ================= REFRESH =================
   async refresh(dto: RefreshTokenDto) {
@@ -232,7 +222,38 @@ async googleLogin(req: any, ip?: string, userAgent?: string) {
     });
 
     return { message: 'Reset email sent' };
+  }async sendVerificationToken(dto: SendVerificationTokenDto) {
+  const user = await this.prisma.user.findUnique({
+    where: { email: dto.email },
+  });
+
+  if (!user) {
+    throw new NotFoundException('User not found');
   }
+
+  const token = randomBytes(32).toString('hex');
+
+  await this.prisma.user.update({
+    where: { id: user.id },
+    data: {
+      verificationToken: token,
+      verificationTokenExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+    },
+  });
+
+  await this.mailService.send({
+    to: user.email,
+    template: 'verify-email',
+    variables: {
+      name: user.name,
+      verificationLink: `${env.APP_URL}/verify-email?token=${token}`,
+    },
+  });
+
+  return {
+    message: 'Verification email sent',
+  };
+}
 
   // ================= RESET PASSWORD =================
   async resetPassword(dto: ResetPasswordDto) {
@@ -294,41 +315,16 @@ async googleLogin(req: any, ip?: string, userAgent?: string) {
   return { message: 'Password set successfully' };
 }
 
-  // ================= SEND VERIFY TOKEN =================
-  async sendVerificationToken(dto: SendVerificationTokenDto) {
-    const user = await this.prisma.user.findUnique({
-      where: { email: dto.email },
-    });
 
-    if (!user) throw new NotFoundException();
+  
 
-    const token = randomBytes(32).toString('hex');
-
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: {
-        verificationToken: token,
-        verificationTokenExpiresAt: new Date(Date.now() + 86400000),
-      },
-    });
-
-    return { message: 'Verification sent' };
-  }
-
-  // ================= USER PROFILE METHODS =================
-  me(user: AuthenticatedUser) {
-    return user;
-  }
-
-  async getProfile(userId: string) {
-    return this.prisma.user.findUnique({ where: { id: userId } });
-  }
 
   async updateProfile(userId: string, dto: UpdateProfileDto) {
     return this.prisma.user.update({
       where: { id: userId },
       data: dto,
     });
+
   }
 
   async getPreferences(userId: string) {
@@ -382,16 +378,149 @@ async googleLogin(req: any, ip?: string, userAgent?: string) {
     return { accessToken, refreshToken };
   }
 
-  private toPayload(user: any): AuthenticatedUser {
+
+  async googleLogin(req: any, ipAddress?: string, userAgent?: string) {
+    if (!req.user) {
+      throw new UnauthorizedException('No user from google');
+    }
+
+    const googleUser = req.user;
+
+    // Try to find user by Google provider ID first (linking support)
+    let user = await this.prisma.user.findFirst({
+      where: {
+        authProviders: {
+          some: {
+            provider: AuthProviderType.GOOGLE,
+            providerId: googleUser.id,
+          },
+        },
+      },
+    });
+
+    // If no user found by provider ID, try by email
+    if (!user) {
+      user = await this.prisma.user.findFirst({
+        where: { email: googleUser.email },
+      });
+    }
+
+    const now = new Date();
+
+    if (!user) {
+      // Create new user from Google OAuth
+      user = await this.prisma.$transaction(async (tx) => {
+        const u = await tx.user.create({
+          data: {
+            email: googleUser.email,
+            passwordHash: await bcrypt.hash(Math.random().toString(36).slice(-8), 10),
+            name: googleUser.firstName
+              ? `${googleUser.firstName} ${googleUser.lastName || ''}`.trim()
+              : googleUser.email,
+            role: 'STAFF',
+            status: UserStatus.REGISTERED,
+            verifiedAt: now,
+          },
+        });
+
+        await tx.authProvider.create({
+          data: {
+            userId: u.id,
+            provider: AuthProviderType.GOOGLE,
+            providerId: googleUser.id,
+            email: googleUser.email,
+          },
+        });
+
+        await tx.onboardingProgress.create({
+          data: { userId: u.id },
+        });
+
+        return u;
+      });
+    } else {
+      // Existing user — link Google provider if not already linked
+      const existingGoogleProvider = await this.prisma.authProvider.findUnique({
+        where: { userId_provider: { userId: user.id, provider: AuthProviderType.GOOGLE } },
+      });
+
+      if (!existingGoogleProvider) {
+        await this.prisma.authProvider.create({
+          data: {
+            userId: user.id,
+            provider: AuthProviderType.GOOGLE,
+            providerId: googleUser.id,
+            email: googleUser.email,
+          },
+        });
+      }
+
+      // If user registered via email but not verified, mark verified
+      if (user.status === UserStatus.NEW_USER || user.status === UserStatus.PENDING) {
+        user = await this.prisma.user.update({
+          where: { id: user.id },
+          data: {
+            status: user.status === UserStatus.NEW_USER ? UserStatus.NEW_USER : UserStatus.REGISTERED,
+            verifiedAt: user.verifiedAt ?? now,
+            verificationToken: null,
+            verificationTokenExpiresAt: null,
+          },
+        });
+      } else if (
+        user.status !== UserStatus.ACTIVE &&
+        user.status !== UserStatus.REGISTERED &&
+        user.status !== UserStatus.PROFILE_COMPLETED &&
+        user.status !== UserStatus.ACCESS_REQUESTED &&
+        user.status !== UserStatus.PENDING_APPROVAL &&
+        user.status !== UserStatus.APPROVED
+      ) {
+        throw new UnauthorizedException('Account is inactive or suspended');
+      }
+    }
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { lastLoginAt: now },
+    });
+
+    const tokens = await this.generateTokens({
+      ...user,
+      role: user.role as AuthenticatedUser['role']
+    });
+
+    await this.prisma.userLoginLog.create({
+      data: {
+        userId: user.id,
+        ipAddress,
+        userAgent,
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+        success: true,
+      },
+    });
+
+    return { message: 'Google login successful', data: { user: this.toPayload(user as any), ...tokens } };
+  }
+
+  private toPayload(user: {
+    id: string;
+    tenantId: string | null;
+    email: string;
+    name: string;
+    role: AuthenticatedUser['role'];
+    status?: string;
+    tenantName?: string | null;
+  }) {
     return {
       id: user.id,
       email: user.email,
       name: user.name,
       role: user.role,
-      tenantId: user.tenantId ?? '',
-      branchId: user.branchId ?? null,
-      status: user.status,
-      emailVerified: user.emailVerified ?? false,
+
+      status: user.status ?? '',
+      emailVerified: user.status !== 'NEW_USER' && user.status !== 'PENDING',
+      tenantName: user.tenantName ?? null,
+
     };
   }
 

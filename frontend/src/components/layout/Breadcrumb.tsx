@@ -34,35 +34,51 @@ export interface BreadcrumbProps { className?: string }
 
 export function Breadcrumb({ className }: BreadcrumbProps) {
   const pathname = usePathname();
-  const user = useAuthStore((s) => s.user);
   const segments = pathname.split("/").filter(Boolean);
 
   if (segments.length === 0) return null;
 
-  const crumbs = segments.map((seg, i) => {
-    const isRoleSegment = i === 0 && roleSegments[seg];
-    const label = isRoleSegment
-      ? (user ? roleLabels[user.role] : toLabel(seg)) + " Dashboard"
-      : toLabel(seg);
-    return {
-      label,
-      href: "/" + segments.slice(0, i + 1).join("/"),
-      isLast: i === segments.length - 1,
-    };
-  });
+  const crumbs = [
+    {
+      label: "Dashboard",
+      href: "/" + segments[0],
+      isLast: segments.length === 1,
+    },
+    ...segments.slice(1).map((seg, index) => ({
+      label: toLabel(seg),
+      href: "/" + segments.slice(0, index + 2).join("/"),
+      isLast: index === segments.length - 2,
+    })),
+  ];
 
   return (
-    <nav aria-label="Breadcrumb" className={cn("flex items-center gap-1 text-sm", className)}>
-      <Link href="/" className="text-text-secondary hover:text-text-primary transition-colors" aria-label="Home">
+    <nav
+      aria-label="Breadcrumb"
+      className={cn("flex items-center gap-1 text-sm", className)}
+    >
+      <Link
+        href="/"
+        className="text-text-secondary hover:text-text-primary transition-colors"
+        aria-label="Home"
+      >
         <Home size={14} />
       </Link>
+
       {crumbs.map((crumb) => (
         <span key={crumb.href} className="flex items-center gap-1">
-          <ChevronRight size={12} className="text-text-disabled" aria-hidden />
+          <ChevronRight size={12} className="text-text-disabled" />
           {crumb.isLast ? (
-            <span className="font-medium text-text-primary" aria-current="page">{crumb.label}</span>
+            <span
+              className="font-medium text-text-primary"
+              aria-current="page"
+            >
+              {crumb.label}
+            </span>
           ) : (
-            <Link href={crumb.href} className="text-text-secondary hover:text-text-primary transition-colors">
+            <Link
+              href={crumb.href}
+              className="text-text-secondary hover:text-text-primary transition-colors"
+            >
               {crumb.label}
             </Link>
           )}

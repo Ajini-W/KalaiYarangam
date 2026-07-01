@@ -249,6 +249,45 @@ enum AuditAction {
   SECURITY_EVENT
   TWO_FACTOR_ENABLE
   TWO_FACTOR_DISABLE
+  SETTINGS_CHANGE
+  WEBHOOK_CHANGE
+  API_KEY_CHANGE
+  INVITATION
+  SUBSCRIPTION_CHANGE
+  BILLING_CHANGE
+  DATA_EXPORT
+  ACCOUNT_LOCK
+  ACCOUNT_UNLOCK
+}
+
+enum LoginMethod {
+  PASSWORD
+  SSO
+  OAUTH_GOOGLE
+  MAGIC_LINK
+  API_KEY
+}
+
+enum FailureReason {
+  INVALID_CREDENTIALS
+  ACCOUNT_LOCKED
+  ACCOUNT_SUSPENDED
+  EMAIL_NOT_VERIFIED
+  MFA_FAILED
+  MFA_REQUIRED
+  TOKEN_EXPIRED
+  TOKEN_REVOKED
+  RATE_LIMITED
+  UNKNOWN
+}
+
+enum DeviceType {
+  DESKTOP
+  MOBILE
+  TABLET
+  SMART_TV
+  WEARABLE
+  UNKNOWN
 }
 
 enum HealthStatus {
@@ -297,25 +336,25 @@ enum SubmissionStatus {
 // ═══════════════════════════════════════════════════════════════
 
 model User {
-  id                         String     @id @default(uuid()) @db.Uuid
-  tenantId                   String?    @map("tenant_id") @db.Uuid
-  email                      String     @unique @db.VarChar(255)
-  passwordHash               String     @map("password_hash") @db.VarChar(255)
-  passwordSet                Boolean    @default(false) @map("password_set")
-  name                       String     @db.VarChar(150)
-  phone                      String?    @unique @db.VarChar(20)
-  role                       UserRole   @default(STAFF)
-  status                     UserStatus @default(PENDING)
-  verificationToken          String?    @unique @map("verification_token") @db.VarChar(255)
-  verificationTokenExpiresAt DateTime?  @map("verification_token_expires_at")
-  verifiedAt                 DateTime?  @map("verified_at")
-  resetPasswordToken         String?    @map("reset_password_token") @db.VarChar(255)
-  resetPasswordExpiresAt     DateTime?  @map("reset_password_expires_at")
-  avatarUrl                  String?    @map("avatar_url") @db.VarChar(500)
-  lastLoginAt                DateTime?  @map("last_login_at")
-  preferences                Json?      @default("{}")
-  createdAt                  DateTime   @default(now()) @map("created_at")
-  updatedAt                  DateTime   @updatedAt @map("updated_at")
+  id           String     @id @default(uuid()) @db.Uuid
+  tenantId     String?    @map("tenant_id") @db.Uuid
+  email        String     @unique @db.VarChar(255)
+  passwordHash String     @map("password_hash") @db.VarChar(255)
+  passwordSet  Boolean    @default(false) @map("password_set")
+  name         String     @db.VarChar(150)
+  phone        String?    @unique @db.VarChar(20)
+  role         UserRole   @default(STAFF)
+  status            UserStatus @default(PENDING)
+  verificationToken           String?   @unique @map("verification_token") @db.VarChar(255)
+  verificationTokenExpiresAt  DateTime? @map("verification_token_expires_at")
+  verifiedAt                  DateTime? @map("verified_at")
+  resetPasswordToken          String?   @map("reset_password_token") @db.VarChar(255)
+  resetPasswordExpiresAt      DateTime? @map("reset_password_expires_at")
+  avatarUrl         String?   @map("avatar_url") @db.VarChar(500)
+  lastLoginAt       DateTime? @map("last_login_at")
+  preferences       Json?     @default("{}")
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
 
   tenant            Tenant?                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   profile           UserProfile?
@@ -385,20 +424,41 @@ model UserBranch {
 }
 
 model UserLoginLog {
-  id           String   @id @default(uuid()) @db.Uuid
-  userId       String   @map("user_id") @db.Uuid
-  ipAddress    String?  @map("ip_address") @db.VarChar(45)
-  userAgent    String?  @map("user_agent") @db.VarChar(500)
-  accessToken  String?  @map("access_token") @db.Text
-  refreshToken String?  @map("refresh_token") @db.Text
-  loginAt      DateTime @default(now()) @map("login_at")
-  success      Boolean  @default(true)
+  id                String         @id @default(uuid()) @db.Uuid
+  userId            String         @map("user_id") @db.Uuid
+  ipAddress         String?        @map("ip_address") @db.VarChar(45)
+  userAgent         String?        @map("user_agent") @db.VarChar(500)
+  accessToken       String?        @map("access_token") @db.Text
+  refreshToken      String?        @map("refresh_token") @db.Text
+  loginAt           DateTime       @default(now()) @map("login_at")
+  success           Boolean        @default(true)
+  loginMethod       LoginMethod    @default(PASSWORD) @map("login_method")
+  failureReason     FailureReason? @map("failure_reason")
+  browser           String?        @db.VarChar(100)
+  browserVersion    String?        @map("browser_version") @db.VarChar(50)
+  os                String?        @db.VarChar(100)
+  osVersion         String?        @map("os_version") @db.VarChar(50)
+  deviceType        DeviceType     @default(UNKNOWN) @map("device_type")
+  deviceName        String?        @map("device_name") @db.VarChar(200)
+  deviceFingerprint String?        @map("device_fingerprint") @db.VarChar(255)
+  location          String?        @db.VarChar(255)
+  city              String?        @db.VarChar(100)
+  country           String?        @db.VarChar(100)
+  countryCode       String?        @map("country_code") @db.VarChar(5)
+  latitude          Float?
+  longitude         Float?
+  isSuspicious      Boolean        @default(false) @map("is_suspicious")
+  suspiciousReason  String?        @map("suspicious_reason") @db.VarChar(255)
+  metadata          Json?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([loginAt])
   @@index([ipAddress])
+  @@index([success])
+  @@index([isSuspicious])
+  @@index([deviceFingerprint])
   @@map("user_login_log")
 }
 
@@ -573,6 +633,12 @@ model Tenant {
   website   String?      @db.VarChar(255)
   phone     String?      @db.VarChar(20)
   email     String?      @db.VarChar(255)
+  address   String?      @db.VarChar(500)
+  city      String?      @db.VarChar(100)
+  state     String?      @db.VarChar(100)
+  pincode   String?      @db.VarChar(20)
+  latitude  Float?
+  longitude Float?
   createdAt DateTime     @default(now()) @map("created_at")
   updatedAt DateTime     @updatedAt @map("updated_at")
 
@@ -1513,17 +1579,25 @@ model Notification {
 }
 
 model NotificationLog {
-  id        String              @id @default(uuid()) @db.Uuid
-  channel   NotificationChannel
-  recipient String              @db.VarChar(255)
-  subject   String?             @db.VarChar(255)
-  body      String              @db.Text
-  status    String              @db.VarChar(30) /// SENT, FAILED, BOUNCED
-  errorMsg  String?             @map("error_msg") @db.Text
-  sentAt    DateTime            @default(now()) @map("sent_at")
+  id          String              @id @default(uuid()) @db.Uuid
+  channel     NotificationChannel
+  recipient   String              @db.VarChar(255)
+  subject     String?             @db.VarChar(255)
+  body        String              @db.Text
+  status      String              @db.VarChar(30) /// SENT, FAILED, BOUNCED, PENDING, RETRY
+  errorMsg    String?             @map("error_msg") @db.Text
+  eventType   String?             @map("event_type") @db.VarChar(100)
+  metadata    Json?
+  retryCount  Int                 @default(0) @map("retry_count")
+  sentAt      DateTime            @default(now()) @map("sent_at")
+  deliveredAt DateTime?           @map("delivered_at")
+  readAt      DateTime?           @map("read_at")
 
   @@index([sentAt])
   @@index([channel])
+  @@index([recipient])
+  @@index([status])
+  @@index([eventType])
   @@map("notification_logs")
 }
 
@@ -1548,17 +1622,17 @@ model UserDevice {
 // ═══════════════════════════════════════════════════════════════
 
 model Session {
-  id           String    @id @default(uuid()) @db.Uuid
-  userId       String    @map("user_id") @db.Uuid
-  token        String    @unique @db.Text
-  refreshToken String?   @map("refresh_token") @db.Text
-  ipAddress    String?   @map("ip_address") @db.VarChar(45)
-  userAgent    String?   @map("user_agent") @db.VarChar(500)
-  deviceInfo   String?   @map("device_info") @db.VarChar(500)
-  isActive     Boolean   @default(true) @map("is_active")
-  lastActivity DateTime  @default(now()) @map("last_activity")
-  expiresAt    DateTime  @map("expires_at")
-  createdAt    DateTime  @default(now()) @map("created_at")
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  token        String   @unique @db.Text
+  refreshToken String?  @map("refresh_token") @db.Text
+  ipAddress    String?  @map("ip_address") @db.VarChar(45)
+  userAgent    String?  @map("user_agent") @db.VarChar(500)
+  deviceInfo   String?  @map("device_info") @db.VarChar(500)
+  isActive     Boolean  @default(true) @map("is_active")
+  lastActivity DateTime @default(now()) @map("last_activity")
+  expiresAt    DateTime @map("expires_at")
+  createdAt    DateTime @default(now()) @map("created_at")
   revokedAt    DateTime? @map("revoked_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -1566,20 +1640,36 @@ model Session {
   @@index([userId])
   @@index([token])
   @@index([isActive])
+  @@index([createdAt])
+  @@index([ipAddress])
+ 
   @@map("sessions")
 }
 
 model SecurityEvent {
-  id        String   @id @default(uuid()) @db.Uuid
-  userId    String?  @map("user_id") @db.Uuid
-  tenantId  String?  @map("tenant_id") @db.Uuid
-  eventType String   @map("event_type") @db.VarChar(100)
-  severity  String   @default("INFO") @db.VarChar(20)
-  message   String   @db.Text
-  ipAddress String?  @map("ip_address") @db.VarChar(45)
-  userAgent String?  @map("user_agent") @db.VarChar(500)
-  metadata  Json?
-  createdAt DateTime @default(now()) @map("created_at")
+  id            String      @id @default(uuid()) @db.Uuid
+  userId        String?     @map("user_id") @db.Uuid
+  tenantId      String?     @map("tenant_id") @db.Uuid
+  eventType     String      @map("event_type") @db.VarChar(100)
+  category      String?     @db.VarChar(50)
+  severity      String      @default("INFO") @db.VarChar(20)
+  message       String      @db.Text
+  description   String?     @db.Text
+  ipAddress     String?     @map("ip_address") @db.VarChar(45)
+  userAgent     String?     @map("user_agent") @db.VarChar(500)
+  browser       String?     @db.VarChar(100)
+  os            String?     @db.VarChar(100)
+  deviceType    DeviceType? @map("device_type")
+  location      String?     @db.VarChar(255)
+  city          String?     @db.VarChar(100)
+  country       String?     @db.VarChar(100)
+  countryCode   String?     @map("country_code") @db.VarChar(5)
+  correlationId String?     @map("correlation_id") @db.VarChar(100)
+  metadata      Json?
+  resolved      Boolean     @default(false)
+  resolvedBy    String?     @map("resolved_by") @db.Uuid
+  resolvedAt    DateTime?   @map("resolved_at")
+  createdAt     DateTime    @default(now()) @map("created_at")
 
   user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
   tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -1589,60 +1679,90 @@ model SecurityEvent {
   @@index([eventType])
   @@index([severity])
   @@index([createdAt])
+  @@index([correlationId])
+  @@index([category])
+  @@index([resolved])
   @@map("security_events")
 }
 
 model AuditLog {
-  id        String      @id @default(uuid()) @db.Uuid
-  userId    String?     @map("user_id") @db.Uuid
-  tenantId  String?     @map("tenant_id") @db.Uuid
-  action    AuditAction
-  entity    String      @db.VarChar(100)
-  entityId  String?     @map("entity_id") @db.VarChar(100)
-  oldValues Json?       @map("old_values")
-  newValues Json?       @map("new_values")
-  ipAddress String?     @map("ip_address") @db.VarChar(45)
-  userAgent String?     @map("user_agent") @db.VarChar(500)
-  createdAt DateTime    @default(now()) @map("created_at")
+  id         String      @id @default(uuid()) @db.Uuid
+  userId     String?     @map("user_id") @db.Uuid
+  tenantId   String?     @map("tenant_id") @db.Uuid
+  action     AuditAction
+  entity     String      @db.VarChar(100)
+  entityId   String?     @map("entity_id") @db.VarChar(100)
+  oldValues  Json?       @map("old_values")
+  newValues  Json?       @map("new_values")
+  ipAddress  String?     @map("ip_address") @db.VarChar(45)
+  userAgent  String?     @map("user_agent") @db.VarChar(500)
+  createdAt  DateTime    @default(now()) @map("created_at")
 
   user User? @relation(fields: [userId], references: [id])
 
   @@index([entity, entityId])
   @@index([userId])
   @@index([createdAt])
+  @@index([action])
+
+  @@index([tenantId])
   @@map("audit_logs")
 }
 
 model ActivityLog {
-  id        String   @id @default(uuid()) @db.Uuid
-  userId    String?  @map("user_id") @db.Uuid
-  tenantId  String?  @map("tenant_id") @db.Uuid
-  activity  String   @db.VarChar(255)
-  details   Json?
-  ipAddress String?  @map("ip_address") @db.VarChar(45)
-  createdAt DateTime @default(now()) @map("created_at")
+  id              String   @id @default(uuid()) @db.Uuid
+  userId          String?  @map("user_id") @db.Uuid
+  tenantId        String?  @map("tenant_id") @db.Uuid
+  activity        String   @db.VarChar(255)
+  action          String?  @db.VarChar(50)
+  resource        String?  @db.VarChar(100)
+  resourceId      String?  @map("resource_id") @db.VarChar(100)
+  details         Json?
+  previousValues  Json?    @map("previous_values")
+  newValues       Json?    @map("new_values")
+  ipAddress       String?  @map("ip_address") @db.VarChar(45)
+  userAgent       String?  @map("user_agent") @db.VarChar(500)
+  requestSource   String?  @map("request_source") @db.VarChar(50)
+  executionStatus String?  @map("execution_status") @db.VarChar(20)
+  correlationId   String?  @map("correlation_id") @db.VarChar(100)
+  projectId       String?  @map("project_id") @db.Uuid
+  workspaceId     String?  @map("workspace_id") @db.Uuid
+  createdAt       DateTime @default(now()) @map("created_at")
 
   user User? @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([createdAt])
+  @@index([resource])
+  @@index([action])
+  @@index([tenantId])
+
   @@map("activity_logs")
 }
 
 model ApiLog {
-  id           String   @id @default(uuid()) @db.Uuid
-  method       String   @db.VarChar(10)
-  path         String   @db.VarChar(500)
-  statusCode   Int      @map("status_code")
-  responseTime Int      @map("response_time") /// in ms
-  userId       String?  @map("user_id") @db.Uuid
-  ipAddress    String?  @map("ip_address") @db.VarChar(45)
-  requestBody  Json?    @map("request_body")
-  errorMessage String?  @map("error_message") @db.Text
-  createdAt    DateTime @default(now()) @map("created_at")
+  id            String   @id @default(uuid()) @db.Uuid
+  method        String   @db.VarChar(10)
+  path          String   @db.VarChar(500)
+  statusCode    Int      @map("status_code")
+  responseTime  Int      @map("response_time") /// in ms
+  userId        String?  @map("user_id") @db.Uuid
+  tenantId      String?  @map("tenant_id") @db.Uuid
+  ipAddress     String?  @map("ip_address") @db.VarChar(45)
+  userAgent     String?  @map("user_agent") @db.VarChar(500)
+  requestBody   Json?    @map("request_body")
+  responseBody  Json?    @map("response_body")
+  errorMessage  String?  @map("error_message") @db.Text
+  requestId     String?  @map("request_id") @db.VarChar(100)
+  correlationId String?  @map("correlation_id") @db.VarChar(100)
+  createdAt     DateTime @default(now()) @map("created_at")
 
   @@index([path])
   @@index([createdAt])
+  @@index([statusCode])
+  @@index([userId])
+  @@index([tenantId])
+  @@index([correlationId])
   @@map("api_logs")
 }
 

@@ -60,8 +60,10 @@ export default function SubscriptionPage() {
     try {
       const res = await selectSubscription({ plan: selected });
       if (res.data.token) {
-        setTokens(res.data.token.accessToken, res.data.token.accessToken);
-        setUser(res.data.token.user as any);
+        const { accessToken, user } = res.data.token;
+        setTokens(accessToken, accessToken);
+        setUser(user as any);
+        localStorage.setItem("accessToken", accessToken);
       }
       toast.success("Setup complete! Welcome aboard.");
       router.push(res.data.redirectTo);

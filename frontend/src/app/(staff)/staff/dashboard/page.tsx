@@ -1,14 +1,17 @@
 "use client";
 
-import { ClipboardList, Calendar, Users, Bell, Settings, HelpCircle } from "lucide-react";
+import { ClipboardList, Calendar, Users, Bell, HelpCircle, UserCheck } from "lucide-react";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { StatCard } from "@/components/ui/Card";
 import { Card, CardHeader, CardTitle, CardBody } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { useAuthStore } from "@/store/auth.store";
+import { AccessStatusBanner, RejectedAccessBanner } from "@/components/shared/AccessStatusBanner";
+import { useRouter } from "next/navigation";
 
 export default function StaffDashboard() {
   const user = useAuthStore((s) => s.user);
+  const router = useRouter();
   if (!user) return null;
 
   const initials = user.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
@@ -25,6 +28,9 @@ export default function StaffDashboard() {
         </div>
       </div>
 
+      <AccessStatusBanner />
+      <RejectedAccessBanner />
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard title="Pending Tasks" value="--" icon={<ClipboardList size={20} />} />
         <StatCard title="Today&apos;s Events" value="--" icon={<Calendar size={20} />} />
@@ -37,12 +43,12 @@ export default function StaffDashboard() {
         <CardBody className="pt-0">
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
             {[
+              { label: "Student Requests", icon: <UserCheck size={18} />, href: "/staff/access-requests" },
               { label: "Tasks", icon: <ClipboardList size={18} />, href: "/staff/tasks" },
-              { label: "Schedule", icon: <Calendar size={18} />, href: "/staff/schedule" },
+              { label: "Schedule", icon: <Calendar size={18} />, href: "/staff/schedules" },
               { label: "Help", icon: <HelpCircle size={18} />, href: "/staff/help" },
-              { label: "Settings", icon: <Settings size={18} />, href: "/staff/settings" },
             ].map((a) => (
-              <Button key={a.label} variant="outline" className="justify-start gap-2.5 h-auto py-3 px-3" onClick={() => {}}>
+              <Button key={a.label} variant="outline" className="justify-start gap-2.5 h-auto py-3 px-3" onClick={() => router.push(a.href)}>
                 <span className="shrink-0">{a.icon}</span>
                 {a.label}
               </Button>
