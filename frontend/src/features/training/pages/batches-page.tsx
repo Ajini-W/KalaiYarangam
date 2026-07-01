@@ -63,7 +63,8 @@ export function BatchesPage() {
   useEffect(() => { fetchMeta(); }, [fetchMeta]);
 
   const handleSubmit = async (formData: { name: string; code?: string; courseId?: string; capacity: string; startDate?: string; endDate?: string; status?: string }) => {
-    const payload = { ...formData, capacity: Number(formData.capacity) } as unknown as Partial<Batch>;
+    const { status, ...rest } = formData;
+    const payload = { ...rest, capacity: Number(formData.capacity) } as unknown as Partial<Batch>;
     setSubmitting(true);
     try {
       if (editingBatch) {

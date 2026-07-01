@@ -243,10 +243,11 @@ export function TrainersPage() {
         <Button size="xs" variant="ghost" onClick={() => loadTrainerDetail(row)} title="View details">
           <Eye size={14} />
         </Button>
-        <Button size="xs" variant="ghost" onClick={() => {
+        <Button size="xs" variant="ghost" onClick={async () => {
           setSelectedTrainerId(row.id);
           loadTrainerBatches(row.id);
           setAssignmentOpen(true);
+          try { const res = await getBatches({ pageSize: 100 }); setBatches(res.data ?? []); } catch { /* ignore */ }
         }} title="Assign batches">
           <UserPlus size={14} />
         </Button>
