@@ -5,7 +5,7 @@ import { Plus, Layers, Edit3, Archive, RotateCcw, Copy, Users, Calendar, BarChar
 import { PageContainer } from "@/components/layout";
 import { Button, Table, Badge, Pagination, SearchBar, FilterBar, Modal, ConfirmModal, Card, StatCard, Skeleton, Input, Select as UiSelect } from "@/components/ui";
 import { BatchForm } from "../components/BatchForm";
-import { getBatches, createBatch, updateBatch, updateBatchStatus, archiveBatch, restoreBatch, duplicateBatch, getBatchStats, getBatchStudents, getBatchSchedules, getBatchAttendance, getBatchProgress, getBatchWaitlist, getBatchCapacity, getCourses, assignTrainerToBatch, getTrainers, type Batch, type BatchStats, type Course, type ScheduleEvent, type WaitlistEntry, type Trainer } from "@/services/training";
+import { getBatches, createBatch, updateBatch, updateBatchStatus, archiveBatch, restoreBatch, duplicateBatch, getBatchStats, getBatchStudents, getBatchSchedules, getBatchAttendance, getBatchProgress, getBatchWaitlist, getBatchCapacity, getBatch, getCourses, assignTrainerToBatch, getTrainers, type Batch, type BatchStats, type Course, type ScheduleEvent, type WaitlistEntry, type Trainer, type BatchTrainer } from "@/services/training";
 import { toast } from "sonner";
 import { cn } from "@/lib/cn";
 
@@ -148,12 +148,13 @@ export function BatchesPage() {
     setDetailLoading(true);
     setDetailData({});
     try {
-      const [students, schedules, capacity] = await Promise.all([
+      const [students, schedules, capacity, detail] = await Promise.all([
         getBatchStudents(batch.id).catch(() => ({ data: [] })),
         getBatchSchedules(batch.id).catch(() => ({ data: [] })),
         getBatchCapacity(batch.id).catch(() => ({ data: null })),
+        getBatch(batch.id).catch(() => ({ data: null })),
       ]);
-      setDetailData({ students: students.data ?? [], schedules: schedules.data ?? [], capacity: capacity.data });
+      setDetailData({ students: students.data ?? [], schedules: schedules.data ?? [], capacity: capacity.data, trainers: detail.data?.trainers ?? [] });
     } catch { /* ignore */ }
     setDetailLoading(false);
   };
@@ -180,6 +181,9 @@ export function BatchesPage() {
       } else if (tab === "capacity") {
         const res = await getBatchCapacity(batchId).catch(() => ({ data: null }));
         setDetailData((prev) => ({ ...prev, capacity: res.data }));
+      } else if (tab === "trainers") {
+        const res = await getBatch(batchId).catch(() => ({ data: null }));
+        setDetailData((prev) => ({ ...prev, trainers: res.data?.trainers ?? [] }));
       }
     } catch { /* ignore */ }
     setDetailLoading(false);
@@ -429,7 +433,7 @@ export function BatchesPage() {
             </div>
 
             <div className="flex gap-1 rounded-[var(--radius-sm)] border border-border p-0.5 flex-wrap">
-              {["students", "schedules", "attendance", "progress", "waitlist", "capacity"].map((tab) => (
+              {["students", "trainers", "schedules", "attendance", "progress", "waitlist", "capacity"].map((tab) => (
                 <button
                   key={tab}
                   onClick={() => loadDetailTab(tab, detailBatch.id)}
@@ -459,6 +463,26 @@ export function BatchesPage() {
                         <p className="text-xs text-text-secondary">{(s.student as Record<string, unknown>)?.email as string || s.email as string}</p>
                       </div>
                       <Badge size="sm" variant={(s.status as string) === "ACTIVE" ? "success" : "outline"}>{s.status as string}</Badge>
+                    </div>
+                  ))
+                )}
+              </div>
+            ) : detailTab === "trainers" ? (
+              <div className="max-h-[300px] overflow-y-auto space-y-2">
+                {((detailData.trainers as BatchTrainer[]) ?? []).length === 0 ? (
+                  <p className="py-8 text-center text-sm text-text-secondary">No trainers assigned</p>
+                ) : (
+                  (detailData.trainers as BatchTrainer[])?.map((bt: BatchTrainer) => (
+                    <div key={bt.id} className="flex items-center gap-3 rounded-[var(--radius-sm)] border border-border px-4 py-2.5">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                        {bt.trainer.name.charAt(0)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-text-primary">{bt.trainer.name}</p>
+                        <p className="text-xs text-text-secondary">{bt.trainer.email}</p>
+                      </div>
+                      {bt.isPrimary && <Badge size="sm" variant="info">Primary</Badge>}
+                      <span className="text-xs text-text-secondary">Assigned {new Date(bt.assignedAt).toLocaleDateString()}</span>
                     </div>
                   ))
                 )}
