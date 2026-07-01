@@ -192,7 +192,7 @@ export function ScheduleCalendar({ events, loading, onEventClick, onDateSelect }
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-text-primary">{event.title}</p>
                     <p className="text-xs text-text-secondary">
-                      {event.startTime} - {event.endTime} | {event.batchName}
+                      {event.startTime} - {event.endTime} | {event.batch?.name ?? event.title}
                     </p>
                     {event.topic && <p className="text-xs text-text-secondary mt-0.5">{event.topic}</p>}
                   </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Upload, FileText, Archive, CheckCircle2, XCircle, Search } from "lucide-react";
+import { Upload, FileText, Archive, RotateCcw, CheckCircle2, XCircle, Search, Eye } from "lucide-react";
 import { PageContainer } from "@/components/layout";
 import { Button, Badge, Pagination, SearchBar, FilterBar, Modal, ConfirmModal, Card, StatCard } from "@/components/ui";
 import { DocumentGrid } from "../components/DocumentGrid";
@@ -20,6 +20,8 @@ export function DocumentsPage() {
   const [previewDoc, setPreviewDoc] = useState<TrainingDocument | null>(null);
   const [rejectDoc, setRejectDoc] = useState<TrainingDocument | null>(null);
   const [rejectReason, setRejectReason] = useState("");
+  const [archiveConfirm, setArchiveConfirm] = useState<TrainingDocument | null>(null);
+  const [restoreConfirm, setRestoreConfirm] = useState<TrainingDocument | null>(null);
   const pageSize = 12;
 
   const fetchDocuments = useCallback(async () => {
@@ -80,9 +82,21 @@ export function DocumentsPage() {
     try {
       await archiveDocument(id);
       toast.success("Document archived");
+      setArchiveConfirm(null);
       fetchDocuments();
     } catch {
       toast.error("Failed to archive document");
+    }
+  };
+
+  const handleRestore = async (id: string) => {
+    try {
+      await restoreDocument(id);
+      toast.success("Document restored");
+      setRestoreConfirm(null);
+      fetchDocuments();
+    } catch {
+      toast.error("Failed to restore document");
     }
   };
 
@@ -91,6 +105,7 @@ export function DocumentsPage() {
       { value: "PENDING", label: "Pending" },
       { value: "VERIFIED", label: "Verified" },
       { value: "REJECTED", label: "Rejected" },
+      { value: "ARCHIVED", label: "Archived" },
     ]},
     { key: "type", label: "Type", options: [
       { value: "ID_PROOF", label: "ID Proof" },
@@ -130,7 +145,7 @@ export function DocumentsPage() {
         loading={loading}
         onVerify={handleVerify}
         onReject={(id) => setRejectDoc(documents.find((d) => d.id === id) ?? null)}
-        onArchive={handleArchive}
+        onArchive={(id) => setArchiveConfirm(documents.find((d) => d.id === id) ?? null)}
         onPreview={(doc) => setPreviewDoc(doc)}
       />
 
@@ -152,7 +167,7 @@ export function DocumentsPage() {
                 <p className="text-sm text-text-secondary">Type: {previewDoc.type}</p>
               </div>
               <Badge
-                variant={previewDoc.status === "VERIFIED" ? "success" : previewDoc.status === "REJECTED" ? "danger" : "warning"}
+                variant={previewDoc.status === "VERIFIED" ? "success" : previewDoc.status === "REJECTED" ? "danger" : previewDoc.status === "ARCHIVED" ? "outline" : "warning"}
                 size="sm"
               >
                 {previewDoc.status}
@@ -168,6 +183,17 @@ export function DocumentsPage() {
                 <p className="text-sm text-text-primary mt-1">{previewDoc.remarks}</p>
               </div>
             )}
+            <div className="flex justify-end gap-2 pt-2">
+              {previewDoc.status === "ARCHIVED" ? (
+                <Button size="sm" variant="outline" onClick={() => { handleRestore(previewDoc.id); setPreviewDoc(null); }}>
+                  <RotateCcw size={14} /> Restore
+                </Button>
+              ) : (
+                <Button size="sm" variant="outline" onClick={() => { setArchiveConfirm(previewDoc); setPreviewDoc(null); }}>
+                  <Archive size={14} /> Archive
+                </Button>
+              )}
+            </div>
           </div>
         )}
       </Modal>
@@ -189,6 +215,26 @@ export function DocumentsPage() {
           </div>
         </div>
       </Modal>
+
+      <ConfirmModal
+        open={!!archiveConfirm}
+        onClose={() => setArchiveConfirm(null)}
+        onConfirm={async () => { if (archiveConfirm) await handleArchive(archiveConfirm.id); }}
+        title="Archive Document"
+        description={`Archive "${archiveConfirm?.name}"?`}
+        confirmLabel="Archive"
+        intent="warning"
+      />
+
+      <ConfirmModal
+        open={!!restoreConfirm}
+        onClose={() => setRestoreConfirm(null)}
+        onConfirm={async () => { if (restoreConfirm) await handleRestore(restoreConfirm.id); }}
+        title="Restore Document"
+        description={`Restore "${restoreConfirm?.name}"?`}
+        confirmLabel="Restore"
+        intent="info"
+      />
     </PageContainer>
   );
 }

@@ -16,7 +16,7 @@ export function ProgramsPage() {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [sortKey, setSortKey] = useState<string>("");
-  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const [sortDir, setSortDir] = useState<string>("");
   const [modalOpen, setModalOpen] = useState(false);
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<Course | null>(null);
@@ -29,7 +29,7 @@ export function ProgramsPage() {
     try {
       const res = await getCourses({ page, pageSize, search, status: activeFilters.status, sortBy: sortKey, sortDir });
       setCourses(res.data ?? []);
-      setTotal(res.data?.length ?? 0);
+      setTotal(res.meta?.total ?? res.data?.length ?? 0);
     } catch {
       setCourses([]);
     } finally {

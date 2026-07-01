@@ -89,7 +89,7 @@ export function TrainingDashboardPage() {
                         <p className="text-sm font-medium text-text-primary truncate">{event.title}</p>
                         <p className="text-xs text-text-secondary">{event.startTime} - {event.endTime}</p>
                       </div>
-                      <Badge size="sm" variant="outline">{event.batchName}</Badge>
+                      <Badge size="sm" variant="outline">{event.batch?.name || event.title}</Badge>
                     </div>
                   ))}
                 </div>
