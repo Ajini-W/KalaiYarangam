@@ -449,7 +449,7 @@ export function TrainersPage() {
                         <p className="text-[10px] text-text-secondary">{new Date(s.date).toLocaleDateString("en", { month: "short" })}</p>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-text-primary truncate">{s.title || s.batch?.name || "Session"}</p>
+                        <p className="text-sm text-text-primary truncate">{s.batch?.name ?? s.topic ?? "Session"}</p>
                         <p className="text-xs text-text-secondary">{s.startTime} - {s.endTime}</p>
                       </div>
                       <Badge size="sm" variant={s.status === "SCHEDULED" ? "info" : s.status === "COMPLETED" ? "success" : "outline"}>{s.status}</Badge>
