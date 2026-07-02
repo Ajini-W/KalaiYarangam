@@ -86,10 +86,10 @@ export function TrainingDashboardPage() {
                         event.status === "COMPLETED" ? "bg-success" : "bg-danger",
                       )} />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-text-primary truncate">{event.title}</p>
+                        <p className="text-sm font-medium text-text-primary truncate">{event.batch?.name ?? event.topic ?? "Session"}</p>
                         <p className="text-xs text-text-secondary">{event.startTime} - {event.endTime}</p>
                       </div>
-                      <Badge size="sm" variant="outline">{event.batchName}</Badge>
+                      <Badge size="sm" variant="outline">{event.batch?.name ?? event.topic ?? "Session"}</Badge>
                     </div>
                   ))}
                 </div>
@@ -131,7 +131,7 @@ export function TrainingDashboardPage() {
                         </span>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-text-primary truncate">{event.title}</p>
+                        <p className="text-sm font-medium text-text-primary truncate">{event.batch?.name ?? event.topic ?? "Session"}</p>
                         <p className="text-xs text-text-secondary">{event.startTime}</p>
                       </div>
                     </div>

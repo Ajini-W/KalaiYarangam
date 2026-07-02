@@ -1,0 +1,26 @@
+meta {
+  name: Batch - Update Status
+  type: http
+  seq: 6
+}
+
+patch {
+  url: {{base-url}}/training/batches/{{batchId}}/status
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "status": "ACTIVE"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

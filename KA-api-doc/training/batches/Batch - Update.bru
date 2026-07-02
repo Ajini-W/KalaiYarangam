@@ -1,0 +1,27 @@
+meta {
+  name: Batch - Update
+  type: http
+  seq: 5
+}
+
+patch {
+  url: {{base-url}}/training/batches/{{batchId}}
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "name": "Morning Yoga Batch Updated",
+    "capacity": 30
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

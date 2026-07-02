@@ -1,0 +1,20 @@
+meta {
+  name: Trainer - Batches
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{base-url}}/training/trainers/{{trainerId}}/batches
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

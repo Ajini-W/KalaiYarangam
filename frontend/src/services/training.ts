@@ -8,7 +8,7 @@ export interface Course {
   tenantId: string;
   name: string;
   description: string | null;
-  duration: string | null;
+  duration: number | null;
   fee: number | null;
   categoryId: string | null;
   category?: CourseCategory | null;
@@ -31,54 +31,57 @@ export interface Batch {
   name: string;
   code: string;
   capacity: number;
-  enrolled: number;
+  enrolled?: number;
   startDate: string | null;
   endDate: string | null;
-  status: "UPCOMING" | "ACTIVE" | "COMPLETED" | "CANCELLED";
+  status: string;
   course?: Course | null;
-  _count?: { enrollments: number };
+  trainers?: BatchTrainer[];
+  isActive?: boolean;
   createdAt: string;
   updatedAt: string;
+  _count?: { enrollments?: number; trainers?: number; sessions?: number };
+}
+
+export interface BatchTrainer {
+  id: string;
+  batchId: string;
+  trainerId: string;
+  isPrimary: boolean;
+  assignedAt: string;
+  trainer: { id: string; name: string; email: string };
 }
 
 export interface BatchStats {
   total: number;
-  active: number;
-  completed: number;
-  upcoming: number;
+  statusCounts: Record<string, number>;
+  totalCapacity: number;
+  totalEnrolled: number;
+  enrollmentRate: number;
 }
 
 export interface Trainer {
   id: string;
-  userId: string;
-  tenantId: string;
   name: string;
   email: string;
   phone: string;
-  specialization: string | null;
-  qualifications: string | null;
-  status: "ACTIVE" | "INACTIVE" | "ON_LEAVE";
-  workload: number;
-  availability: Record<string, unknown>;
-  isActive: boolean;
+  role: string;
+  status: string;
   createdAt: string;
   updatedAt: string;
+  _count?: { batchTrainers: number };
 }
 
 export interface ScheduleEvent {
   id: string;
   batchId: string;
-  batchName: string;
-  trainerId: string;
-  trainerName: string;
-  title: string;
   date: string;
   startTime: string;
   endTime: string;
-  room: string | null;
-  topic: string | null;
-  status: "SCHEDULED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
-  color?: string;
+  topic?: string | null;
+  notes?: string | null;
+  status: string;
+  createdAt: string;
   batch?: { id: string; name: string };
 }
 
@@ -149,7 +152,7 @@ export interface PaginationQuery {
   search?: string;
   status?: string;
   sortBy?: string;
-  sortDir?: "asc" | "desc";
+  sortDir?: string;
 }
 
 /* ─── Helpers ───────────────────────────────────────────────────────────────── */
@@ -160,8 +163,10 @@ function buildQuery(params: PaginationQuery): string {
   if (params.pageSize) search.set("pageSize", String(params.pageSize));
   if (params.search) search.set("search", params.search);
   if (params.status) search.set("status", params.status);
-  if (params.sortBy) search.set("sortBy", params.sortBy);
-  if (params.sortDir) search.set("sortDir", params.sortDir);
+  if (params.sortBy) {
+    search.set("sortBy", params.sortBy);
+    if (params.sortDir) search.set("sortDir", params.sortDir);
+  }
   const qs = search.toString();
   return qs ? `?${qs}` : "";
 }
@@ -240,18 +245,18 @@ export async function restoreBatch(id: string): Promise<ApiResponse<void>> {
   return data;
 }
 
-export async function duplicateBatch(id: string): Promise<ApiResponse<Batch>> {
-  const { data } = await apiClient.post<ApiResponse<Batch>>(`/training/batches/${id}/duplicate`);
+export async function duplicateBatch(id: string, name?: string): Promise<ApiResponse<Batch>> {
+  const { data } = await apiClient.post<ApiResponse<Batch>>(`/training/batches/${id}/duplicate`, name ? { name } : undefined);
   return data;
 }
 
 export async function getBatchStats(): Promise<ApiResponse<BatchStats>> {
-  const { data } = await apiClient.get<ApiResponse<BatchStats>>("/training/batches/stats");
+  const { data } = await apiClient.get<ApiResponse<BatchStats>>("/training/batches/statistics");
   return data;
 }
 
-export async function getBatchStudents(batchId: string): Promise<ApiResponse<Array<{ id: string; name: string; email: string; phone: string }>>> {
-  const { data } = await apiClient.get<ApiResponse<Array<{ id: string; name: string; email: string; phone: string }>>>(`/training/batches/${batchId}/students`);
+export async function getBatchStudents(batchId: string): Promise<ApiResponse<Array<{ id: string; studentId: string; status: string; enrolledAt: string; student: { id: string; name: string; email: string; phone: string } }>>> {
+  const { data } = await apiClient.get<ApiResponse<Array<{ id: string; studentId: string; status: string; enrolledAt: string; student: { id: string; name: string; email: string; phone: string } }>>>(`/training/batches/${batchId}/students`);
   return data;
 }
 
@@ -270,13 +275,13 @@ export async function getBatchProgress(batchId: string): Promise<ApiResponse<unk
   return data;
 }
 
-export async function getBatchWaitlist(batchId: string): Promise<ApiResponse<WaitlistEntry[]>> {
-  const { data } = await apiClient.get<ApiResponse<WaitlistEntry[]>>(`/training/batches/${batchId}/waitlist`);
+export async function getBatchWaitlist(batchId: string): Promise<ApiResponse<Array<{ id: string; studentId: string; status: string; priority?: string; waitlistPosition?: number; enrolledAt: string; student: { id: string; name: string; email: string; phone: string } }>>> {
+  const { data } = await apiClient.get<ApiResponse<Array<{ id: string; studentId: string; status: string; priority?: string; waitlistPosition?: number; enrolledAt: string; student: { id: string; name: string; email: string; phone: string } }>>>(`/training/batches/${batchId}/waitlist`);
   return data;
 }
 
-export async function getBatchCapacity(batchId: string): Promise<ApiResponse<{ capacity: number; enrolled: number; occupancy: number; waitlist: number }>> {
-  const { data } = await apiClient.get<ApiResponse<{ capacity: number; enrolled: number; occupancy: number; waitlist: number }>>(`/training/batches/${batchId}/capacity`);
+export async function getBatchCapacity(batchId: string): Promise<ApiResponse<{ capacity: number; enrolled: number; available: number; waitlistCount: number }>> {
+  const { data } = await apiClient.get<ApiResponse<{ capacity: number; enrolled: number; available: number; waitlistCount: number }>>(`/training/batches/${batchId}/capacity`);
   return data;
 }
 
@@ -302,8 +307,8 @@ export async function updateTrainer(id: string, payload: Partial<Trainer>): Prom
   return data;
 }
 
-export async function updateTrainerStatus(id: string, status: string): Promise<ApiResponse<Trainer>> {
-  const { data } = await apiClient.patch<ApiResponse<Trainer>>(`/training/trainers/${id}/status`, { status });
+export async function updateTrainerStatus(id: string, isActive: boolean): Promise<ApiResponse<Trainer>> {
+  const { data } = await apiClient.patch<ApiResponse<Trainer>>(`/training/trainers/${id}/status`, { isActive });
   return data;
 }
 
@@ -318,8 +323,8 @@ export async function restoreTrainer(id: string): Promise<ApiResponse<void>> {
 }
 
 export async function getTrainerBatches(trainerId: string): Promise<ApiResponse<Batch[]>> {
-  const { data } = await apiClient.get<ApiResponse<Batch[]>>(`/training/trainers/${trainerId}/batches`);
-  return data;
+  const { data } = await apiClient.get<ApiResponse<Array<{ batch: Batch }>>>(`/training/trainers/${trainerId}/batches`);
+  return { ...data, data: data.data?.map((bt) => bt.batch) ?? [] };
 }
 
 export async function getTrainerSchedule(trainerId: string): Promise<ApiResponse<ScheduleEvent[]>> {
@@ -332,33 +337,48 @@ export async function getTrainerAttendance(trainerId: string): Promise<ApiRespon
   return data;
 }
 
-export async function getTrainerWorkload(trainerId: string): Promise<ApiResponse<{ current: number; max: number; percentage: number }>> {
-  const { data } = await apiClient.get<ApiResponse<{ current: number; max: number; percentage: number }>>(`/training/trainers/${trainerId}/workload`);
+export async function getTrainerWorkload(trainerId: string): Promise<ApiResponse<{ batchCount: number; upcomingSessions: number; totalStudents: number }>> {
+  const { data } = await apiClient.get<ApiResponse<{ batchCount: number; upcomingSessions: number; totalStudents: number }>>(`/training/trainers/${trainerId}/workload`);
   return data;
 }
 
 export async function assignTrainerToBatch(trainerId: string, batchId: string, isPrimary?: boolean): Promise<ApiResponse<void>> {
-  const { data } = await apiClient.post<ApiResponse<void>>("/training/trainers/assign", { trainerId, batchId, isPrimary });
+  const { data } = await apiClient.post<ApiResponse<void>>(`/training/batches/${batchId}/assign-trainer`, { trainerId, isPrimary });
   return data;
 }
 
 export async function removeTrainerFromBatch(trainerId: string, batchId: string): Promise<ApiResponse<void>> {
-  const { data } = await apiClient.post<ApiResponse<void>>("/training/trainers/unassign", { trainerId, batchId });
+  const { data } = await apiClient.post<ApiResponse<void>>(`/training/batches/${batchId}/remove-trainer`, { trainerId });
   return data;
 }
 
 /* ─── Schedule ──────────────────────────────────────────────────────────────── */
 
-export async function getSchedules(query?: { page?: number; pageSize?: number; startDate?: string; endDate?: string; batchId?: string; trainerId?: string }): Promise<ApiResponse<ScheduleEvent[]>> {
+export async function getSchedules(query?: { page?: number; pageSize?: number; dateFrom?: string; dateTo?: string; batchId?: string; status?: string }): Promise<ApiResponse<ScheduleEvent[]>> {
   const params = new URLSearchParams();
   if (query?.page) params.set("page", String(query.page));
   if (query?.pageSize) params.set("pageSize", String(query.pageSize));
-  if (query?.startDate) params.set("startDate", query.startDate);
-  if (query?.endDate) params.set("endDate", query.endDate);
+  if (query?.dateFrom) params.set("dateFrom", query.dateFrom);
+  if (query?.dateTo) params.set("dateTo", query.dateTo);
   if (query?.batchId) params.set("batchId", query.batchId);
-  if (query?.trainerId) params.set("trainerId", query.trainerId);
+  if (query?.status) params.set("status", query.status);
   const qs = params.toString();
   const { data } = await apiClient.get<ApiResponse<ScheduleEvent[]>>(`/training/schedules${qs ? `?${qs}` : ""}`);
+  return data;
+}
+
+export async function getSchedule(id: string): Promise<ApiResponse<ScheduleEvent>> {
+  const { data } = await apiClient.get<ApiResponse<ScheduleEvent>>(`/training/schedules/${id}`);
+  return data;
+}
+
+export async function getCalendar(query?: { month?: number; year?: number; batchId?: string }): Promise<ApiResponse<Record<string, ScheduleEvent[]>>> {
+  const params = new URLSearchParams();
+  if (query?.month) params.set("month", String(query.month));
+  if (query?.year) params.set("year", String(query.year));
+  if (query?.batchId) params.set("batchId", query.batchId);
+  const qs = params.toString();
+  const { data } = await apiClient.get<ApiResponse<Record<string, ScheduleEvent[]>>>(`/training/schedules/calendar${qs ? `?${qs}` : ""}`);
   return data;
 }
 
@@ -448,6 +468,16 @@ export async function getDocuments(query?: PaginationQuery & { studentId?: strin
 
 export async function getDocument(id: string): Promise<ApiResponse<TrainingDocument>> {
   const { data } = await apiClient.get<ApiResponse<TrainingDocument>>(`/training/documents/${id}`);
+  return data;
+}
+
+export async function createDocument(payload: { studentId?: string; type?: string; name: string; fileUrl?: string }): Promise<ApiResponse<TrainingDocument>> {
+  const { data } = await apiClient.post<ApiResponse<TrainingDocument>>("/training/documents", payload);
+  return data;
+}
+
+export async function updateDocument(id: string, payload: Partial<TrainingDocument>): Promise<ApiResponse<TrainingDocument>> {
+  const { data } = await apiClient.patch<ApiResponse<TrainingDocument>>(`/training/documents/${id}`, payload);
   return data;
 }
 

@@ -2,9 +2,9 @@
 
 import React from "react";
 import { useState, useEffect, useCallback } from "react";
-import { Upload, File, Download, Archive, FileText, Image, Film, Music, Search, Grid3X3, List } from "lucide-react";
+import { Upload, File, Download, Archive, RotateCcw, FileText, Image, Film, Music, Search, Grid3X3, List, Eye } from "lucide-react";
 import { PageContainer } from "@/components/layout";
-import { Button, Badge, Pagination, SearchBar, Card, CardHeader, CardBody, Modal, Skeleton } from "@/components/ui";
+import { Button, Badge, Pagination, SearchBar, Card, CardHeader, CardBody, Modal, Skeleton, ConfirmModal } from "@/components/ui";
 import { UploadZone } from "../components/UploadZone";
 import { getFiles, uploadFile, archiveFile, restoreFile, getFileDownloadUrl, type TrainingFile } from "@/services/training";
 import { cn } from "@/lib/cn";
@@ -35,6 +35,8 @@ export function FilesPage() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [uploadOpen, setUploadOpen] = useState(false);
   const [previewFile, setPreviewFile] = useState<TrainingFile | null>(null);
+  const [archiveConfirm, setArchiveConfirm] = useState<TrainingFile | null>(null);
+  const [restoreConfirm, setRestoreConfirm] = useState<TrainingFile | null>(null);
   const pageSize = 20;
 
   const fetchFiles = useCallback(async () => {
@@ -72,9 +74,21 @@ export function FilesPage() {
     try {
       await archiveFile(id);
       toast.success("File archived");
+      setArchiveConfirm(null);
       fetchFiles();
     } catch {
       toast.error("Failed to archive file");
+    }
+  };
+
+  const handleRestore = async (id: string) => {
+    try {
+      await restoreFile(id);
+      toast.success("File restored");
+      setRestoreConfirm(null);
+      fetchFiles();
+    } catch {
+      toast.error("Failed to restore file");
     }
   };
 
@@ -151,15 +165,20 @@ export function FilesPage() {
               </div>
               <p className="text-sm font-medium text-text-primary truncate">{file.name}</p>
               <p className="text-xs text-text-secondary">{formatSize(file.size)}</p>
+              {file.isArchived && <Badge size="sm" variant="outline" className="mt-1">Archived</Badge>}
               <div className="absolute inset-0 flex items-center justify-center gap-2 rounded-[var(--radius-md)] bg-surface/90 opacity-0 group-hover:opacity-100 transition-opacity">
                 <Button size="xs" variant="ghost" onClick={() => setPreviewFile(file)} title="Preview">
-                  <FileText size={14} />
+                  <Eye size={14} />
                 </Button>
                 <Button size="xs" variant="ghost" title="Download" onClick={() => window.open(getFileDownloadUrl(file.id), "_blank")}>
                   <Download size={14} />
                 </Button>
-                {!file.isArchived && (
-                  <Button size="xs" variant="ghost" onClick={() => handleArchive(file.id)} title="Archive">
+                {file.isArchived ? (
+                  <Button size="xs" variant="ghost" onClick={() => setRestoreConfirm(file)} title="Restore">
+                    <RotateCcw size={14} />
+                  </Button>
+                ) : (
+                  <Button size="xs" variant="ghost" onClick={() => setArchiveConfirm(file)} title="Archive">
                     <Archive size={14} />
                   </Button>
                 )}
@@ -179,7 +198,11 @@ export function FilesPage() {
               <Badge size="sm" variant={file.isArchived ? "outline" : "success"}>{file.isArchived ? "Archived" : "Active"}</Badge>
               <div className="flex items-center gap-1">
                 <Button size="xs" variant="ghost" onClick={() => window.open(getFileDownloadUrl(file.id), "_blank")}><Download size={14} /></Button>
-                {!file.isArchived && <Button size="xs" variant="ghost" onClick={() => handleArchive(file.id)}><Archive size={14} /></Button>}
+                {file.isArchived ? (
+                  <Button size="xs" variant="ghost" onClick={() => setRestoreConfirm(file)}><RotateCcw size={14} /></Button>
+                ) : (
+                  <Button size="xs" variant="ghost" onClick={() => setArchiveConfirm(file)}><Archive size={14} /></Button>
+                )}
               </div>
             </div>
           ))}
@@ -203,6 +226,7 @@ export function FilesPage() {
                 <p className="font-medium text-text-primary">{previewFile.name}</p>
                 <p className="text-sm text-text-secondary">{formatSize(previewFile.size)} • {previewFile.category}</p>
               </div>
+              <Badge size="sm" variant={previewFile.isArchived ? "outline" : "success"}>{previewFile.isArchived ? "Archived" : "Active"}</Badge>
             </div>
             <div className="rounded-[var(--radius-md)] border border-border bg-surface-raised p-12 text-center">
               {previewFile.category === "image" ? (
@@ -217,9 +241,40 @@ export function FilesPage() {
                 </div>
               )}
             </div>
+            <div className="flex justify-end gap-2 pt-2">
+              {previewFile.isArchived ? (
+                <Button size="sm" variant="outline" onClick={() => { setRestoreConfirm(previewFile); setPreviewFile(null); }}>
+                  <RotateCcw size={14} /> Restore
+                </Button>
+              ) : (
+                <Button size="sm" variant="outline" onClick={() => { setArchiveConfirm(previewFile); setPreviewFile(null); }}>
+                  <Archive size={14} /> Archive
+                </Button>
+              )}
+            </div>
           </div>
         )}
       </Modal>
+
+      <ConfirmModal
+        open={!!archiveConfirm}
+        onClose={() => setArchiveConfirm(null)}
+        onConfirm={async () => { if (archiveConfirm) await handleArchive(archiveConfirm.id); }}
+        title="Archive File"
+        description={`Archive "${archiveConfirm?.name}"?`}
+        confirmLabel="Archive"
+        intent="warning"
+      />
+
+      <ConfirmModal
+        open={!!restoreConfirm}
+        onClose={() => setRestoreConfirm(null)}
+        onConfirm={async () => { if (restoreConfirm) await handleRestore(restoreConfirm.id); }}
+        title="Restore File"
+        description={`Restore "${restoreConfirm?.name}"?`}
+        confirmLabel="Restore"
+        intent="info"
+      />
     </PageContainer>
   );
 }

@@ -3,23 +3,13 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CurrentUser, Public } from '@/common/decorators';
 import { AuthenticatedUser } from '@/common/interfaces';
 import { TrainingService } from './training.service';
-import { ClaimTenantDto, CreateBatchDto, CreateBranchDto, CreateStudentDto, CreateTenantDto, QueryPaginationDto, UpdateBranchDto, UpdateBranchStatusDto, UpdateBrandingDto, UpdateModulesDto, UpdateTenantDto, UpdateTenantSettingsDto } from './dto/training.dto';
+import { ClaimTenantDto, CreateBranchDto, CreateStudentDto, CreateTenantDto, QueryPaginationDto, UpdateBranchDto, UpdateBranchStatusDto, UpdateBrandingDto, UpdateModulesDto, UpdateTenantDto, UpdateTenantSettingsDto } from './dto/training.dto';
 
 @ApiTags('training')
 @ApiBearerAuth()
 @Controller('training')
 export class TrainingController {
   constructor(private readonly trainingService: TrainingService) {}
-
-  @Get('batches')
-  findBatches(@CurrentUser() user: AuthenticatedUser, @Query() query: QueryPaginationDto) {
-    return this.trainingService.findBatches(user, query);
-  }
-
-  @Post('batches')
-  createBatch(@CurrentUser() user: AuthenticatedUser, @Body() dto: CreateBatchDto) {
-    return this.trainingService.createBatch(user, dto);
-  }
 
   @Get('students')
   findStudents(@CurrentUser() user: AuthenticatedUser, @Query() query: QueryPaginationDto) {

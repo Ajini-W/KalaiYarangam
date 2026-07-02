@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Layers, Edit3, Archive, Copy, Users, Calendar, BarChart3, Eye } from "lucide-react";
+import { Plus, Layers, Edit3, Archive, RotateCcw, Copy, Users, Calendar, BarChart3, Eye, UserPlus, GraduationCap, Clock, ListOrdered } from "lucide-react";
 import { PageContainer } from "@/components/layout";
-import { Button, Table, Badge, Pagination, SearchBar, FilterBar, Modal, ConfirmModal, Card, StatCard, Skeleton } from "@/components/ui";
+import { Button, Table, Badge, Pagination, SearchBar, FilterBar, Modal, ConfirmModal, Card, StatCard, Skeleton, Input, Select as UiSelect } from "@/components/ui";
 import { BatchForm } from "../components/BatchForm";
-import { getBatches, createBatch, updateBatch, archiveBatch, restoreBatch, duplicateBatch, getBatchStats, getCourses, type Batch, type BatchStats, type Course } from "@/services/training";
+import { getBatches, createBatch, updateBatch, updateBatchStatus, archiveBatch, restoreBatch, duplicateBatch, getBatchStats, getBatchStudents, getSchedules, getBatchAttendance, getBatchProgress, getBatchWaitlist, getBatchCapacity, getBatch, getCourses, assignTrainerToBatch, getTrainers, type Batch, type BatchStats, type Course, type ScheduleEvent, type WaitlistEntry, type Trainer, type BatchTrainer } from "@/services/training";
 import { toast } from "sonner";
 import { cn } from "@/lib/cn";
 
@@ -13,17 +13,28 @@ export function BatchesPage() {
   const [batches, setBatches] = useState<Batch[]>([]);
   const [stats, setStats] = useState<BatchStats | null>(null);
   const [courses, setCourses] = useState<Course[]>([]);
+  const [trainers, setTrainers] = useState<Trainer[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [sortKey, setSortKey] = useState<string>("");
-  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const [sortDir, setSortDir] = useState<string>("");
   const [modalOpen, setModalOpen] = useState(false);
   const [editingBatch, setEditingBatch] = useState<Batch | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<Batch | null>(null);
+  const [restoreConfirm, setRestoreConfirm] = useState<Batch | null>(null);
+  const [duplicateName, setDuplicateName] = useState("");
+  const [duplicateTarget, setDuplicateTarget] = useState<Batch | null>(null);
+  const [detailBatch, setDetailBatch] = useState<Batch | null>(null);
+  const [detailTab, setDetailTab] = useState("students");
+  const [detailData, setDetailData] = useState<Record<string, unknown>>({});
+  const [detailLoading, setDetailLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
+  const [assignTrainerOpen, setAssignTrainerOpen] = useState(false);
+  const [assignBatchId, setAssignBatchId] = useState<string | null>(null);
+  const [selectedTrainerId, setSelectedTrainerId] = useState("");
   const pageSize = 10;
 
   const fetchBatches = useCallback(async () => {
@@ -31,7 +42,7 @@ export function BatchesPage() {
     try {
       const res = await getBatches({ page, pageSize, search, status: activeFilters.status, sortBy: sortKey, sortDir });
       setBatches(res.data ?? []);
-      setTotal(res.data?.length ?? 0);
+      setTotal(res.meta?.total ?? res.data?.length ?? 0);
     } catch {
       setBatches([]);
     } finally {
@@ -41,9 +52,10 @@ export function BatchesPage() {
 
   const fetchMeta = useCallback(async () => {
     try {
-      const [statsRes, coursesRes] = await Promise.all([getBatchStats(), getCourses()]);
+      const [statsRes, coursesRes, trainersRes] = await Promise.all([getBatchStats(), getCourses(), getTrainers({ pageSize: 100 })]);
       setStats(statsRes.data);
       setCourses(coursesRes.data ?? []);
+      setTrainers(trainersRes.data ?? []);
     } catch { /* ignore */ }
   }, []);
 
@@ -51,7 +63,8 @@ export function BatchesPage() {
   useEffect(() => { fetchMeta(); }, [fetchMeta]);
 
   const handleSubmit = async (formData: { name: string; code?: string; courseId?: string; capacity: string; startDate?: string; endDate?: string; status?: string }) => {
-    const payload = { ...formData, capacity: Number(formData.capacity) } as unknown as Partial<Batch>;
+    const { status, ...rest } = formData;
+    const payload = { ...rest, capacity: Number(formData.capacity) } as unknown as Partial<Batch>;
     setSubmitting(true);
     try {
       if (editingBatch) {
@@ -72,6 +85,16 @@ export function BatchesPage() {
     }
   };
 
+  const handleStatusChange = async (batch: Batch, newStatus: string) => {
+    try {
+      await updateBatchStatus(batch.id, newStatus);
+      toast.success(`Batch status changed to ${newStatus}`);
+      fetchBatches();
+    } catch {
+      toast.error("Failed to update batch status");
+    }
+  };
+
   const handleArchive = async (batch: Batch) => {
     try {
       await archiveBatch(batch.id);
@@ -83,14 +106,88 @@ export function BatchesPage() {
     }
   };
 
-  const handleDuplicate = async (batch: Batch) => {
+  const handleRestore = async (batch: Batch) => {
     try {
-      await duplicateBatch(batch.id);
+      await restoreBatch(batch.id);
+      toast.success("Batch restored");
+      setRestoreConfirm(null);
+      fetchBatches();
+      fetchMeta();
+    } catch {
+      toast.error("Failed to restore batch");
+    }
+  };
+
+  const handleDuplicate = async () => {
+    if (!duplicateTarget || !duplicateName.trim()) return;
+    try {
+      await duplicateBatch(duplicateTarget.id, duplicateName.trim());
       toast.success("Batch duplicated");
+      setDuplicateTarget(null);
+      setDuplicateName("");
       fetchBatches();
     } catch {
       toast.error("Failed to duplicate batch");
     }
+  };
+
+  const handleAssignTrainer = async () => {
+    if (!assignBatchId || !selectedTrainerId) return;
+    try {
+      await assignTrainerToBatch(selectedTrainerId, assignBatchId);
+      toast.success("Trainer assigned to batch");
+      setAssignTrainerOpen(false);
+      setSelectedTrainerId("");
+    } catch {
+      toast.error("Failed to assign trainer");
+    }
+  };
+
+  const openDetail = async (batch: Batch) => {
+    setDetailBatch(batch);
+    setDetailTab("students");
+    setDetailLoading(true);
+    setDetailData({});
+    try {
+      const [students, schedules, capacity, detail] = await Promise.all([
+        getBatchStudents(batch.id).catch(() => ({ data: [] })),
+        getSchedules({ batchId: batch.id }).catch(() => ({ data: [] })),
+        getBatchCapacity(batch.id).catch(() => ({ data: null })),
+        getBatch(batch.id).catch(() => ({ data: null })),
+      ]);
+      setDetailData({ students: students.data ?? [], schedules: schedules.data ?? [], capacity: capacity.data, trainers: detail.data?.trainers ?? [] });
+    } catch { /* ignore */ }
+    setDetailLoading(false);
+  };
+
+  const loadDetailTab = async (tab: string, batchId: string) => {
+    setDetailTab(tab);
+    setDetailLoading(true);
+    try {
+      if (tab === "students") {
+        const res = await getBatchStudents(batchId).catch(() => ({ data: [] }));
+        setDetailData((prev) => ({ ...prev, students: res.data ?? [] }));
+      } else if (tab === "schedules") {
+        const res = await getSchedules({ batchId }).catch(() => ({ data: [] }));
+        setDetailData((prev) => ({ ...prev, schedules: res.data ?? [] }));
+      } else if (tab === "attendance") {
+        const res = await getBatchAttendance(batchId).catch(() => ({ data: null }));
+        setDetailData((prev) => ({ ...prev, attendance: res.data }));
+      } else if (tab === "progress") {
+        const res = await getBatchProgress(batchId).catch(() => ({ data: [] }));
+        setDetailData((prev) => ({ ...prev, progress: res.data ?? [] }));
+      } else if (tab === "waitlist") {
+        const res = await getBatchWaitlist(batchId).catch(() => ({ data: [] }));
+        setDetailData((prev) => ({ ...prev, waitlist: res.data ?? [] }));
+      } else if (tab === "capacity") {
+        const res = await getBatchCapacity(batchId).catch(() => ({ data: null }));
+        setDetailData((prev) => ({ ...prev, capacity: res.data }));
+      } else if (tab === "trainers") {
+        const res = await getBatch(batchId).catch(() => ({ data: null }));
+        setDetailData((prev) => ({ ...prev, trainers: res.data?.trainers ?? [] }));
+      }
+    } catch { /* ignore */ }
+    setDetailLoading(false);
   };
 
   const handleSort = (key: string) => {
@@ -111,7 +208,7 @@ export function BatchesPage() {
 
   const columns = [
     { key: "name", header: "Batch", sortable: true, render: (row: Batch) => (
-      <div className="flex items-center gap-3">
+      <button onClick={() => openDetail(row)} className="flex items-center gap-3 text-left">
         <div className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-sm)] bg-primary/10">
           <Layers size={14} className="text-primary" />
         </div>
@@ -119,7 +216,7 @@ export function BatchesPage() {
           <p className="font-medium text-text-primary">{row.name}</p>
           {row.code && <p className="text-xs text-text-secondary">{row.code}</p>}
         </div>
-      </div>
+      </button>
     )},
     { key: "course", header: "Program", render: (row: Batch) => (
       <span className="text-sm text-text-secondary">{row.course?.name || "-"}</span>
@@ -137,7 +234,18 @@ export function BatchesPage() {
       );
     }},
     { key: "status", header: "Status", sortable: true, render: (row: Batch) => (
-      <Badge variant={statusVariant[row.status] ?? "outline"} size="sm">{row.status}</Badge>
+      <UiSelect
+        value={row.status}
+        onChange={(e) => !e.target.value.startsWith("__") && handleStatusChange(row, e.target.value)}
+        options={[
+          { value: "__current", label: row.status, disabled: true },
+          { value: "UPCOMING", label: "Upcoming" },
+          { value: "ACTIVE", label: "Active" },
+          { value: "COMPLETED", label: "Completed" },
+          { value: "CANCELLED", label: "Cancelled" },
+        ]}
+        className="w-32 h-7 text-xs"
+      />
     )},
     { key: "startDate", header: "Duration", render: (row: Batch) => (
       <span className="text-xs text-text-secondary">
@@ -145,17 +253,33 @@ export function BatchesPage() {
         {row.endDate ? ` - ${new Date(row.endDate).toLocaleDateString()}` : ""}
       </span>
     )},
-    { key: "actions", header: "", className: "w-24", render: (row: Batch) => (
+    { key: "actions", header: "", className: "w-32", render: (row: Batch) => (
       <div className="flex items-center gap-1">
+        <Button size="xs" variant="ghost" onClick={() => openDetail(row)} title="View details">
+          <Eye size={14} />
+        </Button>
+        <Button size="xs" variant="ghost" onClick={() => {
+          setAssignBatchId(row.id);
+          setSelectedTrainerId("");
+          setAssignTrainerOpen(true);
+        }} title="Assign trainer">
+          <UserPlus size={14} />
+        </Button>
         <Button size="xs" variant="ghost" onClick={() => { setEditingBatch(row); setModalOpen(true); }} title="Edit">
           <Edit3 size={14} />
         </Button>
-        <Button size="xs" variant="ghost" onClick={() => handleDuplicate(row)} title="Duplicate">
+        <Button size="xs" variant="ghost" onClick={() => { setDuplicateTarget(row); setDuplicateName(`${row.name} (Copy)`); }} title="Duplicate">
           <Copy size={14} />
         </Button>
-        <Button size="xs" variant="ghost" onClick={() => setDeleteConfirm(row)} title="Archive">
-          <Archive size={14} />
-        </Button>
+        {row.isActive === false ? (
+          <Button size="xs" variant="ghost" onClick={() => setRestoreConfirm(row)} title="Restore">
+            <RotateCcw size={14} />
+          </Button>
+        ) : (
+          <Button size="xs" variant="ghost" onClick={() => setDeleteConfirm(row)} title="Archive">
+            <Archive size={14} />
+          </Button>
+        )}
       </div>
     )},
   ];
@@ -179,8 +303,9 @@ export function BatchesPage() {
         </Button>
       }
     >
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-6">
-        <StatCard title="Active Batches" value={batches.filter((b) => b.status === "ACTIVE").length} icon={<Layers size={18} />} />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-4 mb-6">
+        <StatCard title="Batches" value={batches.length} icon={<Layers size={18} />} />
+        <StatCard title="Active" value={batches.filter((b) => b.status === "ACTIVE").length} icon={<Layers size={18} />} />
         <StatCard title="Total Capacity" value={batches.reduce((acc, b) => acc + b.capacity, 0)} icon={<Users size={18} />} />
         <StatCard title="Total Enrolled" value={batches.reduce((acc, b) => acc + (b._count?.enrollments ?? b.enrolled ?? 0), 0)} icon={<BarChart3 size={18} />} />
       </div>
@@ -232,6 +357,204 @@ export function BatchesPage() {
         confirmLabel="Archive"
         intent="warning"
       />
+
+      <ConfirmModal
+        open={!!restoreConfirm}
+        onClose={() => setRestoreConfirm(null)}
+        onConfirm={async () => {
+          if (restoreConfirm) await handleRestore(restoreConfirm);
+        }}
+        title="Restore Batch"
+        description={`Restore "${restoreConfirm?.name}"?`}
+        confirmLabel="Restore"
+        intent="info"
+      />
+
+      <Modal
+        open={!!duplicateTarget}
+        onClose={() => { setDuplicateTarget(null); setDuplicateName(""); }}
+        title="Duplicate Batch"
+        size="sm"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-text-secondary">Create a copy of &ldquo;{duplicateTarget?.name}&rdquo;</p>
+          <Input
+            label="New Batch Name"
+            required
+            value={duplicateName}
+            onChange={(e) => setDuplicateName(e.target.value)}
+          />
+          <div className="flex justify-end gap-3 pt-2">
+            <Button variant="outline" onClick={() => { setDuplicateTarget(null); setDuplicateName(""); }}>Cancel</Button>
+            <Button onClick={handleDuplicate} disabled={!duplicateName.trim()}>Duplicate</Button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        open={assignTrainerOpen}
+        onClose={() => setAssignTrainerOpen(false)}
+        title="Assign Trainer to Batch"
+        size="sm"
+      >
+        <div className="space-y-4">
+          <UiSelect
+            label="Select Trainer"
+            placeholder="Choose a trainer"
+            value={selectedTrainerId}
+            onChange={(e) => setSelectedTrainerId(e.target.value)}
+            options={trainers
+              .filter((t) => t.status === "ACTIVE")
+              .map((t) => ({ value: t.id, label: t.name }))}
+          />
+          <div className="flex justify-end gap-3 pt-2">
+            <Button variant="outline" onClick={() => setAssignTrainerOpen(false)}>Cancel</Button>
+            <Button onClick={handleAssignTrainer} disabled={!selectedTrainerId}>Assign</Button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        open={!!detailBatch}
+        onClose={() => setDetailBatch(null)}
+        title={detailBatch?.name ?? "Batch Details"}
+        size="xl"
+      >
+        {detailBatch && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-4 p-4 rounded-[var(--radius-md)] bg-surface-raised">
+              <Layers size={24} className="text-primary shrink-0" />
+              <div className="flex-1">
+                <p className="text-lg font-semibold text-text-primary">{detailBatch.name}</p>
+                <p className="text-sm text-text-secondary">
+                  {detailBatch.code} • Capacity: {detailBatch.capacity} • Status: {detailBatch.status}
+                </p>
+              </div>
+              <Badge variant={statusVariant[detailBatch.status] ?? "outline"}>{detailBatch.status}</Badge>
+            </div>
+
+            <div className="flex gap-1 rounded-[var(--radius-sm)] border border-border p-0.5 flex-wrap">
+              {["students", "trainers", "schedules", "attendance", "progress", "waitlist", "capacity"].map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => loadDetailTab(tab, detailBatch.id)}
+                  className={`flex items-center gap-1 rounded-[var(--radius-xs)] px-3 py-1.5 text-xs font-medium transition-colors capitalize ${
+                    detailTab === tab ? "bg-primary text-primary-foreground" : "text-text-secondary hover:text-text-primary"
+                  }`}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
+
+            {detailLoading ? (
+              <Skeleton className="h-[200px] rounded-[var(--radius-md)]" />
+            ) : detailTab === "students" ? (
+              <div className="max-h-[300px] overflow-y-auto space-y-2">
+                {((detailData.students as Array<Record<string, unknown>>) ?? []).length === 0 ? (
+                  <p className="py-8 text-center text-sm text-text-secondary">No students enrolled</p>
+                ) : (
+                  (detailData.students as Array<Record<string, unknown>>)?.map((s: Record<string, unknown>, i: number) => (
+                    <div key={i} className="flex items-center gap-3 rounded-[var(--radius-sm)] border border-border px-4 py-2.5">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                        {String((s.student as Record<string, unknown>)?.name || s.name || "?")?.charAt(0)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-text-primary">{(s.student as Record<string, unknown>)?.name as string || s.name as string}</p>
+                        <p className="text-xs text-text-secondary">{(s.student as Record<string, unknown>)?.email as string || s.email as string}</p>
+                      </div>
+                      <Badge size="sm" variant={(s.status as string) === "ACTIVE" ? "success" : "outline"}>{s.status as string}</Badge>
+                    </div>
+                  ))
+                )}
+              </div>
+            ) : detailTab === "trainers" ? (
+              <div className="max-h-[300px] overflow-y-auto space-y-2">
+                {((detailData.trainers as BatchTrainer[]) ?? []).length === 0 ? (
+                  <p className="py-8 text-center text-sm text-text-secondary">No trainers assigned</p>
+                ) : (
+                  (detailData.trainers as BatchTrainer[])?.map((bt: BatchTrainer) => (
+                    <div key={bt.id} className="flex items-center gap-3 rounded-[var(--radius-sm)] border border-border px-4 py-2.5">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                        {bt.trainer.name.charAt(0)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-text-primary">{bt.trainer.name}</p>
+                        <p className="text-xs text-text-secondary">{bt.trainer.email}</p>
+                      </div>
+                      {bt.isPrimary && <Badge size="sm" variant="info">Primary</Badge>}
+                      <span className="text-xs text-text-secondary">Assigned {new Date(bt.assignedAt).toLocaleDateString()}</span>
+                    </div>
+                  ))
+                )}
+              </div>
+            ) : detailTab === "schedules" ? (
+              <div className="max-h-[300px] overflow-y-auto space-y-2">
+                {((detailData.schedules as ScheduleEvent[]) ?? []).length === 0 ? (
+                  <p className="py-8 text-center text-sm text-text-secondary">No scheduled sessions</p>
+                ) : (
+                  (detailData.schedules as ScheduleEvent[])?.map((s) => (
+                    <div key={s.id} className="flex items-center gap-4 rounded-[var(--radius-sm)] border border-border px-4 py-2.5">
+                      <div className="flex flex-col items-center min-w-[36px]">
+                        <span className="text-xs font-bold text-text-primary">{new Date(s.date).getDate()}</span>
+                        <span className="text-[10px] text-text-secondary">{new Date(s.date).toLocaleDateString("en", { month: "short" })}</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-text-primary truncate">{s.batch?.name ?? s.topic ?? "Session"}</p>
+                        <p className="text-xs text-text-secondary">{s.startTime} - {s.endTime}{s.topic ? ` • ${s.topic}` : ""}</p>
+                      </div>
+                      <Badge size="sm" variant={s.status === "SCHEDULED" ? "info" : s.status === "IN_PROGRESS" ? "warning" : s.status === "COMPLETED" ? "success" : "danger"}>
+                        {s.status.replace("_", " ")}
+                      </Badge>
+                    </div>
+                  ))
+                )}
+              </div>
+            ) : detailTab === "attendance" ? (
+              <p className="py-8 text-center text-sm text-text-secondary">Attendance records loaded. View in attendance section for detailed reporting.</p>
+            ) : detailTab === "progress" ? (
+              <div className="max-h-[300px] overflow-y-auto space-y-2">
+                {((detailData.progress as Array<Record<string, unknown>>) ?? []).length === 0 ? (
+                  <p className="py-8 text-center text-sm text-text-secondary">No progress records</p>
+                ) : (
+                  (detailData.progress as Array<Record<string, unknown>>)?.map((p: Record<string, unknown>, i: number) => (
+                    <div key={i} className="flex items-center gap-3 rounded-[var(--radius-sm)] border border-border px-4 py-2.5">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-text-primary">{(p.student as Record<string, unknown>)?.name as string || "Student"}</p>
+                        <p className="text-xs text-text-secondary">Score: {String(p.score ?? "N/A")} • {p.assessedAt as string ? new Date(p.assessedAt as string).toLocaleDateString() : ""}</p>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            ) : detailTab === "waitlist" ? (
+              <div className="max-h-[300px] overflow-y-auto space-y-2">
+                {((detailData.waitlist as Array<Record<string, unknown>>) ?? []).length === 0 ? (
+                  <p className="py-8 text-center text-sm text-text-secondary">No students on waitlist</p>
+                ) : (
+                  (detailData.waitlist as Array<Record<string, unknown>>)?.map((w: Record<string, unknown>, i: number) => (
+                    <div key={i} className="flex items-center gap-3 rounded-[var(--radius-sm)] border border-border px-4 py-2.5">
+                      <Clock size={16} className="text-text-secondary shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-text-primary">{(w.student as Record<string, unknown>)?.name as string || w.studentName as string}</p>
+                        <p className="text-xs text-text-secondary">Position: {i + 1}{(w as Record<string, unknown>).priority ? ` • Priority: ${w.priority as string}` : ""}</p>
+                      </div>
+                      <Badge size="sm" variant="warning">WAITING</Badge>
+                    </div>
+                  ))
+                )}
+              </div>
+            ) : detailTab === "capacity" ? (
+              <div className="grid grid-cols-3 gap-4">
+                <StatCard title="Capacity" value={detailData.capacity ? (detailData.capacity as Record<string, unknown>).capacity as number : detailBatch.capacity} icon={<Users size={18} />} />
+                <StatCard title="Enrolled" value={detailData.capacity ? (detailData.capacity as Record<string, unknown>).enrolled as number : 0} icon={<Users size={18} />} />
+                <StatCard title="Available" value={detailData.capacity ? (detailData.capacity as Record<string, unknown>).available as number : 0} icon={<Users size={18} />} />
+                <StatCard title="Waitlist" value={detailData.capacity ? (detailData.capacity as Record<string, unknown>).waitlistCount as number : 0} icon={<ListOrdered size={18} />} />
+              </div>
+            ) : null}
+          </div>
+        )}
+      </Modal>
     </PageContainer>
   );
 }

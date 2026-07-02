@@ -1,0 +1,26 @@
+meta {
+  name: Waitlist - Update
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{base-url}}/training/waitlists/{{waitlistId}}
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "remarks": "Student confirmed availability"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

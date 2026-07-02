@@ -1,0 +1,27 @@
+meta {
+  name: Batch - Assign Trainer
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{base-url}}/training/batches/{{batchId}}/assign-trainer
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "trainerId": "{{trainerId}}",
+    "isPrimary": true
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -14,6 +14,7 @@ interface TrainerAssignmentPanelProps {
   onRemove: (trainerId: string, batchId: string) => Promise<void>;
   onSetPrimary: (trainerId: string, batchId: string) => Promise<void>;
   trainerBatches?: Record<string, Batch[]>;
+  defaultTrainerId?: string | null;
 }
 
 export function TrainerAssignmentPanel({
@@ -24,9 +25,10 @@ export function TrainerAssignmentPanel({
   onRemove,
   onSetPrimary,
   trainerBatches,
+  defaultTrainerId,
 }: TrainerAssignmentPanelProps) {
   const [search, setSearch] = useState("");
-  const [selectedTrainer, setSelectedTrainer] = useState<string | null>(null);
+  const [selectedTrainer, setSelectedTrainer] = useState<string | null>(defaultTrainerId ?? null);
   const [assigning, setAssigning] = useState(false);
 
   const filteredTrainers = trainers.filter(
@@ -112,76 +114,114 @@ export function TrainerAssignmentPanel({
             {selectedTrainer ? "Assigned Batches" : "Available Batches"}
           </h3>
           <span className="text-xs text-text-secondary">
-            {selectedTrainer ? `${assignedBatches.length} batches` : `${assignedBatches.length} total`}
+            {selectedTrainer
+              ? `${(trainerBatches?.[selectedTrainer] ?? []).length} assigned`
+              : `${assignedBatches.length} total`}
           </span>
         </CardHeader>
         <CardBody className="pt-0">
           {!selectedTrainer ? (
             <p className="py-8 text-center text-sm text-text-secondary">Select a trainer to manage assignments</p>
-          ) : assignedBatches.length === 0 ? (
+          ) : (trainerBatches?.[selectedTrainer] ?? []).length === 0 && assignedBatches.length === 0 ? (
             <p className="py-8 text-center text-sm text-text-secondary">No batches assigned yet</p>
           ) : (
             <div className="max-h-[350px] space-y-2 overflow-y-auto">
-              {assignedBatches.map((batch) => {
-                const tBatches = trainerBatches?.[selectedTrainer];
-                const isAssigned = tBatches?.some((b) => b.id === batch.id);
-                const isPrimary = false;
-                return (
-                  <div
-                    key={batch.id}
-                    className="flex items-center justify-between rounded-[var(--radius-sm)] border border-border px-3 py-2"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-text-primary truncate">{batch.name}</p>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <Badge
-                          variant={batch.status === "ACTIVE" ? "success" : batch.status === "UPCOMING" ? "info" : "outline"}
-                          size="sm"
-                        >
-                          {batch.status}
-                        </Badge>
-                        {isPrimary && (
-                          <Badge variant="brand" size="sm">
-                            <Star size={10} className="mr-0.5" /> Primary
+              {(trainerBatches?.[selectedTrainer] ?? []).length > 0
+                ? (trainerBatches?.[selectedTrainer] ?? []).map((batch) => (
+                    <div
+                      key={batch.id}
+                      className="flex items-center justify-between rounded-[var(--radius-sm)] border border-border px-3 py-2"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-text-primary truncate">{batch.name}</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <Badge
+                            variant={batch.status === "ACTIVE" ? "success" : batch.status === "UPCOMING" ? "info" : "outline"}
+                            size="sm"
+                          >
+                            {batch.status}
                           </Badge>
-                        )}
+                          {(batch as { isPrimary?: boolean }).isPrimary && (
+                            <Badge variant="brand" size="sm">
+                              <Star size={10} className="mr-0.5" /> Primary
+                            </Badge>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-1 shrink-0 ml-2">
-                      {isAssigned ? (
-                        <>
-                          <Button
-                            size="xs"
-                            variant="ghost"
-                            onClick={() => onSetPrimary(selectedTrainer, batch.id)}
-                            title="Set as primary"
-                          >
-                            <Star size={14} />
-                          </Button>
-                          <Button
-                            size="xs"
-                            variant="ghost"
-                            onClick={() => onRemove(selectedTrainer, batch.id)}
-                            title="Remove from batch"
-                          >
-                            <UserMinus size={14} />
-                          </Button>
-                        </>
-                      ) : (
+                      <div className="flex items-center gap-1 shrink-0 ml-2">
                         <Button
                           size="xs"
                           variant="ghost"
-                          onClick={() => handleAssign(batch.id)}
-                          loading={assigning}
-                          title="Assign to batch"
+                          onClick={() => onSetPrimary(selectedTrainer, batch.id)}
+                          title="Set as primary"
                         >
-                          <UserPlus size={14} />
+                          <Star size={14} />
                         </Button>
-                      )}
+                        <Button
+                          size="xs"
+                          variant="ghost"
+                          onClick={() => onRemove(selectedTrainer, batch.id)}
+                          title="Remove from batch"
+                        >
+                          <UserMinus size={14} />
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  ))
+                : assignedBatches.map((batch) => {
+                    const tBatches = trainerBatches?.[selectedTrainer];
+                    const isAssigned = tBatches?.some((b) => b.id === batch.id);
+                    return (
+                      <div
+                        key={batch.id}
+                        className="flex items-center justify-between rounded-[var(--radius-sm)] border border-border px-3 py-2"
+                      >
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium text-text-primary truncate">{batch.name}</p>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <Badge
+                              variant={batch.status === "ACTIVE" ? "success" : batch.status === "UPCOMING" ? "info" : "outline"}
+                              size="sm"
+                            >
+                              {batch.status}
+                            </Badge>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1 shrink-0 ml-2">
+                          {isAssigned ? (
+                            <>
+                              <Button
+                                size="xs"
+                                variant="ghost"
+                                onClick={() => onSetPrimary(selectedTrainer, batch.id)}
+                                title="Set as primary"
+                              >
+                                <Star size={14} />
+                              </Button>
+                              <Button
+                                size="xs"
+                                variant="ghost"
+                                onClick={() => onRemove(selectedTrainer, batch.id)}
+                                title="Remove from batch"
+                              >
+                                <UserMinus size={14} />
+                              </Button>
+                            </>
+                          ) : (
+                            <Button
+                              size="xs"
+                              variant="ghost"
+                              onClick={() => handleAssign(batch.id)}
+                              loading={assigning}
+                              title="Assign to batch"
+                            >
+                              <UserPlus size={14} />
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
             </div>
           )}
         </CardBody>

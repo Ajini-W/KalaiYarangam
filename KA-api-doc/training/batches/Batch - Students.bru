@@ -1,0 +1,20 @@
+meta {
+  name: Batch - Students
+  type: http
+  seq: 11
+}
+
+get {
+  url: {{base-url}}/training/batches/{{batchId}}/students
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

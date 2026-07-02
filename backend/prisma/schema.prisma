@@ -148,6 +148,8 @@ enum EnrollmentStatus {
   DROPPED
   SUSPENDED
   TRANSFERRED
+  WAITING
+  WITHDRAWN
 }
 
 enum TransferStatus {
@@ -666,12 +668,14 @@ model Tenant {
   certificates       Certificate[]
   dashboardWidgets   DashboardWidget[]
   analyticsSnapshots AnalyticsSnapshot[]
-  notifications      Notification[]
-  accessRequests     TenantAccessRequest[]
-  staffMappings      StaffBranchMapping[]
-  securityEvents     SecurityEvent[]
-  tasks              Task[]
-  studentProgress    StudentProgress[]
+  notifications     Notification[]
+  accessRequests    TenantAccessRequest[]
+  staffMappings     StaffBranchMapping[]
+  securityEvents    SecurityEvent[]
+  tasks             Task[]
+  studentProgress   StudentProgress[]
+  trainingDocuments TrainingDocument[]
+  trainingFiles     TrainingFile[]
 
   @@index([slug])
   @@index([status])
@@ -950,9 +954,10 @@ model Student {
   enrollments     Enrollment[]
   attendance      StudentAttendance[]
   progress        StudentProgress[]
-  certificates    Certificate[]
-  invoices        Invoice[]
-  taskSubmissions StudentTaskSubmission[]
+  certificates      Certificate[]
+  invoices          Invoice[]
+  taskSubmissions   StudentTaskSubmission[]
+  trainingDocuments TrainingDocument[]
 
   @@unique([tenantId, phone])
   @@index([tenantId])
@@ -1017,16 +1022,18 @@ model Enrollment {
   batchId         String           @map("batch_id") @db.Uuid
   feePlanId       String?          @map("fee_plan_id") @db.Uuid
   status          EnrollmentStatus @default(ACTIVE)
-  enrolledAt      DateTime         @default(now()) @map("enrolled_at")
+  enrolledAt           DateTime         @default(now()) @map("enrolled_at")
   
   // Pause/Resume tracking parameters
   pausedAt        DateTime?        @map("paused_at")
   totalPausedDays Int              @default(0) @map("total_paused_days")
   
-  completedAt     DateTime?        @map("completed_at")
-  droppedAt       DateTime?        @map("dropped_at")
-  remarks         String?          @db.Text
-  createdAt       DateTime         @default(now()) @map("created_at")
+  completedAt          DateTime?        @map("completed_at")
+  droppedAt            DateTime?        @map("dropped_at")
+  waitlistPosition Int?             @map("waitlist_position")
+  promotedAt       DateTime?        @map("promoted_at")
+  remarks              String?          @db.Text
+  createdAt            DateTime         @default(now()) @map("created_at")
   updatedAt       DateTime         @updatedAt @map("updated_at")
 
   tenant      Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -1251,6 +1258,49 @@ model StudentAttendance {
 
   @@unique([attendanceSessionId, studentId])
   @@map("student_attendance")
+}
+
+model TrainingDocument {
+  id         String   @id @default(uuid()) @db.Uuid
+  tenantId   String   @map("tenant_id") @db.Uuid
+  studentId  String?  @map("student_id") @db.Uuid
+  name       String   @db.VarChar(200)
+  type       String   @db.VarChar(50)     /// ID_PROOF, MEDICAL, CONSENT, CERTIFICATE, OTHER
+  fileUrl    String   @map("file_url") @db.VarChar(500)
+  fileSize   Int?     @map("file_size")
+  mimeType   String?  @map("mime_type") @db.VarChar(100)
+  status     String   @default("PENDING") @db.VarChar(30)  /// PENDING, VERIFIED, REJECTED, ARCHIVED
+  verifiedBy String?  @map("verified_by") @db.Uuid
+  verifiedAt DateTime? @map("verified_at")
+  notes      String?  @db.Text
+  isArchived Boolean  @default(false) @map("is_archived")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  student Student? @relation(fields: [studentId], references: [id])
+
+  @@index([tenantId])
+  @@index([studentId])
+  @@map("training_documents")
+}
+
+model TrainingFile {
+  id           String   @id @default(uuid()) @db.Uuid
+  tenantId     String   @map("tenant_id") @db.Uuid
+  originalName String   @map("original_name") @db.VarChar(255)
+  storagePath  String   @map("storage_path") @db.VarChar(500)
+  mimeType     String?  @map("mime_type") @db.VarChar(100)
+  size         Int?
+  category     String?  @db.VarChar(50)
+  uploadedBy   String   @map("uploaded_by") @db.Uuid
+  isArchived   Boolean  @default(false) @map("is_archived")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("training_files")
 }
 
 // ═══════════════════════════════════════════════════════════════
