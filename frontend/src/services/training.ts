@@ -88,16 +88,26 @@ export interface ScheduleEvent {
 export interface WaitlistEntry {
   id: string;
   tenantId: string;
+  studentId: string;
   batchId: string;
-  studentId: string | null;
-  studentName: string;
-  studentPhone: string;
-  studentEmail: string | null;
-  priority: "LOW" | "MEDIUM" | "HIGH";
-  status: "WAITING" | "PROMOTED" | "WITHDRAWN" | "EXPIRED";
-  notes: string | null;
-  requestedAt: string;
+  status: string;
+  waitlistPosition: number | null;
+  remarks: string | null;
+  promotedAt: string | null;
+  enrolledAt: string;
+  student: {
+    id: string;
+    name: string;
+    phone?: string | null;
+    email?: string | null;
+  };
   batch?: { id: string; name: string };
+}
+
+export interface AddToWaitlistPayload {
+  batchId: string;
+  studentId: string;
+  notes?: string;
 }
 
 export interface TrainingDocument {
@@ -414,40 +424,39 @@ export async function getUpcomingSchedule(): Promise<ApiResponse<ScheduleEvent[]
 
 /* ─── Waitlist ──────────────────────────────────────────────────────────────── */
 
-export async function getWaitlist(query?: PaginationQuery & { batchId?: string }): Promise<ApiResponse<WaitlistEntry[]>> {
+export async function getWaitlist(query?: { page?: number; pageSize?: number; batchId?: string; studentId?: string }): Promise<ApiResponse<WaitlistEntry[]>> {
   const params = new URLSearchParams();
   if (query?.page) params.set("page", String(query.page));
   if (query?.pageSize) params.set("pageSize", String(query.pageSize));
-  if (query?.search) params.set("search", query.search);
-  if (query?.status) params.set("status", query.status);
   if (query?.batchId) params.set("batchId", query.batchId);
+  if (query?.studentId) params.set("studentId", query.studentId);
   const qs = params.toString();
-  const { data } = await apiClient.get<ApiResponse<WaitlistEntry[]>>(`/training/waitlist${qs ? `?${qs}` : ""}`);
+  const { data } = await apiClient.get<ApiResponse<WaitlistEntry[]>>(`/training/waitlists${qs ? `?${qs}` : ""}`);
   return data;
 }
 
 export async function getWaitlistEntry(id: string): Promise<ApiResponse<WaitlistEntry>> {
-  const { data } = await apiClient.get<ApiResponse<WaitlistEntry>>(`/training/waitlist/${id}`);
+  const { data } = await apiClient.get<ApiResponse<WaitlistEntry>>(`/training/waitlists/${id}`);
   return data;
 }
 
-export async function createWaitlistEntry(payload: Partial<WaitlistEntry>): Promise<ApiResponse<WaitlistEntry>> {
-  const { data } = await apiClient.post<ApiResponse<WaitlistEntry>>("/training/waitlist", payload);
+export async function createWaitlistEntry(payload: AddToWaitlistPayload): Promise<ApiResponse<WaitlistEntry>> {
+  const { data } = await apiClient.post<ApiResponse<WaitlistEntry>>("/training/waitlists", payload);
   return data;
 }
 
-export async function updateWaitlistEntry(id: string, payload: Partial<WaitlistEntry>): Promise<ApiResponse<WaitlistEntry>> {
-  const { data } = await apiClient.patch<ApiResponse<WaitlistEntry>>(`/training/waitlist/${id}`, payload);
+export async function updateWaitlistEntry(id: string, payload: { remarks?: string }): Promise<ApiResponse<WaitlistEntry>> {
+  const { data } = await apiClient.patch<ApiResponse<WaitlistEntry>>(`/training/waitlists/${id}`, payload);
   return data;
 }
 
-export async function promoteWaitlistEntry(id: string): Promise<ApiResponse<void>> {
-  const { data } = await apiClient.post<ApiResponse<void>>(`/training/waitlist/${id}/promote`);
+export async function promoteWaitlistEntry(id: string): Promise<ApiResponse<WaitlistEntry>> {
+  const { data } = await apiClient.post<ApiResponse<WaitlistEntry>>(`/training/waitlists/${id}/promote`);
   return data;
 }
 
-export async function withdrawWaitlistEntry(id: string): Promise<ApiResponse<void>> {
-  const { data } = await apiClient.post<ApiResponse<void>>(`/training/waitlist/${id}/withdraw`);
+export async function withdrawWaitlistEntry(id: string): Promise<ApiResponse<WaitlistEntry>> {
+  const { data } = await apiClient.post<ApiResponse<WaitlistEntry>>(`/training/waitlists/${id}/withdraw`);
   return data;
 }
 

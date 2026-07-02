@@ -15,6 +15,7 @@ import { LeadModule } from './lead/lead.module';
 import { InvoiceModule } from './invoice/invoice.module';
 import { FeePlanModule } from './fee-plan/fee-plan.module';
 import { SearchModule } from './reporting/search/search.module';
+import { StudentsModule } from './students/students.module';
 
 
 @Module({
@@ -33,6 +34,7 @@ import { SearchModule } from './reporting/search/search.module';
     ReportsModule,
     BulkModule,
     SearchModule,
+    StudentsModule,
   ],
 })
 export class V1Module { }
