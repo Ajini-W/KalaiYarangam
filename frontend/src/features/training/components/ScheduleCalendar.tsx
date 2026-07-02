@@ -29,6 +29,7 @@ function getStatusColor(status: string): string {
 }
 
 export function ScheduleCalendar({ events, loading, onEventClick, onDateSelect }: ScheduleCalendarProps) {
+  const visibleEvents = useMemo(() => events.filter((e) => e.status !== "CANCELLED"), [events]);
   const [viewMode, setViewMode] = useState<ViewMode>("month");
   const [currentDate, setCurrentDate] = useState(new Date());
 
@@ -52,7 +53,7 @@ export function ScheduleCalendar({ events, loading, onEventClick, onDateSelect }
 
     for (let i = 1; i <= daysInMonth; i++) {
       const d = new Date(year, month, i);
-      const dayEvents = events.filter((e) => {
+      const dayEvents = visibleEvents.filter((e) => {
         const eDate = new Date(e.date);
         return eDate.getFullYear() === year && eDate.getMonth() === month && eDate.getDate() === i;
       });
@@ -66,7 +67,7 @@ export function ScheduleCalendar({ events, loading, onEventClick, onDateSelect }
     }
 
     return days;
-  }, [year, month, firstDayOfMonth, daysInMonth, events]);
+  }, [year, month, firstDayOfMonth, daysInMonth, visibleEvents]);
 
   const navigate = (direction: number) => {
     const newDate = new Date(currentDate);
@@ -157,7 +158,7 @@ export function ScheduleCalendar({ events, loading, onEventClick, onDateSelect }
                           getStatusColor(event.status),
                         )}
                       >
-                        {event.startTime} {event.title}
+                        {event.startTime} {event.batch?.name ?? event.topic ?? "Session"}
                       </div>
                     ))}
                     {day.events.length > 3 && (
@@ -172,10 +173,10 @@ export function ScheduleCalendar({ events, loading, onEventClick, onDateSelect }
 
         {viewMode === "agenda" && (
           <div className="space-y-3">
-            {events.length === 0 ? (
+            {visibleEvents.length === 0 ? (
               <p className="py-8 text-center text-sm text-text-secondary">No scheduled events</p>
             ) : (
-              events.map((event) => (
+              visibleEvents.map((event) => (
                 <div
                   key={event.id}
                   onClick={() => onEventClick?.(event)}
@@ -190,9 +191,9 @@ export function ScheduleCalendar({ events, loading, onEventClick, onDateSelect }
                     </span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-text-primary">{event.title}</p>
+                    <p className="text-sm font-medium text-text-primary">{event.batch?.name ?? event.topic ?? "Session"}</p>
                     <p className="text-xs text-text-secondary">
-                      {event.startTime} - {event.endTime} | {event.batch?.name ?? event.title}
+                      {event.startTime} - {event.endTime} | {event.batch?.name ?? event.topic ?? "Session"}
                     </p>
                     {event.topic && <p className="text-xs text-text-secondary mt-0.5">{event.topic}</p>}
                   </div>
