@@ -1,7 +1,12 @@
 import { PrismaClient, PlanInterval } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
 import * as bcrypt from 'bcrypt';
+import * as dotenv from 'dotenv';
 
-const prisma = new PrismaClient();
+dotenv.config();
+
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
+const prisma = new PrismaClient({ adapter });
 
 const DEFAULT_PLANS = [
   {
@@ -55,6 +60,9 @@ const DEFAULT_PLANS = [
 ];
 
 async function main() {
+  console.warn('⚠️  This seed script only upserts plans and samples students.');
+  console.warn('    It will NOT delete any existing tenant data.');
+
   const passwordHash = await bcrypt.hash('Password123!', 10);
 
   // Seed default plans
@@ -118,15 +126,36 @@ async function main() {
 
   const batch = tenant.batches[0];
 
-  if (batch) {
-    await prisma.student.create({
-      data: {
-        tenantId: tenant.id,
-        name: 'Meena Devi',
-        phone: '9876543212',
-        email: 'meena@example.com',
-      },
-    });
+  const students = await Promise.all(
+    [
+      { name: 'Meena Devi', phone: '9876543212', email: 'meena@example.com' },
+      { name: 'Arun Kumar', phone: '9876543213', email: 'arun@example.com' },
+      { name: 'Sita Rajan', phone: '9876543214', email: 'sita@example.com' },
+      { name: 'Karthik Raja', phone: '9876543215', email: 'karthik@example.com' },
+      { name: 'Lakshmi Priya', phone: '9876543216', email: 'lakshmi@example.com' },
+    ].map((s) =>
+      prisma.student.upsert({
+        where: { tenantId_phone: { tenantId: tenant.id, phone: s.phone } },
+        update: {},
+        create: { tenantId: tenant.id, ...s },
+      }),
+    ),
+  );
+
+  if (batch && students.length > 0) {
+    for (let i = 0; i < students.length; i++) {
+      await prisma.enrollment.upsert({
+        where: { studentId_batchId: { studentId: students[i].id, batchId: batch.id } },
+        update: {},
+        create: {
+          tenantId: tenant.id,
+          studentId: students[i].id,
+          batchId: batch.id,
+          status: 'WAITING',
+          waitlistPosition: i + 1,
+        },
+      });
+    }
   }
 
   console.log('Seed complete. Login: owner@demo.com / Password123!');

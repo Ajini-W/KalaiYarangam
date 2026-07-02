@@ -8,8 +8,9 @@ import { OnboardingModule } from './onboarding/onboarding.module';
 import { ClassModule } from './class/class.module';
 // import { BrunoModule } from './bruno/bruno.module';
 import { SecurityModule } from './security/security.module';
+import { StudentsModule } from './students/students.module';
 
 @Module({
-  imports: [AuthModule, MailModule, NotificationModule, TrainingModule, RbacModule, OnboardingModule, ClassModule, SecurityModule],
+  imports: [AuthModule, MailModule, NotificationModule, TrainingModule, RbacModule, OnboardingModule, ClassModule, SecurityModule, StudentsModule],
 })
 export class V1Module {}
