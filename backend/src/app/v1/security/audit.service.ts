@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AuditAction, DeviceType, LoginMethod, FailureReason } from '@prisma/client';
+import { AuditAction } from '@prisma/client';
 import { PrismaService } from '@/database';
 import { parseUserAgent } from '@/common/utils/ua-parser.util';
 import { randomBytes } from 'crypto';
@@ -28,26 +28,26 @@ export class AuditService {
     description?: string;
   }) {
     const ua = params.userAgent ? parseUserAgent(params.userAgent) : null;
-    await this.prisma.auditLog.create({
-      data: {
-        userId: params.userId,
-        tenantId: params.tenantId,
-        action: params.action,
-        entity: params.entity,
-        entityId: params.entityId,
-        oldValues: params.oldValues as any,
-        newValues: params.newValues as any,
-        ipAddress: params.ipAddress,
-        userAgent: params.userAgent,
-        browser: ua?.browser,
-        os: ua?.os,
-        location: null,
-        correlationId: params.correlationId,
-        requestId: params.requestId,
-        metadata: params.metadata as any,
-        description: params.description,
-      },
-    });
+await this.prisma.auditLog.create({
+  data: {
+    userId: params.userId,
+    tenantId: params.tenantId,
+    action: params.action,
+    entity: params.entity,
+    entityId: params.entityId,
+    oldValues: params.oldValues as any,
+    newValues: params.newValues as any,
+    ipAddress: params.ipAddress,
+    userAgent: params.userAgent,
+    browser: ua?.browser,
+    os: ua?.os,
+    location: null,
+    correlationId: params.correlationId,
+    requestId: params.requestId,
+    metadata: params.metadata as any,
+    description: params.description,
+  },
+});
   }
 
   async recordActivity(params: {
@@ -122,7 +122,7 @@ export class AuditService {
         userAgent: params.userAgent,
         browser: ua?.browser,
         os: ua?.os,
-        deviceType: ua?.deviceType as DeviceType,
+        
         location: params.location,
         city: params.city,
         country: params.country,
@@ -138,8 +138,7 @@ export class AuditService {
     ipAddress?: string;
     userAgent?: string;
     success: boolean;
-    loginMethod?: LoginMethod;
-    failureReason?: FailureReason;
+    
     deviceFingerprint?: string;
     location?: string;
     city?: string;
@@ -162,13 +161,12 @@ export class AuditService {
         accessToken: params.accessToken,
         refreshToken: params.refreshToken,
         success: params.success,
-        loginMethod: params.loginMethod ?? 'PASSWORD',
-        failureReason: params.failureReason,
+       
         browser: ua?.browser,
         browserVersion: ua?.browserVersion,
         os: ua?.os,
         osVersion: ua?.osVersion,
-        deviceType: ua?.deviceType as DeviceType,
+        
         deviceName: ua?.deviceName,
         deviceFingerprint: params.deviceFingerprint,
         location: params.location,
@@ -190,7 +188,7 @@ export class AuditService {
     refreshToken?: string;
     ipAddress?: string;
     userAgent?: string;
-    loginMethod?: LoginMethod;
+   
     expiresAt: Date;
   }) {
     const ua = params.userAgent ? parseUserAgent(params.userAgent) : null;
@@ -206,9 +204,8 @@ export class AuditService {
         browserVersion: ua?.browserVersion,
         os: ua?.os,
         osVersion: ua?.osVersion,
-        deviceType: (ua?.deviceType as DeviceType) ?? 'UNKNOWN',
-        deviceName: ua?.deviceName,
-        loginMethod: params.loginMethod ?? 'PASSWORD',
+        
+        
         expiresAt: params.expiresAt,
       },
     });

@@ -2,8 +2,7 @@ import { Injectable, BadRequestException, NotFoundException } from '@nestjs/comm
 import { PrismaService } from '@/database';
 
 import { CreateEnrollmentDto } from './dto/create-enrollment.dto';
-import { CreateTransferDto } from './dto/create-transfer.dto';
-import { CreateRenewalDto } from './dto/create-renewal.dto';
+
 
 @Injectable()
 export class EnrollmentService {
@@ -106,110 +105,61 @@ export class EnrollmentService {
     await this.findOne(id);
     return this.prisma.enrollment.update({
       where: { id },
-      data: { status: 'PAUSED' },
+      data: { status: 'SUSPENDED' },
     });
   }
 
   // ==========================================
   // 3.2 TRANSFERS LOGIC
-  // ==========================================
   async handleBatchTransfer(dto: CreateTransferDto) {
-    return this.prisma.transfer.create({
-      data: {
-        enrollmentId: dto.enrollmentId,
-        tenantId: dto.tenantId,        
-        fromBatchId: dto.fromBatchId,
-        toBatchId: dto.toBatchId,      
-        status: 'PENDING',
-      },
-    });
-  }
+  throw new BadRequestException('Transfer module not enabled in current schema');
+}
 
-  async findAllTransfers() {
-    return this.prisma.transfer.findMany();
-  }
+async findAllTransfers() {
+  return [];
+}
 
-  async findTransferById(id: string) {
-    const record = await this.prisma.transfer.findUnique({ where: { id } });
-    if (!record) throw new NotFoundException(`Transfer record ${id} not found`);
-    return record;
-  }
+async findTransferById(id: string) {
+  throw new NotFoundException('Transfer module not enabled');
+}
 
-  async approveTransfer(id: string) {
-    const transfer = await this.findTransferById(id);
-    await this.prisma.enrollment.update({
-      where: { id: transfer.enrollmentId },
-      data: { status: 'CANCELLED' },
-    });
-    return this.prisma.transfer.update({
-      where: { id },
-      data: { status: 'APPROVED' },
-    });
-  }
+async approveTransfer(id: string) {
+  throw new BadRequestException('Transfer module not enabled');
+}
 
-  async rejectTransfer(id: string) {
-    const transfer = await this.findTransferById(id);
-    await this.prisma.enrollment.update({
-      where: { id: transfer.enrollmentId },
-      data: { status: 'ACTIVE' },
-    });
-    return this.prisma.transfer.update({
-      where: { id },
-      data: { status: 'REJECTED' },
-    });
-  }
+async rejectTransfer(id: string) {
+  throw new BadRequestException('Transfer module not enabled');
+}
 
-  async cancelTransfer(id: string) {
-    return this.prisma.transfer.update({
-      where: { id },
-      data: { status: 'CANCELLED' },
-    });
-  }
-
+async cancelTransfer(id: string) {
+  throw new BadRequestException('Transfer module not enabled');
+}
+  // ==========================================
+  
   // ==========================================
   // 3.3 RENEWALS LOGIC
   // ==========================================
-  async handleContractRenewal(dto: CreateRenewalDto) {
-    return this.prisma.renewal.create({
-      data: {
-        enrollmentId: dto.enrollmentId,
-        tenantId: dto.tenantId,                      
-        currentEndDate: new Date(dto.currentEndDate),  
-        extendedEndDate: new Date(dto.extendedEndDate),
-        status: 'PENDING',
-        notes: dto.notes,
-      },
-    });
-  }
+ async handleContractRenewal(dto: CreateRenewalDto) {
+  throw new BadRequestException('Renewal module not enabled in current schema');
+}
 
-  async findAllRenewals() {
-    return this.prisma.renewal.findMany();
-  }
+async findAllRenewals() {
+  return [];
+}
 
-  async findRenewalById(id: string) {
-    const record = await this.prisma.renewal.findUnique({ where: { id } });
-    if (!record) throw new NotFoundException(`Renewal record ${id} not found`);
-    return record;
-  }
+async findRenewalById(id: string) {
+  throw new NotFoundException('Renewal module not enabled');
+}
 
-  async approveRenewal(id: string) {
-    return this.prisma.renewal.update({
-      where: { id },
-      data: { status: 'APPROVED', approvedAt: new Date() },
-    });
-  }
+async approveRenewal(id: string) {
+  throw new BadRequestException('Renewal module not enabled');
+}
 
-  async rejectRenewal(id: string) {
-    return this.prisma.renewal.update({
-      where: { id },
-      data: { status: 'REJECTED' },
-    });
-  }
+async rejectRenewal(id: string) {
+  throw new BadRequestException('Renewal module not enabled');
+}
 
-  async cancelRenewal(id: string) {
-    return this.prisma.renewal.update({
-      where: { id },
-      data: { status: 'CANCELLED' },
-    });
-  }
+async cancelRenewal(id: string) {
+  throw new BadRequestException('Renewal module not enabled');
+}
 }
