@@ -66,12 +66,21 @@ export function SchedulesPage() {
 
   const handleSubmit = async () => {
     setSubmitting(true);
+    const payload: { batchId: string; date: string; startTime: string; endTime: string; topic?: string; notes?: string } = {
+      batchId: formData.batchId,
+      date: formData.date,
+      startTime: formData.startTime,
+      endTime: formData.endTime,
+      topic: formData.topic || undefined,
+      notes: formData.notes || undefined,
+    };
     try {
       if (editingEvent) {
-        await updateSchedule(editingEvent.id, formData as unknown as Partial<ScheduleEvent>);
+        const { batchId: _, ...updatePayload } = payload;
+        await updateSchedule(editingEvent.id, updatePayload);
         toast.success("Schedule updated");
       } else {
-        await createSchedule(formData as unknown as Partial<ScheduleEvent>);
+        await createSchedule(payload);
         toast.success("Session scheduled");
       }
       setModalOpen(false);
@@ -114,7 +123,7 @@ export function SchedulesPage() {
   const openReschedule = (event: ScheduleEvent) => {
     setRescheduleTarget(event);
     setRescheduleData({
-      date: event.date,
+      date: event.date.slice(0, 10),
       startTime: event.startTime,
       endTime: event.endTime,
     });
@@ -123,9 +132,10 @@ export function SchedulesPage() {
 
   const handleEventClick = (event: ScheduleEvent) => {
     setEditingEvent(event);
+    const localDate = event.date.slice(0, 10);
     setFormData({
       batchId: event.batchId,
-      date: event.date,
+      date: localDate,
       startTime: event.startTime,
       endTime: event.endTime,
       topic: event.topic ?? "",
@@ -134,7 +144,7 @@ export function SchedulesPage() {
     setModalOpen(true);
   };
 
-  const currentEvents = activeTab === "today" ? todayEvents : activeTab === "upcoming" ? upcomingEvents : events;
+  const currentEvents = (activeTab === "today" ? todayEvents : activeTab === "upcoming" ? upcomingEvents : events).filter((e) => e.status !== "CANCELLED");
 
   return (
     <PageContainer
@@ -168,7 +178,7 @@ export function SchedulesPage() {
 
       {activeTab === "all" ? (
         <ScheduleCalendar
-          events={events}
+          events={events.filter((e) => e.status !== "CANCELLED")}
           loading={loading}
           onEventClick={handleEventClick}
         />
@@ -199,7 +209,7 @@ export function SchedulesPage() {
                       <span className="text-xs text-text-secondary">{new Date(event.date).toLocaleDateString("en", { month: "short" })}</span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-text-primary truncate">{event.title || event.batch?.name || "Session"}</p>
+                      <p className="text-sm font-medium text-text-primary truncate">{event.batch?.name ?? event.topic ?? "Session"}</p>
                       <div className="flex items-center gap-3 mt-0.5 text-xs text-text-secondary">
                         <span className="flex items-center gap-1"><Clock size={10} />{event.startTime} - {event.endTime}</span>
                         {event.batch?.name && <span className="flex items-center gap-1"><BookOpen size={10} />{event.batch.name}</span>}
@@ -304,7 +314,7 @@ export function SchedulesPage() {
       >
         <div className="space-y-4">
           <p className="text-sm text-text-secondary">
-            Reschedule &ldquo;{rescheduleTarget?.title || rescheduleTarget?.batch?.name || "Session"}&rdquo;
+            Reschedule &ldquo;{rescheduleTarget?.batch?.name ?? rescheduleTarget?.topic ?? "Session"}&rdquo;
           </p>
           <Input
             label="New Date"
