@@ -34,6 +34,11 @@
 - Committed all changes as 7 meaningful commits
 - Both frontend and backend compile with zero TypeScript errors
 - Synced database schema via `prisma db push` — added `loginMethod`, `accessToken`, `refreshToken` columns that existed in `schema.prisma` but were missing from the actual database
+- **BatchesPage tested end-to-end**: Create, edit, status dropdown, duplicate, assign trainer, view details (all 6 tabs + trainers tab), archive, restore, list with search/filter — all verified working
+- Fixed remove-trainer: added backend `POST /batches/:id/remove-trainer` endpoint and fixed frontend call
+- Fixed TrainerAssignmentPanel: auto-selects trainer on modal open, shows only that trainer's assigned batches
+- Fixed stats null check (`b.enrolled ?? 0`)
+- Aligned all batch-related types with actual backend responses (BatchStats, getBatchCapacity, getBatchWaitlist, getBatchStudents)
 
 ### In Progress
 - (none)
