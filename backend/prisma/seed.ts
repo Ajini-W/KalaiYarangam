@@ -208,36 +208,6 @@ async function main() {
     await prisma.batch.update({ where: { id: b.id }, data: { enrolled: count } });
   }
 
-  const students = await Promise.all(
-    [
-      { name: 'Meena Devi', phone: '9876543212', email: 'meena@example.com' },
-      { name: 'Arun Kumar', phone: '9876543213', email: 'arun@example.com' },
-      { name: 'Sita Rajan', phone: '9876543214', email: 'sita@example.com' },
-      { name: 'Karthik Raja', phone: '9876543215', email: 'karthik@example.com' },
-      { name: 'Lakshmi Priya', phone: '9876543216', email: 'lakshmi@example.com' },
-    ].map((s) =>
-      prisma.student.upsert({
-        where: { tenantId_phone: { tenantId: tenant.id, phone: s.phone } },
-        update: {},
-        create: { tenantId: tenant.id, ...s },
-      }),
-    ),
-  );
-
-  if (batch && students.length > 0) {
-    for (let i = 0; i < students.length; i++) {
-      await prisma.enrollment.upsert({
-        where: { studentId_batchId: { studentId: students[i].id, batchId: batch.id } },
-        update: {},
-        create: {
-          tenantId: tenant.id,
-          studentId: students[i].id,
-          batchId: batch.id,
-          status: 'WAITING',
-          waitlistPosition: i + 1,
-        },
-      });
-    }
   // ── Trainer → Batch assignments ───────────────────────────
   for (const b of allBatches) {
     await prisma.batchTrainer.upsert({
