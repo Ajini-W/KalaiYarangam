@@ -14,15 +14,24 @@ export class ResponseInterceptor implements NestInterceptor {
 
     return next.handle().pipe(
       map((result: unknown) => {
-        const { message, data, meta } = (result ?? {}) as { message?: string; data?: unknown; meta?: unknown };
-        const body: Record<string, unknown> = {
+        const obj = (result ?? {}) as Record<string, unknown>;
+        if (obj !== null && typeof obj === 'object' && 'data' in obj) {
+          const { message, data, meta } = obj;
+          const body: Record<string, unknown> = {
+            httpStatusCode: httpResponse.statusCode,
+            message: (message as string) ?? 'Success',
+            data: data ?? null,
+            timestamp: new Date().toISOString(),
+          };
+          if (meta !== undefined) body.meta = meta;
+          return body;
+        }
+        return {
           httpStatusCode: httpResponse.statusCode,
-          message: message ?? 'Success',
-          data: data ?? null,
+          message: 'Success',
+          data: obj,
           timestamp: new Date().toISOString(),
         };
-        if (meta !== undefined) body.meta = meta;
-        return body;
       }),
     );
   }
