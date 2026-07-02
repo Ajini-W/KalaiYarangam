@@ -1,0 +1,20 @@
+meta {
+  name: Get Settings
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{base-url}}/training/settings
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

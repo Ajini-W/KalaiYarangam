@@ -1,0 +1,76 @@
+meta {
+  name: Create Audit Log
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{base-url}}/security/audit-logs
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: bearer {{accessToken}}
+}
+
+body:json {
+  {
+    "action": "UPDATE",
+    "entity": "User",
+    "entityId": "user-uuid-here",
+    "userId": "actor-uuid-here",
+    "oldValues": {"status": "ACTIVE"},
+    "newValues": {"status": "SUSPENDED"}
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
+
+example {
+  name: 200
+  
+  request: {
+    url: {{base-url}}/security/audit-logs
+    method: POST
+    headers: {
+      Authorization: bearer {{accessToken}}
+      Content-Type: application/json
+    }
+    body: {
+      type: json
+      content: '''
+        {
+          "action": "UPDATE",
+          "entity": "User",
+          "entityId": "user-uuid-here",
+          "userId": "actor-uuid-here",
+          "oldValues": {"status": "ACTIVE"},
+          "newValues": {"status": "SUSPENDED"}
+        }
+      '''
+    }
+  }
+  
+  response: {
+    status: {
+      code: 201
+      text: Created
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "httpStatusCode": 201,
+          "message": "Audit log created",
+          "data": null,
+          "timestamp": "2026-06-28T10:30:00.000Z"
+        }
+      '''
+    }
+  }
+}

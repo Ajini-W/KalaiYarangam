@@ -1,0 +1,61 @@
+meta {
+  name: Metrics
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{base-url}}/dashboard/metrics
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: bearer {{accessToken}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
+
+example {
+  name: 200
+
+  request: {
+    url: {{base-url}}/dashboard/metrics
+    method: GET
+    mode: none
+    headers: {
+      Authorization: bearer {{accessToken}}
+    }
+  }
+
+  response: {
+    status: {
+      code: 200
+      text: OK
+    }
+
+    body: {
+      type: json
+      content: '''
+        {
+          "httpStatusCode": 200,
+          "message": "Dashboard metrics retrieved successfully",
+          "data": {
+            "newStudentsThisMonth": 5,
+            "totalLeads": 15,
+            "newLeadsThisMonth": 3,
+            "convertedLeads": 2,
+            "conversionRate": 13,
+            "attendanceRate": 85,
+            "totalAttendanceRecords": 120,
+            "avgBatchUtilization": 72
+          },
+          "timestamp": "2026-06-29T13:00:00.000Z"
+        }
+      '''
+    }
+  }
+}

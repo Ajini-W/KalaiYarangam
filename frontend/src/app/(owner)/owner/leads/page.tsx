@@ -1,4 +1,4 @@
-import { PlaceholderPage } from "@/lib/placeholder-page";
+import { LeadsPage } from "@/features/foundation/pages/leads-page";
 export default function Page() {
-  return <PlaceholderPage title="Leads" description="Manage leads here." />;
+  return <LeadsPage />;
 }

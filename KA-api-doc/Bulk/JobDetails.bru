@@ -1,0 +1,20 @@
+meta {
+  name: Job Details
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{base-url}}/bulk/jobs/job-uuid-here
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: bearer {{accessToken}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

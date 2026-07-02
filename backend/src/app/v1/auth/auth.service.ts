@@ -10,23 +10,29 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
-import { AuditAction, AuthProviderType, UserRole, UserStatus } from '@prisma/client';
-import { PrismaService } from '@/database';
 import { env } from '@/config';
+import { AuditAction, AuthProviderType, UserRole, UserStatus } from '@prisma/client';
+
+import { PrismaService } from '@/database';
 import { MailService } from '@/app/v1/mail/mail.service';
+
+
 import { AuditService } from '@/app/v1/security/audit.service';
+
 import { AuthenticatedUser } from '@/common/interfaces';
+import { AuthErrorLogDto } from './dto/auth.dto';
+
 import {
-  ChangePasswordDto,
-  ForgotPasswordDto,
   LoginDto,
   RegisterDto,
   RefreshTokenDto,
+  ForgotPasswordDto,
   ResetPasswordDto,
+  ChangePasswordDto,
+  VerifyEmailDto,
   SendVerificationTokenDto,
   UpdateProfileDto,
   UpdateUserStatusDto,
-  VerifyEmailDto,
 } from './dto/auth.dto';
 
 @Injectable()
@@ -36,120 +42,48 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly mailService: MailService,
     private readonly auditService: AuditService,
-  ) {}
+  ) { }
 
+  // ================= REGISTER =================
   async register(dto: RegisterDto) {
-    const [existingEmailUser, existingPhoneUser] = await Promise.all([
-      this.prisma.user.findUnique({ where: { email: dto.email } }),
-      dto.phone
-        ? this.prisma.user.findUnique({ where: { phone: dto.phone } })
-        : null,
-    ]);
-
-    if (existingPhoneUser && existingPhoneUser.email !== dto.email) {
-      throw new ConflictException('A user with this phone number already exists');
-    }
-
-    const passwordHash = await bcrypt.hash(dto.password, 10);
-    const verificationToken = randomBytes(32).toString('hex');
-    const verificationTokenExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
-
-    // If user already exists (e.g. from Google OAuth), link the account
-    if (existingEmailUser) {
-      // Check if email/password provider already linked
-      const existingProvider = await this.prisma.authProvider.findUnique({
-        where: { userId_provider: { userId: existingEmailUser.id, provider: AuthProviderType.EMAIL } },
-      });
-
-      if (!existingProvider) {
-        await this.prisma.authProvider.create({
-          data: { userId: existingEmailUser.id, provider: AuthProviderType.EMAIL, email: dto.email },
-        });
-      }
-
-      const updated = await this.prisma.user.update({
-        where: { id: existingEmailUser.id },
-        data: {
-          passwordHash,
-          passwordSet: true,
-          name: dto.name,
-          phone: dto.phone || existingEmailUser.phone,
-          verificationToken,
-          verificationTokenExpiresAt,
-          status: existingEmailUser.status === UserStatus.ACTIVE
-            ? UserStatus.ACTIVE
-            : UserStatus.NEW_USER,
-        },
-      });
-
-      try {
-        await this.mailService.send({
-          to: dto.email,
-          template: 'verify-email',
-          variables: {
-            name: dto.name,
-            email: dto.email,
-            verificationLink: `${env.APP_URL}/verify-email?token=${verificationToken}`,
-          },
-        });
-      } catch {
-        // Email failure should not block registration
-      }
-
-      return {
-        message: 'Registration successful. Please check your email to verify your account.',
-        data: await this.buildAuthResponse(updated),
-      };
-    }
-
-    const user = await this.prisma.$transaction(async (tx) => {
-      const u = await tx.user.create({
-        data: {
-          email: dto.email,
-          passwordHash,
-          passwordSet: true,
-          name: dto.name,
-          phone: dto.phone,
-          role: UserRole.STAFF,
-          status: UserStatus.NEW_USER,
-          verificationToken,
-          verificationTokenExpiresAt,
-        },
-      });
-
-      await tx.authProvider.create({
-        data: { userId: u.id, provider: AuthProviderType.EMAIL, email: dto.email },
-      });
-
-      await tx.onboardingProgress.create({
-        data: { userId: u.id },
-      });
-
-      return u;
+    const existing = await this.prisma.user.findUnique({
+      where: { email: dto.email },
     });
 
-    try {
-      await this.mailService.send({
-        to: dto.email,
-        template: 'verify-email',
-        variables: {
-          name: dto.name,
-          email: dto.email,
-          verificationLink: `${env.APP_URL}/verify-email?token=${verificationToken}`,
-        },
-      });
-    } catch {
-      // Email failure should not block registration
-    }
+    if (existing) throw new ConflictException('Email already exists');
 
-    return {
-      message: 'Registration successful. Please check your email to verify your account.',
-      data: await this.buildAuthResponse(user),
-    };
+    const passwordHash = await bcrypt.hash(dto.password, 10);
+    const token = randomBytes(32).toString('hex');
+
+    const user = await this.prisma.user.create({
+      data: {
+        email: dto.email,
+        passwordHash,
+        name: dto.name,
+        phone: dto.phone,
+        role: UserRole.STAFF,
+        status: UserStatus.NEW_USER,
+        verificationToken: token,
+        verificationTokenExpiresAt: new Date(Date.now() + 86400000),
+        passwordSet: true,
+      },
+    });
+
+    await this.mailService.send({
+      to: dto.email,
+      template: 'verify-email',
+      variables: {
+        name: dto.name,
+        verificationLink: `${env.APP_URL}/verify-email?token=${token}`,
+      },
+    });
+
+    return this.buildAuthResponse(user);
   }
 
+  // ================= VERIFY EMAIL =================
   async verifyEmail(dto: VerifyEmailDto) {
-    const user = await this.prisma.user.findUnique({
+    const user = await this.prisma.user.findFirst({
       where: { verificationToken: dto.token },
     });
 
@@ -157,12 +91,8 @@ export class AuthService {
       throw new BadRequestException('Invalid verification token');
     }
 
-    if (user.status === UserStatus.ACTIVE) {
-      throw new BadRequestException('Email is already verified');
-    }
-
     if (
-      user.verificationTokenExpiresAt &&
+      !user.verificationTokenExpiresAt ||
       user.verificationTokenExpiresAt < new Date()
     ) {
       throw new GoneException('Verification token expired');
@@ -171,14 +101,14 @@ export class AuthService {
     await this.prisma.user.update({
       where: { id: user.id },
       data: {
-        status: UserStatus.REGISTERED,
+        status: UserStatus.ACTIVE,
+        verifiedAt: new Date(),
         verificationToken: null,
         verificationTokenExpiresAt: null,
-        verifiedAt: new Date(),
       },
     });
 
-    return { message: 'Email verified successfully', data: { emailVerified: true } };
+    return { message: 'Email verified successfully' };
   }
 
   async sendVerificationToken(dto: SendVerificationTokenDto) {
@@ -258,75 +188,52 @@ export class AuthService {
       where: { resetPasswordToken: dto.token },
     });
 
-    if (!user) {
-      throw new BadRequestException('Invalid reset token');
-    }
+    if (!user) throw new BadRequestException('Invalid token');
 
-    if (
-      user.resetPasswordExpiresAt &&
-      user.resetPasswordExpiresAt < new Date()
-    ) {
-      throw new GoneException('Reset token expired');
-    }
-
-    const passwordHash = await bcrypt.hash(dto.password, 10);
+    const hash = await bcrypt.hash(dto.password, 10);
 
     await this.prisma.user.update({
       where: { id: user.id },
       data: {
-        passwordHash,
-        passwordSet: true,
+        passwordHash: hash,
         resetPasswordToken: null,
         resetPasswordExpiresAt: null,
       },
     });
 
-    return { message: 'Password reset successfully.' };
+    return { message: 'Password reset successful' };
   }
 
+  // ================= CHANGE PASSWORD =================
   async changePassword(dto: ChangePasswordDto, userId: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-    });
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
 
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
+    if (!user) throw new NotFoundException();
 
-    const valid = await bcrypt.compare(dto.currentPassword, user.passwordHash);
+    const ok = await bcrypt.compare(dto.currentPassword, user.passwordHash);
+    if (!ok) throw new UnauthorizedException();
 
-    if (!valid) {
-      throw new UnauthorizedException('Current password is incorrect');
-    }
-
-    const passwordHash = await bcrypt.hash(dto.newPassword, 10);
+    const hash = await bcrypt.hash(dto.newPassword, 10);
 
     await this.prisma.user.update({
       where: { id: userId },
-      data: { passwordHash, passwordSet: true },
+      data: { passwordHash: hash },
     });
 
-    return { message: 'Password changed successfully.' };
+    return { message: 'Password changed' };
   }
-
   async setPassword(dto: { newPassword: string }, userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
 
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
+    if (!user) throw new NotFoundException('User not found');
 
-    if (user.passwordSet) {
-      throw new BadRequestException('Password already set. Use change-password instead.');
-    }
-
-    const passwordHash = await bcrypt.hash(dto.newPassword, 10);
+    const hash = await bcrypt.hash(dto.newPassword, 10);
 
     await this.prisma.user.update({
       where: { id: userId },
-      data: { passwordHash, passwordSet: true },
+      data: { passwordHash: hash, passwordSet: true },
     });
 
     return { message: 'Password set successfully.' };
@@ -549,31 +456,15 @@ export class AuthService {
   }
 
   async getPreferences(userId: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { preferences: true },
-    });
-    if (!user) throw new NotFoundException('User not found');
-    return {
-      message: 'Preferences retrieved',
-      data: (user.preferences as Record<string, unknown>) ?? {},
-    };
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    return user?.preferences ?? {};
   }
 
-  async updatePreferences(userId: string, preferences: Record<string, unknown>) {
-    const user = await this.prisma.user.findUnique({
+  async updatePreferences(userId: string, preferences: any) {
+    return this.prisma.user.update({
       where: { id: userId },
-      select: { preferences: true },
+      data: { preferences },
     });
-    if (!user) throw new NotFoundException('User not found');
-
-    const merged = { ...((user.preferences as Record<string, unknown>) ?? {}), ...preferences };
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { preferences: merged as any },
-    });
-
-    return { message: 'Preferences updated', data: merged };
   }
 
   async getProfile(userId: string) {
@@ -604,17 +495,17 @@ export class AuthService {
         preferences: user.preferences as Record<string, unknown> | null,
         profile: user.profile
           ? {
-              dateOfBirth: user.profile.dateOfBirth?.toISOString().split('T')[0],
-              gender: user.profile.gender,
-              addressLine1: user.profile.addressLine1,
-              addressLine2: user.profile.addressLine2,
-              city: user.profile.city,
-              state: user.profile.state,
-              pincode: user.profile.pincode,
-              emergencyName: user.profile.emergencyName,
-              emergencyPhone: user.profile.emergencyPhone,
-              bio: user.profile.bio,
-            }
+            dateOfBirth: user.profile.dateOfBirth?.toISOString().split('T')[0],
+            gender: user.profile.gender,
+            addressLine1: user.profile.addressLine1,
+            addressLine2: user.profile.addressLine2,
+            city: user.profile.city,
+            state: user.profile.state,
+            pincode: user.profile.pincode,
+            emergencyName: user.profile.emergencyName,
+            emergencyPhone: user.profile.emergencyPhone,
+            bio: user.profile.bio,
+          }
           : null,
       },
     };
@@ -677,23 +568,22 @@ export class AuthService {
   }, rememberMe?: boolean) {
     const payload = this.toPayload(user);
 
-    const accessToken = this.jwtService.sign(payload);
+    const accessToken = this.jwtService.sign(payload, {
+      secret: env.JWT_SECRET,
+      expiresIn: '15m',
+    });
 
-    const refreshExpiresIn = rememberMe ? '30d' : env.JWT_REFRESH_EXPIRES_IN;
     const refreshToken = this.jwtService.sign(
       { sub: user.id },
-      { secret: env.JWT_REFRESH_SECRET, expiresIn: refreshExpiresIn as any },
+      {
+        secret: env.JWT_REFRESH_SECRET,
+        expiresIn: '7d',
+      },
     );
-
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + (rememberMe ? 30 : 7));
-
-    await this.prisma.refreshToken.create({
-      data: { userId: user.id, token: refreshToken, expiresAt },
-    });
 
     return { accessToken, refreshToken };
   }
+
 
   async googleLogin(req: any, ipAddress?: string, userAgent?: string) {
     if (!req.user) {
@@ -830,11 +720,10 @@ export class AuthService {
   }) {
     return {
       id: user.id,
-      tenantId: user.tenantId ?? '',
-      branchId: null,
       email: user.email,
       name: user.name,
       role: user.role,
+
       status: user.status ?? '',
       emailVerified: user.status !== 'NEW_USER' && user.status !== 'PENDING',
       tenantName: user.tenantName ?? null,
@@ -854,14 +743,7 @@ export class AuthService {
     });
   }
 
-  private async buildAuthResponse(user: {
-    id: string;
-    tenantId: string | null;
-    email: string;
-    name: string;
-    role: AuthenticatedUser['role'];
-    status: string;
-  }) {
+  private async buildAuthResponse(user: any) {
     const tokens = await this.generateTokens(user);
     return {
       user: this.toPayload(user),
@@ -869,4 +751,3 @@ export class AuthService {
     };
   }
 }
-

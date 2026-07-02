@@ -1,0 +1,28 @@
+meta {
+  name: Update Branch
+  type: http
+  seq: 7
+}
+
+patch {
+  url: {{base-url}}/training/branches/{{branchId}}
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "name": "Updated Branch",
+    "phone": "8838121130",
+    "city": "Coimbatore"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

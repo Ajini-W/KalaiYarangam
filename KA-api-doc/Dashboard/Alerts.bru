@@ -1,0 +1,141 @@
+meta {
+  name: Alerts
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{base-url}}/dashboard/alerts
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: bearer {{accessToken}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
+
+example {
+  name: 200
+  
+  request: {
+    url: {{base-url}}/dashboard/alerts
+    method: GET
+    mode: none
+    headers: {
+      Authorization: bearer {{accessToken}}
+    }
+  }
+  
+  response: {
+    status: {
+      code: 200
+      text: OK
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "httpStatusCode": 200,
+          "message": "Dashboard alerts retrieved successfully",
+          "data": {
+            "overdueInvoices": [
+              {
+                "id": "uuid-i1",
+                "invoiceNumber": "INV-001",
+                "totalAmount": 15000.00,
+                "paidAmount": 0,
+                "dueDate": "2026-06-20",
+                "student": { "id": "uuid-s1", "name": "Student A", "phone": "9876543210" },
+                "status": "OVERDUE"
+              }
+            ],
+            "pendingFollowups": [
+              {
+                "id": "uuid-f1",
+                "name": "Jane Doe",
+                "phone": "9876543211",
+                "course": "Physics",
+                "status": "NEW",
+                "nextFollowUp": null,
+                "createdAt": "2026-06-22T10:00:00.000Z"
+              }
+            ],
+            "overdueTasks": [
+              {
+                "id": "uuid-t1",
+                "title": "Assignment 2",
+                "type": "ASSIGNMENT",
+                "status": "ACTIVE",
+                "dueDate": "2026-06-25",
+                "batch": { "id": "uuid-b1", "name": "Batch A" }
+              }
+            ]
+          },
+          "timestamp": "2026-06-29T13:00:00.000Z"
+        }
+      '''
+    }
+  }
+}
+
+example {
+  name: example
+  
+  request: {
+    url: {{base-url}}/dashboard/alerts
+    method: GET
+    mode: none
+    headers: {
+      Authorization: bearer {{accessToken}}
+    }
+  }
+  
+  response: {
+    headers: {
+      content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+      cross-origin-opener-policy: same-origin
+      cross-origin-resource-policy: same-origin
+      origin-agent-cluster: ?1
+      referrer-policy: no-referrer
+      strict-transport-security: max-age=31536000; includeSubDomains
+      x-content-type-options: nosniff
+      x-dns-prefetch-control: off
+      x-download-options: noopen
+      x-frame-options: SAMEORIGIN
+      x-permitted-cross-domain-policies: none
+      x-xss-protection: 0
+      access-control-allow-origin: http://localhost:3000
+      vary: Origin, Accept-Encoding
+      access-control-allow-credentials: true
+      content-type: application/json; charset=utf-8
+      content-length: 93
+      etag: W/"5d-7zIPdWDKvGhIYGMk4vZ3vvCX+mE"
+      date: Mon, 29 Jun 2026 14:10:50 GMT
+      connection: keep-alive
+      keep-alive: timeout=5
+    }
+  
+    status: {
+      code: 200
+      text: OK
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "httpStatusCode": 200,
+          "message": "Success",
+          "data": null,
+          "timestamp": "2026-06-29T14:10:50.262Z"
+        }
+      '''
+    }
+  }
+}

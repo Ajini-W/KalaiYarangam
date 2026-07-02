@@ -1,0 +1,20 @@
+meta {
+  name: Get Branding
+  type: http
+  seq: 11
+}
+
+get {
+  url: {{base-url}}/training/branding
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

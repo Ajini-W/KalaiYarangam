@@ -1,0 +1,20 @@
+meta {
+  name: PaymentDue
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{base-url}}/reports/payment-due
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: bearer {{accessToken}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

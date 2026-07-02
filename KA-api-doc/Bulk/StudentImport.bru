@@ -1,0 +1,42 @@
+meta {
+  name: Student Import
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base-url}}/bulk/students/import
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: bearer {{accessToken}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "students": [
+      {
+        "name": "Ravi",
+        "phone": "9788583045",
+        "email": "student@gmail.com",
+        "parentName": "Krishnan",
+        "parentPhone": "8825474846",
+        "address": "217,srinagar,saravanampatti",
+        "city": "Coimbatore",
+        "state": "TamilNadu",
+        "pincode": "638183",
+        "gender": "MALE",
+        "medicalNotes": "None"
+      }
+    ],
+    "batchId": "0dc78def-8e0b-4747-b77a-1923a999eaf0"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -1,0 +1,36 @@
+meta {
+  name: Attendance Bulk
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{base-url}}/bulk/attendance
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: bearer {{accessToken}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "batchId": "0dc78def-8e0b-4747-b77a-1923a999eaf0",
+    "date": "2026-06-30T00:00:00.000Z",
+    "records": [
+      {
+        "studentId": "e30dfb75-0b0b-47f7-8ec2-627975dfce53",
+        "status": "PRESENT",
+        "remarks": "On time",
+        "checkInTime": "09:00 AM"
+      }
+    ]
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

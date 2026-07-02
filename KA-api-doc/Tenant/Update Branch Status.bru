@@ -1,0 +1,26 @@
+meta {
+  name: Update Branch Status
+  type: http
+  seq: 8
+}
+
+patch {
+  url: {{base-url}}/training/branches/{{branchId}}/status
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "isActive": false
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
