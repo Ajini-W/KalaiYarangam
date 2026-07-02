@@ -115,6 +115,11 @@ export class QueryBatchDto {
   branchId?: string;
 }
 
+export class RemoveTrainerDto {
+  @IsUUID()
+  trainerId!: string;
+}
+
 export class DuplicateBatchDto {
   @IsString()
   @MinLength(2)

@@ -373,12 +373,14 @@ export function TrainersPage() {
         size="xl"
       >
         <TrainerAssignmentPanel
+          key={selectedTrainerId}
           trainers={trainers}
           assignedBatches={batches}
           onAssign={handleAssign}
           onRemove={handleRemove}
           onSetPrimary={async (trainerId, batchId) => { await assignTrainerToBatch(trainerId, batchId, true); toast.success("Primary trainer updated"); }}
           trainerBatches={trainerBatches}
+          defaultTrainerId={selectedTrainerId}
         />
       </Modal>
 

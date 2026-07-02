@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Input, Textarea, Button } from "@/components/ui";
+import type { Resolver } from "react-hook-form";
 import type { Course } from "@/services/training";
 
 const schema = z.object({
@@ -33,7 +34,7 @@ export function ProgramForm({ initialData, onSubmit, onCancel, loading }: Progra
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<FormData>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(schema) as unknown as Resolver<FormData>,
     defaultValues: {
       name: initialData?.name ?? "",
       description: initialData?.description ?? "",

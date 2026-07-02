@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { PrismaService } from '@/database';
 import { AuthenticatedUser } from '@/common/interfaces';
 import { paginate, paginationArgs } from '@/common/utils';
-import { AssignTrainerDto, CreateBatchDto, DuplicateBatchDto, QueryBatchDto, UpdateBatchDto, UpdateBatchStatusDto } from './dto/batches.dto';
+import { AssignTrainerDto, CreateBatchDto, DuplicateBatchDto, QueryBatchDto, RemoveTrainerDto, UpdateBatchDto, UpdateBatchStatusDto } from './dto/batches.dto';
 
 @Injectable()
 export class BatchesService {
@@ -82,7 +82,7 @@ export class BatchesService {
     for (const b of all) {
       statusCounts[b.status] = (statusCounts[b.status] ?? 0) + 1;
       totalCapacity += b.capacity;
-      totalEnrolled += b.enrolled;
+      totalEnrolled += (b.enrolled ?? 0);
     }
 
     return {
@@ -286,6 +286,34 @@ export class BatchesService {
     });
 
     return { message: 'Trainer assigned successfully', data: result };
+  }
+
+  async removeTrainer(user: AuthenticatedUser, id: string, dto: RemoveTrainerDto) {
+    if (!user.tenantId) {
+      throw new NotFoundException('Tenant not found');
+    }
+
+    const batch = await this.prisma.batch.findFirst({
+      where: { id, tenantId: user.tenantId },
+    });
+
+    if (!batch) {
+      throw new NotFoundException('Batch not found');
+    }
+
+    const existing = await this.prisma.batchTrainer.findUnique({
+      where: { batchId_trainerId: { batchId: id, trainerId: dto.trainerId } },
+    });
+
+    if (!existing) {
+      throw new NotFoundException('Trainer assignment not found');
+    }
+
+    await this.prisma.batchTrainer.delete({
+      where: { batchId_trainerId: { batchId: id, trainerId: dto.trainerId } },
+    });
+
+    return { message: 'Trainer removed from batch successfully' };
   }
 
   async findStudents(user: AuthenticatedUser, id: string) {

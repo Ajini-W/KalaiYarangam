@@ -54,9 +54,10 @@ export interface BatchTrainer {
 
 export interface BatchStats {
   total: number;
-  active: number;
-  completed: number;
-  upcoming: number;
+  statusCounts: Record<string, number>;
+  totalCapacity: number;
+  totalEnrolled: number;
+  enrollmentRate: number;
 }
 
 export interface Trainer {
@@ -255,8 +256,8 @@ export async function getBatchStats(): Promise<ApiResponse<BatchStats>> {
   return data;
 }
 
-export async function getBatchStudents(batchId: string): Promise<ApiResponse<Array<{ id: string; name: string; email: string; phone: string }>>> {
-  const { data } = await apiClient.get<ApiResponse<Array<{ id: string; name: string; email: string; phone: string }>>>(`/training/batches/${batchId}/students`);
+export async function getBatchStudents(batchId: string): Promise<ApiResponse<Array<{ id: string; studentId: string; status: string; enrolledAt: string; student: { id: string; name: string; email: string; phone: string } }>>> {
+  const { data } = await apiClient.get<ApiResponse<Array<{ id: string; studentId: string; status: string; enrolledAt: string; student: { id: string; name: string; email: string; phone: string } }>>>(`/training/batches/${batchId}/students`);
   return data;
 }
 
@@ -275,13 +276,13 @@ export async function getBatchProgress(batchId: string): Promise<ApiResponse<unk
   return data;
 }
 
-export async function getBatchWaitlist(batchId: string): Promise<ApiResponse<WaitlistEntry[]>> {
-  const { data } = await apiClient.get<ApiResponse<WaitlistEntry[]>>(`/training/batches/${batchId}/waitlist`);
+export async function getBatchWaitlist(batchId: string): Promise<ApiResponse<Array<{ id: string; studentId: string; status: string; priority?: string; waitlistPosition?: number; enrolledAt: string; student: { id: string; name: string; email: string; phone: string } }>>> {
+  const { data } = await apiClient.get<ApiResponse<Array<{ id: string; studentId: string; status: string; priority?: string; waitlistPosition?: number; enrolledAt: string; student: { id: string; name: string; email: string; phone: string } }>>>(`/training/batches/${batchId}/waitlist`);
   return data;
 }
 
-export async function getBatchCapacity(batchId: string): Promise<ApiResponse<{ capacity: number; enrolled: number; occupancy: number; waitlist: number }>> {
-  const { data } = await apiClient.get<ApiResponse<{ capacity: number; enrolled: number; occupancy: number; waitlist: number }>>(`/training/batches/${batchId}/capacity`);
+export async function getBatchCapacity(batchId: string): Promise<ApiResponse<{ capacity: number; enrolled: number; available: number; waitlistCount: number }>> {
+  const { data } = await apiClient.get<ApiResponse<{ capacity: number; enrolled: number; available: number; waitlistCount: number }>>(`/training/batches/${batchId}/capacity`);
   return data;
 }
 
@@ -348,7 +349,7 @@ export async function assignTrainerToBatch(trainerId: string, batchId: string, i
 }
 
 export async function removeTrainerFromBatch(trainerId: string, batchId: string): Promise<ApiResponse<void>> {
-  const { data } = await apiClient.post<ApiResponse<void>>(`/training/batches/${batchId}/assign-trainer`, { trainerId, isPrimary: false });
+  const { data } = await apiClient.post<ApiResponse<void>>(`/training/batches/${batchId}/remove-trainer`, { trainerId });
   return data;
 }
 

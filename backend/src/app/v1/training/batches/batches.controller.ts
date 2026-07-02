@@ -3,7 +3,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from '@/common/decorators';
 import { AuthenticatedUser } from '@/common/interfaces';
 import { BatchesService } from './batches.service';
-import { AssignTrainerDto, CreateBatchDto, DuplicateBatchDto, QueryBatchDto, UpdateBatchDto, UpdateBatchStatusDto } from './dto/batches.dto';
+import { AssignTrainerDto, CreateBatchDto, DuplicateBatchDto, QueryBatchDto, RemoveTrainerDto, UpdateBatchDto, UpdateBatchStatusDto } from './dto/batches.dto';
 
 @ApiTags('training/batches')
 @ApiBearerAuth()
@@ -75,6 +75,15 @@ export class BatchesController {
     @Body() dto: AssignTrainerDto,
   ) {
     return this.batchesService.assignTrainer(user, id, dto);
+  }
+
+  @Post(':id/remove-trainer')
+  removeTrainer(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: RemoveTrainerDto,
+  ) {
+    return this.batchesService.removeTrainer(user, id, dto);
   }
 
   @Get(':id/students')
