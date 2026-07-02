@@ -7,6 +7,11 @@ import { UserRole } from '@prisma/client';
 import { PrismaService } from '@/database';
 import { AuditService } from './audit.service';
 import { paginate, paginationArgs } from '@/common/utils';
+import {
+  CreateAuditLogDto,
+  CreateActivityLogDto,
+  CreateSecurityEventDto,
+} from './dto/security.dto';
 
 @Injectable()
 export class SecurityService {
@@ -106,8 +111,8 @@ export class SecurityService {
     });
 
     if (!session) throw new NotFoundException('Session not found');
-    if (adminUser.role !== UserRole.SUPER_ADMIN) {
-      throw new ForbiddenException('Only super admin can revoke sessions');
+    if (adminUser.role !== UserRole.SUPER_ADMIN && adminUser.role !== UserRole.OWNER) {
+      throw new ForbiddenException('Only super admin or owner can revoke sessions');
     }
 
     await this.prisma.session.update({
@@ -174,8 +179,8 @@ export class SecurityService {
   }
 
   async revokeAllUserSessions(userId: string, adminUser: { id: string; role: string }) {
-    if (adminUser.role !== UserRole.SUPER_ADMIN) {
-      throw new ForbiddenException('Only super admin can revoke sessions');
+    if (adminUser.role !== UserRole.SUPER_ADMIN && adminUser.role !== UserRole.OWNER) {
+      throw new ForbiddenException('Only super admin or owner can revoke sessions');
     }
 
     const result = await this.prisma.session.updateMany({
@@ -557,6 +562,36 @@ export class SecurityService {
         eventsByCategory: categoryBreakdown,
       },
     };
+  }
+
+  // ── Create Audit Log ─────────────────────────────────────────
+
+  async createAuditLog(
+    dto: CreateAuditLogDto,
+    meta: { ipAddress?: string; userAgent?: string },
+  ) {
+    await this.audit.log({ ...dto, ...meta });
+    return { message: 'Audit log created' };
+  }
+
+  // ── Create Activity Log ──────────────────────────────────────
+
+  async createActivityLog(
+    dto: CreateActivityLogDto,
+    meta: { ipAddress?: string },
+  ) {
+    await this.audit.recordActivity({ ...dto, ...meta });
+    return { message: 'Activity log created' };
+  }
+
+  // ── Create Security Event ────────────────────────────────────
+
+  async createSecurityEvent(
+    dto: CreateSecurityEventDto,
+    meta: { ipAddress?: string; userAgent?: string },
+  ) {
+    await this.audit.recordSecurityEvent({ ...dto, ...meta } as any);
+    return { message: 'Security event created' };
   }
 
   // ── Dashboard Stats (for super admin) ────────────────────────

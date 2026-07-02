@@ -13,7 +13,7 @@ post {
 body:json {
   {
     "type": "email",
-    "email": "user@example.com",
+    "email": "demo1@gmail.com",
     "password": "Demo@123",
     "rememberMe": true
   }
@@ -28,9 +28,13 @@ vars:post-response {
 script:post-response {
   const body = res.getBody();
   
-  bru.setVar("accessToken", body.data.accessToken);
-  bru.setVar("refreshToken", body.data.refreshToken);
-  bru.setVar("isFirstLogin", String(body.data.isFirstLogin));
+  if (body.data) {
+    bru.setVar("accessToken", body.data.accessToken);
+    bru.setVar("refreshToken", body.data.refreshToken);
+    bru.setVar("isFirstLogin", String(body.data.isFirstLogin));
+  } else {
+    console.error("Login failed:", body.message || "Unknown error");
+  }
 }
 
 settings {

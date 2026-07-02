@@ -10,15 +10,21 @@ import {
   DefaultValuePipe,
   ParseIntPipe,
   Req,
+  Body,
 } from '@nestjs/common';
 import { Response, Request } from 'express';
-import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiQuery, ApiBody } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { Roles } from '@/common/decorators';
 import { RolesGuard } from '@/common/guards';
 import { CurrentUser } from '@/common/decorators';
 import { AuthenticatedUser } from '@/common/interfaces';
 import { SecurityService } from './security.service';
+import {
+  CreateAuditLogDto,
+  CreateActivityLogDto,
+  CreateSecurityEventDto,
+} from './dto/security.dto';
 
 @ApiTags('security')
 @Controller('security')
@@ -26,10 +32,44 @@ import { SecurityService } from './security.service';
 export class SecurityController {
   constructor(private readonly securityService: SecurityService) {}
 
-  // ── Dashboard Stats ─────────────────────────────────────────
+  // ── Create Audit Log ─────────────────────────────────────────
+
+  @Post('audit-logs')
+  @ApiOperation({ summary: 'Create an audit log entry' })
+  @ApiBody({ type: CreateAuditLogDto })
+  createAuditLog(@Body() dto: CreateAuditLogDto, @Req() req: Request) {
+    const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0] ?? req.ip;
+    const userAgent = req.headers['user-agent'] as string | undefined;
+    return this.securityService.createAuditLog(dto, { ipAddress: ip, userAgent });
+  }
+
+  // ── Create Activity Log ──────────────────────────────────────
+
+  @Post('activity-logs')
+  @ApiOperation({ summary: 'Create an activity log entry' })
+  @ApiBody({ type: CreateActivityLogDto })
+  createActivityLog(@Body() dto: CreateActivityLogDto, @Req() req: Request) {
+    const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0] ?? req.ip;
+    return this.securityService.createActivityLog(dto, { ipAddress: ip });
+  }
+
+  // ── Create Security Event ────────────────────────────────────
+
+  @Post('security-events')
+  @ApiOperation({ summary: 'Create a security event entry' })
+  @ApiBody({ type: CreateSecurityEventDto })
+  createSecurityEvent(@Body() dto: CreateSecurityEventDto, @Req() req: Request) {
+    const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0] ?? req.ip;
+    const userAgent = req.headers['user-agent'] as string | undefined;
+    return this.securityService.createSecurityEvent(dto, { ipAddress: ip, userAgent });
+  }
+
+  // ── Dashboard Stats (Super Admin only) ─────────────────────
 
   @Get('stats')
   @Roles(UserRole.SUPER_ADMIN)
+  @Roles(UserRole.SUPER_ADMIN)
+  @UseGuards(RolesGuard)
   @ApiOperation({ summary: 'Get security dashboard statistics' })
   getStats() {
     return this.securityService.getDashboardStats();
@@ -40,6 +80,9 @@ export class SecurityController {
   @Get('sessions')
   @Roles(UserRole.SUPER_ADMIN)
   @ApiOperation({ summary: 'List all sessions (admin)' })
+  @Roles(UserRole.SUPER_ADMIN)
+  @UseGuards(RolesGuard)
+  @ApiOperation({ summary: 'List active sessions' })
   @ApiQuery({ name: 'page', required: false })
   @ApiQuery({ name: 'pageSize', required: false })
   @ApiQuery({ name: 'userId', required: false })
@@ -79,6 +122,9 @@ export class SecurityController {
   @Delete('sessions/:id')
   @Roles(UserRole.SUPER_ADMIN)
   @ApiOperation({ summary: 'Revoke a session (admin)' })
+  @Roles(UserRole.SUPER_ADMIN)
+  @UseGuards(RolesGuard)
+  @ApiOperation({ summary: 'Revoke a session' })
   revokeSession(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser) {
     return this.securityService.revokeSession(id, user);
   }
@@ -99,6 +145,9 @@ export class SecurityController {
   @Delete('sessions/user/:userId')
   @Roles(UserRole.SUPER_ADMIN)
   @ApiOperation({ summary: 'Revoke all sessions for a user (admin)' })
+  @Roles(UserRole.SUPER_ADMIN)
+  @UseGuards(RolesGuard)
+  @ApiOperation({ summary: 'Revoke all sessions for a user' })
   revokeAllUserSessions(@Param('userId') userId: string, @CurrentUser() user: AuthenticatedUser) {
     return this.securityService.revokeAllUserSessions(userId, user);
   }
@@ -108,6 +157,9 @@ export class SecurityController {
   @Get('login-history')
   @Roles(UserRole.SUPER_ADMIN)
   @ApiOperation({ summary: 'List login history (admin)' })
+  @Roles(UserRole.SUPER_ADMIN)
+  @UseGuards(RolesGuard)
+  @ApiOperation({ summary: 'List login history' })
   @ApiQuery({ name: 'page', required: false })
   @ApiQuery({ name: 'pageSize', required: false })
   @ApiQuery({ name: 'userId', required: false })
@@ -162,6 +214,9 @@ export class SecurityController {
   @Get('audit-logs')
   @Roles(UserRole.SUPER_ADMIN)
   @ApiOperation({ summary: 'List audit logs (admin)' })
+  @Roles(UserRole.SUPER_ADMIN)
+  @UseGuards(RolesGuard)
+  @ApiOperation({ summary: 'List audit logs' })
   @ApiQuery({ name: 'page', required: false })
   @ApiQuery({ name: 'pageSize', required: false })
   @ApiQuery({ name: 'userId', required: false })
@@ -197,6 +252,9 @@ export class SecurityController {
   @Get('activity-logs')
   @Roles(UserRole.SUPER_ADMIN)
   @ApiOperation({ summary: 'List activity logs (admin)' })
+  @Roles(UserRole.SUPER_ADMIN)
+  @UseGuards(RolesGuard)
+  @ApiOperation({ summary: 'List activity logs' })
   @ApiQuery({ name: 'page', required: false })
   @ApiQuery({ name: 'pageSize', required: false })
   @ApiQuery({ name: 'userId', required: false })
@@ -227,6 +285,9 @@ export class SecurityController {
   @Get('security-events')
   @Roles(UserRole.SUPER_ADMIN)
   @ApiOperation({ summary: 'List security events (admin)' })
+  @Roles(UserRole.SUPER_ADMIN)
+  @UseGuards(RolesGuard)
+  @ApiOperation({ summary: 'List security events' })
   @ApiQuery({ name: 'page', required: false })
   @ApiQuery({ name: 'pageSize', required: false })
   @ApiQuery({ name: 'userId', required: false })

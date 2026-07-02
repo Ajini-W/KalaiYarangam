@@ -8,6 +8,9 @@ import { RbacModule } from './rbac/rbac.module';
 import { OnboardingModule } from './onboarding/onboarding.module';
 import { ClassModule } from './class/class.module';
 import { SecurityModule } from './security/security.module';
+import { DashboardModule } from './dashboard/dashboard.module';
+import { ReportsModule } from './reports/reports.module';
+import { BulkModule } from './bulk/bulk.module';
 import { LeadModule } from './lead/lead.module';
 import { InvoiceModule } from './invoice/invoice.module';
 import { FeePlanModule } from './fee-plan/fee-plan.module';
@@ -25,6 +28,9 @@ import { FeePlanModule } from './fee-plan/fee-plan.module';
     SecurityModule,
     InvoiceModule,
     FeePlanModule,
+    DashboardModule,
+    ReportsModule,
+    BulkModule,
   ],
 })
 export class V1Module { }

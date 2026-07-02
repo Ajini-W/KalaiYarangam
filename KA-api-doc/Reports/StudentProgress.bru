@@ -1,0 +1,20 @@
+meta {
+  name: StudentProgress
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{base-url}}/reports/student-progress?batchId={{batchId}}
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: bearer {{accessToken}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
