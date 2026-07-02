@@ -75,14 +75,13 @@ export interface Trainer {
 export interface ScheduleEvent {
   id: string;
   batchId: string;
-  title?: string;
   date: string;
   startTime: string;
   endTime: string;
-  room?: string | null;
   topic?: string | null;
   notes?: string | null;
   status: string;
+  createdAt: string;
   batch?: { id: string; name: string };
 }
 
@@ -373,13 +372,13 @@ export async function getSchedule(id: string): Promise<ApiResponse<ScheduleEvent
   return data;
 }
 
-export async function getCalendar(query?: { month?: number; year?: number; batchId?: string }): Promise<ApiResponse<ScheduleEvent[]>> {
+export async function getCalendar(query?: { month?: number; year?: number; batchId?: string }): Promise<ApiResponse<Record<string, ScheduleEvent[]>>> {
   const params = new URLSearchParams();
   if (query?.month) params.set("month", String(query.month));
   if (query?.year) params.set("year", String(query.year));
   if (query?.batchId) params.set("batchId", query.batchId);
   const qs = params.toString();
-  const { data } = await apiClient.get<ApiResponse<ScheduleEvent[]>>(`/training/schedules/calendar${qs ? `?${qs}` : ""}`);
+  const { data } = await apiClient.get<ApiResponse<Record<string, ScheduleEvent[]>>>(`/training/schedules/calendar${qs ? `?${qs}` : ""}`);
   return data;
 }
 
