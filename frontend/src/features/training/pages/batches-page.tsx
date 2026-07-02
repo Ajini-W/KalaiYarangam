@@ -5,7 +5,7 @@ import { Plus, Layers, Edit3, Archive, RotateCcw, Copy, Users, Calendar, BarChar
 import { PageContainer } from "@/components/layout";
 import { Button, Table, Badge, Pagination, SearchBar, FilterBar, Modal, ConfirmModal, Card, StatCard, Skeleton, Input, Select as UiSelect } from "@/components/ui";
 import { BatchForm } from "../components/BatchForm";
-import { getBatches, createBatch, updateBatch, updateBatchStatus, archiveBatch, restoreBatch, duplicateBatch, getBatchStats, getBatchStudents, getBatchSchedules, getBatchAttendance, getBatchProgress, getBatchWaitlist, getBatchCapacity, getBatch, getCourses, assignTrainerToBatch, getTrainers, type Batch, type BatchStats, type Course, type ScheduleEvent, type WaitlistEntry, type Trainer, type BatchTrainer } from "@/services/training";
+import { getBatches, createBatch, updateBatch, updateBatchStatus, archiveBatch, restoreBatch, duplicateBatch, getBatchStats, getBatchStudents, getSchedules, getBatchAttendance, getBatchProgress, getBatchWaitlist, getBatchCapacity, getBatch, getCourses, assignTrainerToBatch, getTrainers, type Batch, type BatchStats, type Course, type ScheduleEvent, type WaitlistEntry, type Trainer, type BatchTrainer } from "@/services/training";
 import { toast } from "sonner";
 import { cn } from "@/lib/cn";
 
@@ -151,7 +151,7 @@ export function BatchesPage() {
     try {
       const [students, schedules, capacity, detail] = await Promise.all([
         getBatchStudents(batch.id).catch(() => ({ data: [] })),
-        getBatchSchedules(batch.id).catch(() => ({ data: [] })),
+        getSchedules({ batchId: batch.id }).catch(() => ({ data: [] })),
         getBatchCapacity(batch.id).catch(() => ({ data: null })),
         getBatch(batch.id).catch(() => ({ data: null })),
       ]);
@@ -168,7 +168,7 @@ export function BatchesPage() {
         const res = await getBatchStudents(batchId).catch(() => ({ data: [] }));
         setDetailData((prev) => ({ ...prev, students: res.data ?? [] }));
       } else if (tab === "schedules") {
-        const res = await getBatchSchedules(batchId).catch(() => ({ data: [] }));
+        const res = await getSchedules({ batchId }).catch(() => ({ data: [] }));
         setDetailData((prev) => ({ ...prev, schedules: res.data ?? [] }));
       } else if (tab === "attendance") {
         const res = await getBatchAttendance(batchId).catch(() => ({ data: null }));
@@ -490,16 +490,22 @@ export function BatchesPage() {
               </div>
             ) : detailTab === "schedules" ? (
               <div className="max-h-[300px] overflow-y-auto space-y-2">
-                {((detailData.schedules as Array<Record<string, unknown>>) ?? []).length === 0 ? (
-                  <p className="py-8 text-center text-sm text-text-secondary">No schedules defined</p>
+                {((detailData.schedules as ScheduleEvent[]) ?? []).length === 0 ? (
+                  <p className="py-8 text-center text-sm text-text-secondary">No scheduled sessions</p>
                 ) : (
-                  (detailData.schedules as Array<Record<string, unknown>>)?.map((s: Record<string, unknown>, i: number) => (
-                    <div key={i} className="flex items-center gap-4 rounded-[var(--radius-sm)] border border-border px-4 py-2.5">
-                      <Calendar size={16} className="text-text-secondary shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm text-text-primary">Day {s.dayOfWeek as string}</p>
-                        <p className="text-xs text-text-secondary">{s.startTime as string} - {s.endTime as string}{(s.room as string) ? ` • ${s.room}` : ""}</p>
+                  (detailData.schedules as ScheduleEvent[])?.map((s) => (
+                    <div key={s.id} className="flex items-center gap-4 rounded-[var(--radius-sm)] border border-border px-4 py-2.5">
+                      <div className="flex flex-col items-center min-w-[36px]">
+                        <span className="text-xs font-bold text-text-primary">{new Date(s.date).getDate()}</span>
+                        <span className="text-[10px] text-text-secondary">{new Date(s.date).toLocaleDateString("en", { month: "short" })}</span>
                       </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-text-primary truncate">{s.batch?.name ?? s.topic ?? "Session"}</p>
+                        <p className="text-xs text-text-secondary">{s.startTime} - {s.endTime}{s.topic ? ` • ${s.topic}` : ""}</p>
+                      </div>
+                      <Badge size="sm" variant={s.status === "SCHEDULED" ? "info" : s.status === "IN_PROGRESS" ? "warning" : s.status === "COMPLETED" ? "success" : "danger"}>
+                        {s.status.replace("_", " ")}
+                      </Badge>
                     </div>
                   ))
                 )}
