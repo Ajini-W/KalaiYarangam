@@ -1,11 +1,11 @@
 meta {
-  name: Tenant - Get Modules
+  name: Get Branch
   type: http
-  seq: 13
+  seq: 5
 }
 
 get {
-  url: {{base-url}}/training/modules
+  url: {{base-url}}/training/branches/{{branchId}}
   body: none
   auth: inherit
 }
