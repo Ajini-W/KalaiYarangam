@@ -14,6 +14,7 @@ import { BulkModule } from './bulk/bulk.module';
 import { LeadModule } from './lead/lead.module';
 import { InvoiceModule } from './invoice/invoice.module';
 import { FeePlanModule } from './fee-plan/fee-plan.module';
+import { SearchModule } from './reporting/search/search.module';
 
 
 @Module({
@@ -31,6 +32,7 @@ import { FeePlanModule } from './fee-plan/fee-plan.module';
     DashboardModule,
     ReportsModule,
     BulkModule,
+    SearchModule,
   ],
 })
 export class V1Module { }
