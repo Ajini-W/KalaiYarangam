@@ -142,6 +142,6 @@ export class AuthController {
 
   @Post('error-log')
   logAuthError(@Body() dto: AuthErrorLogDto) {
-    return this.authService.logAuthError(dto);
+    return this.authService.logAuthError(dto.errorCode, dto.errorMessage, dto.provider, dto.userId, dto.metadata);
   }
 }

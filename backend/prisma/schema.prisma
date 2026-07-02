@@ -581,7 +581,6 @@ model UserRoleMapping {
 }
 
 model Tenant {
-  address            String
   id                 String                @id @default(uuid()) @db.Uuid
   name               String                @unique @db.VarChar(200)
   slug               String                @unique @db.VarChar(100)
@@ -591,17 +590,38 @@ model Tenant {
   website            String?               @db.VarChar(255)
   phone              String?               @db.VarChar(20)
   email              String?               @db.VarChar(255)
+  address            String?               @db.VarChar(500)
+  city               String?               @db.VarChar(100)
+  state              String?               @db.VarChar(100)
+  pincode            String?               @db.VarChar(20)
+  latitude           Float?
+  longitude          Float?
   createdAt          DateTime              @default(now()) @map("created_at")
   updatedAt          DateTime              @updatedAt @map("updated_at")
-  analyticsSnapshots AnalyticsSnapshot[]
-  attendanceSessions AttendanceSession[]
-  batches            Batch[]
+
+  users              User[]
+  userRoles          UserRoleMapping[]
+  brand              TenantBrand?
+  invitations        TenantInvitation[]
+  settings           TenantSetting[]
+  tenantModules      TenantModule[]
   branches           Branch[]
+  subscriptions      Subscription[]
+  subscriptionUsage  SubscriptionUsage[]
+  students           Student[]
+  leads              Lead[]
+  enrollments        Enrollment[]
+  courses            Course[]
+  courseCategories   CourseCategory[]
+  batches            Batch[]
+  competitions       Competition[]
+  attendanceSessions AttendanceSession[]
+  feePlans           FeePlan[]
+  invoices           Invoice[]
+  expenseCategories  ExpenseCategory[]
+  transactions       Transaction[]
   certTemplates      CertificateTemplate[]
   certificates       Certificate[]
-  competitions       Competition[]
-  courseCategories   CourseCategory[]
-  courses            Course[]
   dashboardWidgets   DashboardWidget[]
   analyticsSnapshots AnalyticsSnapshot[]
   notifications      Notification[]
@@ -865,13 +885,12 @@ model Student {
   isActive          Boolean                 @default(true) @map("is_active")
   createdAt         DateTime                @default(now()) @map("created_at")
   updatedAt         DateTime                @updatedAt @map("updated_at")
+  tenant            Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   certificates      Certificate[]
   enrollments       Enrollment[]
   invoices          Invoice[]
   attendance        StudentAttendance[]
   progress          StudentProgress[]
-  certificates      Certificate[]
-  invoices          Invoice[]
   taskSubmissions   StudentTaskSubmission[]
   trainingDocuments TrainingDocument[]
 
@@ -952,8 +971,6 @@ model Enrollment {
   feePlan FeePlan? @relation(fields: [feePlanId], references: [id])
 
   // Relations to your new tracking modules
-  transfers Transfer[]
-  renewals  Renewal[]
 
   @@unique([studentId, batchId])
   @@index([tenantId])
@@ -1951,262 +1968,4 @@ model CommissionPayout {
   @@index([referrerId])
   @@index([status])
   @@map("commission_payouts")
-}
-
-enum UserRole {
-  SUPER_ADMIN
-  OWNER
-  BRANCH_MANAGER
-  TRAINER
-  STAFF
-  STUDENT
-  CLIENT
-}
-
-enum UserStatus {
-  NEW_USER
-  REGISTERED
-  PROFILE_COMPLETED
-  ACCESS_REQUESTED
-  PENDING_APPROVAL
-  APPROVED
-  ACTIVE
-  INACTIVE
-  SUSPENDED
-  PENDING
-}
-
-enum AuthProviderType {
-  EMAIL
-  GOOGLE
-}
-
-enum AccessRequestStatus {
-  PENDING
-  APPROVED
-  REJECTED
-  BLOCKED
-}
-
-enum OnboardingStep {
-  ROLE_SELECTION
-  PROFILE_SETUP
-  TENANT_SETUP
-  BRANCH_SETUP
-  MODULE_SELECTION
-  SUBSCRIPTION
-  SEARCH_TENANT
-  SELECT_BRANCH
-  SKILLS_SETUP
-  COURSE_SELECTION
-  COMPLETED
-}
-
-enum Gender {
-  MALE
-  FEMALE
-  OTHER
-}
-
-enum TenantStatus {
-  ACTIVE
-  INACTIVE
-  SUSPENDED
-  TRIAL
-}
-
-enum IndustryType {
-  TRAINING
-  RENTAL
-  EVENT
-}
-
-enum InvitationStatus {
-  PENDING
-  ACCEPTED
-  EXPIRED
-  REVOKED
-}
-
-enum PlanInterval {
-  MONTHLY
-  HALF_YEARLY
-  YEARLY
-}
-
-enum SubscriptionStatus {
-  TRIAL
-  ACTIVE
-  PAST_DUE
-  CANCELLED
-  EXPIRED
-}
-
-enum PaymentStatus {
-  PENDING
-  SUCCESS
-  FAILED
-  REFUNDED
-}
-
-enum PaymentMode {
-  ONLINE
-  CASH
-  BANK_TRANSFER
-  UPI
-  CHEQUE
-}
-
-enum LeadStatus {
-  NEW
-  CONTACTED
-  FOLLOWUP
-  INTERESTED
-  DEMO_SCHEDULED
-  CONVERTED
-  LOST
-}
-
-enum LeadSource {
-  WALK_IN
-  PHONE
-  WEBSITE
-  SOCIAL_MEDIA
-  REFERRAL
-  ADVERTISEMENT
-  OTHER
-}
-
-enum EnrollmentStatus {
-  ACTIVE
-  PAUSED
-  CANCELLED
-  DROPPED
-}
-
-enum BatchStatus {
-  UPCOMING
-  ACTIVE
-  COMPLETED
-  CANCELLED
-}
-
-enum SessionStatus {
-  SCHEDULED
-  IN_PROGRESS
-  COMPLETED
-  CANCELLED
-}
-
-enum AttendanceStatus {
-  PRESENT
-  ABSENT
-  LATE
-  EXCUSED
-}
-
-enum FeeType {
-  ONE_TIME
-  MONTHLY
-  QUARTERLY
-  TERM
-  YEARLY
-}
-
-enum InvoiceStatus {
-  DRAFT
-  SENT
-  PAID
-  PARTIALLY_PAID
-  OVERDUE
-  CANCELLED
-  REFUNDED
-}
-
-enum TransactionType {
-  INCOME
-  EXPENSE
-  REFUND
-}
-
-enum NotificationChannel {
-  EMAIL
-  SMS
-  WHATSAPP
-  IN_APP
-  PUSH
-}
-
-enum TicketStatus {
-  OPEN
-  IN_PROGRESS
-  WAITING
-  RESOLVED
-  CLOSED
-}
-
-enum TicketPriority {
-  LOW
-  MEDIUM
-  HIGH
-  URGENT
-}
-
-enum AuditAction {
-  CREATE
-  UPDATE
-  DELETE
-  LOGIN
-  LOGOUT
-  EXPORT
-  IMPORT
-  SESSION_REVOKE
-  PASSWORD_CHANGE
-  ROLE_CHANGE
-  STATUS_CHANGE
-  PERMISSION_CHANGE
-  SECURITY_EVENT
-  TWO_FACTOR_ENABLE
-  TWO_FACTOR_DISABLE
-}
-
-enum HealthStatus {
-  HEALTHY
-  AT_RISK
-  CRITICAL
-  CHURNED
-}
-
-enum DayOfWeek {
-  MONDAY
-  TUESDAY
-  WEDNESDAY
-  THURSDAY
-  FRIDAY
-  SATURDAY
-  SUNDAY
-}
-
-enum TaskType {
-  HOMEWORK
-  ASSIGNMENT
-  QUIZ
-  PROJECT
-  EXAM
-}
-
-enum TaskStatus {
-  PENDING
-  ACTIVE
-  SUBMISSION_CLOSED
-  GRADED
-  CANCELLED
-}
-
-enum SubmissionStatus {
-  NOT_SUBMITTED
-  SUBMITTED
-  LATE
-  GRADED
-  RETURNED
 }

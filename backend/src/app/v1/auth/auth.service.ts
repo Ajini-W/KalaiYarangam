@@ -80,21 +80,6 @@ export class AuthService {
 
     return this.buildAuthResponse(user);
   }
-  async getProfile(userId: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-    });
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    return user;
-  }
-  async me(user: AuthenticatedUser) {
-    return this.toPayload(user);
-  }
-
 
   // ================= VERIFY EMAIL =================
   async verifyEmail(dto: VerifyEmailDto) {
@@ -126,8 +111,7 @@ export class AuthService {
     return { message: 'Email verified successfully' };
   }
 
-  // ================= LOGIN =================
-  async login(dto: LoginDto, ip?: string, userAgent?: string) {
+  async sendVerificationToken(dto: SendVerificationTokenDto) {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
@@ -249,7 +233,7 @@ export class AuthService {
 
     await this.prisma.user.update({
       where: { id: userId },
-      data: { passwordHash, passwordSet: true },
+      data: { passwordHash: hash, passwordSet: true },
     });
 
     return { message: 'Password set successfully.' };
@@ -480,13 +464,6 @@ export class AuthService {
     return this.prisma.user.update({
       where: { id: userId },
       data: { preferences },
-    });
-  }
-
-  async updateUserStatus(dto: UpdateUserStatusDto) {
-    return this.prisma.user.update({
-      where: { id: dto.userId },
-      data: { status: dto.status as UserStatus },
     });
   }
 
