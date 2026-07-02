@@ -1,4 +1,4 @@
-import { PlaceholderPage } from "@/lib/placeholder-page";
+import { StudentsPage } from "@/features/foundation/pages";
 export default function Page() {
-  return <PlaceholderPage title="Students" description="Manage students here." />;
+  return <StudentsPage />;
 }

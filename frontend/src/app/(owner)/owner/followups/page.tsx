@@ -1,4 +1,4 @@
-import { PlaceholderPage } from "@/lib/placeholder-page";
+import { FollowupsPage } from "@/features/foundation/pages/followups-page";
 export default function Page() {
-  return <PlaceholderPage title="Followups" description="Manage followups here." />;
+  return <FollowupsPage />;
 }

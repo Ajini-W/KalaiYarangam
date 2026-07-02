@@ -91,9 +91,10 @@ const ownerNav: NavItem[] = [
   { label: "Dashboard", href: "/owner/dashboard", icon: LayoutDashboard },
   { label: "Access Requests", href: "/owner/access-requests", icon: UserCheck },
   {
-    label: "Leads",
+    label: "Foundation",
     icon: Target,
     children: [
+      { label: "Dashboard", href: "/owner/foundation", icon: LayoutDashboard },
       { label: "Leads", href: "/owner/leads", icon: Target },
       { label: "Follow-ups", href: "/owner/followups", icon: PhoneCall },
     ],
@@ -154,9 +155,10 @@ const branchManagerNav: NavItem[] = [
   { label: "Dashboard", href: "/branch-manager/dashboard", icon: LayoutDashboard },
   { label: "Access Requests", href: "/branch-manager/access-requests", icon: UserCheck },
   {
-    label: "Leads",
+    label: "Foundation",
     icon: Target,
     children: [
+      { label: "Dashboard", href: "/branch-manager/foundation", icon: LayoutDashboard },
       { label: "Leads", href: "/branch-manager/leads", icon: Target },
       { label: "Follow-ups", href: "/branch-manager/followups", icon: PhoneCall },
     ],
@@ -211,9 +213,10 @@ const branchManagerNav: NavItem[] = [
 const staffNav: NavItem[] = [
   { label: "Dashboard", href: "/staff/dashboard", icon: LayoutDashboard },
   {
-    label: "Leads",
+    label: "Foundation",
     icon: Target,
     children: [
+      { label: "Dashboard", href: "/staff/foundation", icon: LayoutDashboard },
       { label: "Leads", href: "/staff/leads", icon: Target },
       { label: "Follow-ups", href: "/staff/followups", icon: PhoneCall },
     ],
