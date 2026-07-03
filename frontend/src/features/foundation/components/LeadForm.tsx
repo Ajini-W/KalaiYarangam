@@ -4,9 +4,21 @@ import { useState } from "react";
 import { Button, Input, Select, Textarea } from "@/components/ui";
 import type { Lead, LeadSource, LeadStatus } from "@/services/leads";
 
+export type LeadFormData = {
+  name: string;
+  email: string;
+  phone: string;
+  course: string;
+  source: LeadSource;
+  status: LeadStatus;
+  notes: string;
+  assignedTo: string;
+  nextFollowUp: string;
+};
+
 interface LeadFormProps {
   initialData?: Lead | null;
-  onSubmit: (data: any) => void;
+  onSubmit: (data: LeadFormData) => void;
   onCancel: () => void;
   loading?: boolean;
 }

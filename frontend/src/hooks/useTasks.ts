@@ -3,6 +3,8 @@
 import * as React from "react";
 import { toast } from "sonner";
 import { tasksService } from "@/services/tasks.service";
+import { withMockFallback } from "@/lib/mock-fallback";
+import { getMockTask, getMockTaskList, getMockTaskSubmissions } from "@/mocks";
 import type {
   CreateTaskPayload,
   SubmitTaskPayload,
@@ -18,15 +20,20 @@ export function useTaskList(initialParams: TaskListParams = {}) {
   const [meta, setMeta] = React.useState({ page: 1, pageSize: 10, total: 0, totalPages: 1 });
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
+  const [usingMock, setUsingMock] = React.useState(false);
   const [params, setParams] = React.useState(initialParams);
 
   const fetch = React.useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const result = await tasksService.list(params);
-      setTasks(result.data);
-      setMeta(result.meta);
+      const { data, usingMock: isMock } = await withMockFallback(
+        () => tasksService.list(params),
+        getMockTaskList,
+      );
+      setTasks(data.data);
+      setMeta(data.meta);
+      setUsingMock(isMock);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to load tasks";
       setError(message);
@@ -40,13 +47,14 @@ export function useTaskList(initialParams: TaskListParams = {}) {
     fetch();
   }, [fetch]);
 
-  return { tasks, meta, loading, error, params, setParams, refetch: fetch };
+  return { tasks, meta, loading, error, usingMock, params, setParams, refetch: fetch };
 }
 
 export function useTask(id: string | null) {
   const [task, setTask] = React.useState<Task | null>(null);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [usingMock, setUsingMock] = React.useState(false);
 
   const fetch = React.useCallback(async () => {
     if (!id) {
@@ -56,8 +64,16 @@ export function useTask(id: string | null) {
     setLoading(true);
     setError(null);
     try {
-      const result = await tasksService.getById(id);
-      setTask(result);
+      const { data, usingMock: isMock } = await withMockFallback(
+        () => tasksService.getById(id),
+        () => {
+          const mock = getMockTask(id);
+          if (!mock) throw new Error("Task not found");
+          return mock;
+        },
+      );
+      setTask(data);
+      setUsingMock(isMock);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to load task";
       setError(message);
@@ -71,13 +87,14 @@ export function useTask(id: string | null) {
     fetch();
   }, [fetch]);
 
-  return { task, loading, error, refetch: fetch };
+  return { task, loading, error, usingMock, refetch: fetch };
 }
 
 export function useTaskSubmissions(taskId: string | null) {
   const [submissions, setSubmissions] = React.useState<TaskSubmission[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [usingMock, setUsingMock] = React.useState(false);
 
   const fetch = React.useCallback(async () => {
     if (!taskId) {
@@ -87,8 +104,12 @@ export function useTaskSubmissions(taskId: string | null) {
     setLoading(true);
     setError(null);
     try {
-      const result = await tasksService.getSubmissions(taskId);
-      setSubmissions(result);
+      const { data, usingMock: isMock } = await withMockFallback(
+        () => tasksService.getSubmissions(taskId),
+        () => getMockTaskSubmissions(taskId),
+      );
+      setSubmissions(data);
+      setUsingMock(isMock);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to load submissions";
       setError(message);
@@ -102,7 +123,7 @@ export function useTaskSubmissions(taskId: string | null) {
     fetch();
   }, [fetch]);
 
-  return { submissions, loading, error, refetch: fetch };
+  return { submissions, loading, error, usingMock, refetch: fetch };
 }
 
 export function useTaskMutations() {

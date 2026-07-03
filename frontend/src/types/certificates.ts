@@ -51,6 +51,11 @@ export interface Certificate {
     orientation?: string;
     paperSize?: string;
   };
+  batch?: {
+    id: string;
+    name: string;
+    code?: string | null;
+  };
   verifications?: Array<{ id: string; verifiedAt: string }>;
 }
 

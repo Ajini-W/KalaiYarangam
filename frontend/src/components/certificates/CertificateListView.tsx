@@ -2,7 +2,8 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Plus, RefreshCw, Layers } from "lucide-react";
+import { motion } from "framer-motion";
+import { Plus, RefreshCw, Layers, ShieldCheck } from "lucide-react";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -10,6 +11,7 @@ import { Table, type Column } from "@/components/ui/Table";
 import { Pagination } from "@/components/ui/Pagination";
 import { ErrorState } from "@/components/ui/EmptyState";
 import { useCertificateList, useCertificateMutations, useCertificateTemplates } from "@/hooks/useCertificates";
+import { DevModeBadge } from "@/components/shared/DevModeBadge";
 import { CertificateStatusBadge } from "./CertificateStatusBadge";
 import { BulkGenerateDialog } from "./BulkGenerateDialog";
 import type { Certificate } from "@/types/certificates";
@@ -31,7 +33,7 @@ export function CertificateListView({
   const [page, setPage] = React.useState(1);
   const [bulkOpen, setBulkOpen] = React.useState(false);
 
-  const { certificates, meta, loading, error, setParams, refetch } = useCertificateList({
+  const { certificates, meta, loading, error, usingMock, setParams, refetch } = useCertificateList({
     page: 1,
     pageSize: 10,
   });
@@ -113,31 +115,41 @@ export function CertificateListView({
         ) : undefined
       }
     >
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between gap-3">
-            <CardTitle>All certificates</CardTitle>
-            <Button variant="ghost" size="sm" onClick={refetch} leftIcon={<RefreshCw size={14} />}>
-              Refresh
-            </Button>
-          </div>
-        </CardHeader>
-        <CardBody className="space-y-4 pt-0">
-          <Table
-            columns={columns}
-            data={certificates}
-            loading={loading}
-            emptyTitle="No certificates yet"
-            emptyDescription="Generate certificates for students who complete their courses."
-          />
-          <Pagination
-            page={meta.page}
-            pageSize={meta.pageSize}
-            total={meta.total}
-            onPageChange={setPage}
-          />
-        </CardBody>
-      </Card>
+      <DevModeBadge visible={usingMock} className="mb-4" />
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <Card variant="elevated">
+          <CardHeader>
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="text-primary" size={20} />
+                <CardTitle>All certificates</CardTitle>
+              </div>
+              <Button variant="ghost" size="sm" onClick={refetch} leftIcon={<RefreshCw size={14} />}>
+                Refresh
+              </Button>
+            </div>
+          </CardHeader>
+          <CardBody className="space-y-4 pt-0">
+            <Table
+              columns={columns}
+              data={certificates}
+              loading={loading}
+              emptyTitle="No certificates yet"
+              emptyDescription="Generate certificates for students who complete their courses."
+            />
+            <Pagination
+              page={meta.page}
+              pageSize={meta.pageSize}
+              total={meta.total}
+              onPageChange={setPage}
+            />
+          </CardBody>
+        </Card>
+      </motion.div>
 
       {!readOnly && (
         <BulkGenerateDialog

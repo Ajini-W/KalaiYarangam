@@ -2,7 +2,8 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Download, RefreshCw } from "lucide-react";
+import { motion } from "framer-motion";
+import { Download, RefreshCw, Calendar } from "lucide-react";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -10,6 +11,7 @@ import { Table, type Column } from "@/components/ui/Table";
 import { SkeletonTable } from "@/components/ui/Skeleton";
 import { ErrorState } from "@/components/ui/EmptyState";
 import { useReport } from "@/hooks/useReports";
+import { DevModeBadge } from "@/components/shared/DevModeBadge";
 import { DateRangePicker, useDefaultDateRange } from "./DateRangePicker";
 import { ChartTableToggle } from "./ChartTableToggle";
 import { ExportDialog } from "./ExportDialog";
@@ -28,7 +30,7 @@ export function ReportView({ basePath, reportType }: ReportViewProps) {
   const [exportOpen, setExportOpen] = React.useState(false);
 
   const meta = REPORT_CATALOG.find((r) => r.type === reportType);
-  const { data, loading, error, refetch } = useReport(reportType, appliedRange);
+  const { data, loading, error, usingMock, refetch } = useReport(reportType, appliedRange);
 
   const columns: Column<Record<string, string | number>>[] =
     data?.columns.map((col) => ({
@@ -58,67 +60,83 @@ export function ReportView({ basePath, reportType }: ReportViewProps) {
         </Button>
       }
     >
-      <Card className="mb-6">
-        <CardHeader><CardTitle>Date range</CardTitle></CardHeader>
-        <CardBody className="space-y-4 pt-0">
-          <DateRangePicker from={range.from} to={range.to} onChange={setRange} />
-          <Button size="sm" onClick={applyRange}>Apply</Button>
-        </CardBody>
-      </Card>
-
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <ChartTableToggle mode={viewMode} onChange={setViewMode} />
-        <Button variant="ghost" size="sm" onClick={refetch} leftIcon={<RefreshCw size={14} />}>
-          Refresh
-        </Button>
-      </div>
-
-      {error && !loading && !data ? (
-        <ErrorState
-          code={500}
-          title="Unable to load report"
-          description={error}
-          action={{ label: "Retry", onClick: refetch }}
-        />
-      ) : (
-        <Card>
-          <CardBody className="pt-5">
-            {loading ? (
-              <SkeletonTable rows={8} />
-            ) : viewMode === "chart" && data?.chart && data.chart.length > 0 ? (
-              <div className="space-y-4">
-                {data.chart.map((point) => (
-                  <div key={point.label} className="space-y-1">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-text-primary">{point.label}</span>
-                      <span className="tabular-nums text-text-secondary">{point.value}</span>
-                    </div>
-                    <div className="h-2 overflow-hidden rounded-full bg-surface-overlay">
-                      <div
-                        className="h-full rounded-full bg-primary"
-                        style={{
-                          width: `${Math.min(
-                            100,
-                            (point.value / Math.max(...data.chart!.map((p) => p.value), 1)) * 100,
-                          )}%`,
-                        }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <Table
-                columns={columns}
-                data={(data?.rows ?? []).map((row, i) => ({ ...row, id: i }))}
-                loading={loading}
-                emptyTitle="No data for this period"
-                emptyDescription="Try adjusting the date range."
-              />
-            )}
+      <DevModeBadge visible={usingMock} className="mb-4" />
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="space-y-6"
+      >
+        <Card variant="elevated">
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Calendar className="text-primary" size={18} />
+              <CardTitle>Date range</CardTitle>
+            </div>
+          </CardHeader>
+          <CardBody className="space-y-4 pt-0">
+            <DateRangePicker from={range.from} to={range.to} onChange={setRange} />
+            <Button size="sm" onClick={applyRange}>Apply</Button>
           </CardBody>
         </Card>
-      )}
+
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <ChartTableToggle mode={viewMode} onChange={setViewMode} />
+          <Button variant="ghost" size="sm" onClick={refetch} leftIcon={<RefreshCw size={14} />}>
+            Refresh
+          </Button>
+        </div>
+
+        {error && !loading && !data ? (
+          <ErrorState
+            code={500}
+            title="Unable to load report"
+            description={error}
+            action={{ label: "Retry", onClick: refetch }}
+          />
+        ) : (
+          <Card variant="elevated">
+            <CardBody className="pt-5">
+              {loading ? (
+                <SkeletonTable rows={8} />
+              ) : viewMode === "chart" && data?.chart && data.chart.length > 0 ? (
+                <div className="space-y-4">
+                  {data.chart.map((point) => (
+                    <motion.div
+                      key={point.label}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="space-y-1"
+                    >
+                      <div className="flex justify-between text-sm">
+                        <span className="font-medium text-text-primary">{point.label}</span>
+                        <span className="tabular-nums text-text-secondary">{point.value}</span>
+                      </div>
+                      <div className="h-2 overflow-hidden rounded-full bg-surface-overlay">
+                        <motion.div
+                          className="h-full rounded-full bg-primary"
+                          initial={{ width: 0 }}
+                          animate={{ width: `${Math.min(100, (point.value / Math.max(...data.chart!.map((p) => p.value), 1)) * 100)}%` }}
+                          transition={{ duration: 0.5, ease: "easeOut" }}
+                        />
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              ) : (
+                <Table
+                  columns={columns}
+                  data={(data?.rows ?? []).map((row, i) => ({ ...row, id: i }))}
+                  loading={loading}
+                  emptyTitle="No data for this period"
+                  emptyDescription="Try adjusting the date range."
+                />
+              )}
+            </CardBody>
+          </Card>
+        )}
+      </motion.div>
 
       <ExportDialog
         open={exportOpen}

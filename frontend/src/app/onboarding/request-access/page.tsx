@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/Button";
 import { requestAccess, getOnboardingProgress } from "@/services/onboarding";
 import { useAuthStore } from "@/store/auth.store";
 import { setTokens } from "@/services/api-client";
+import type { AuthUser } from "@/services/auth.service";
 
 function RequestAccessForm() {
   const router = useRouter();
@@ -48,7 +49,7 @@ function RequestAccessForm() {
         const { accessToken, refreshToken, user } = res.data.tokens;
         setTokens(accessToken, refreshToken);
         localStorage.setItem("accessToken", accessToken);
-        useAuthStore.getState().setUser(user as any);
+        useAuthStore.getState().setUser(user as unknown as AuthUser);
       }
 
       toast.success("Access request submitted! The owner will review your request.");

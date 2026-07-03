@@ -63,8 +63,8 @@ export default function UserDetailPage() {
       await rbacService.updateUserRole(userId, selectedRole);
       toast.success("Role updated successfully");
       setUser((prev) => prev ? { ...prev, role: selectedRole } : prev);
-    } catch (err: any) {
-      toast.error(err.message);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Operation failed");
     } finally {
       setSaving(false);
     }
@@ -77,8 +77,8 @@ export default function UserDetailPage() {
       const updated = await rbacService.updateUserStatus(userId, selectedStatus);
       toast.success(`Status updated to ${selectedStatus}`);
       setUser((prev) => prev ? { ...prev, status: selectedStatus } : prev);
-    } catch (err: any) {
-      toast.error(err.message);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Operation failed");
     } finally {
       setSaving(false);
     }

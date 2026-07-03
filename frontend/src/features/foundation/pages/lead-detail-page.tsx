@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, Phone, Mail, Calendar, Target, UserCheck, Archive, Edit3, MessageSquare, Clock, User, Building2, BookOpen, Activity } from "lucide-react";
 import { PageContainer } from "@/components/layout";
 import { Button, Card, CardHeader, CardBody, Badge, Modal, Input, Textarea, Select, Skeleton } from "@/components/ui";
-import { getLead, updateLead, archiveLead, convertLead, createFollowup, getFollowups, type Lead, type LeadFollowup } from "@/services/leads";
+import { getLead, updateLead, archiveLead, convertLead, createFollowup, getFollowups, type Lead, type LeadFollowup, type LeadStatus } from "@/services/leads";
 import { toast } from "sonner";
 import { cn } from "@/lib/cn";
 
@@ -71,7 +71,7 @@ export function LeadDetailPage({ leadId }: LeadDetailPageProps) {
   const handleStatusChange = async () => {
     if (!lead || !newStatus) return;
     try {
-      await updateLead(lead.id, { status: newStatus as any });
+      await updateLead(lead.id, { status: newStatus as LeadStatus });
       toast.success("Status updated");
       setStatusModal(false);
       fetchData();
@@ -185,7 +185,7 @@ export function LeadDetailPage({ leadId }: LeadDetailPageProps) {
             ].map((tab) => (
               <button
                 key={tab.key}
-                onClick={() => setActiveTab(tab.key as any)}
+                onClick={() => setActiveTab(tab.key as "timeline" | "info" | "notes")}
                 className={cn(
                   "flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors",
                   activeTab === tab.key ? "border-primary text-primary" : "border-transparent text-text-secondary hover:text-text-primary",

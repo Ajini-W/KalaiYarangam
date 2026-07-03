@@ -8,6 +8,15 @@ const eslintConfig = defineConfig([
   ...nextTs,
   prettier,
   globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts"]),
+  {
+    rules: {
+      // React Compiler rules conflict with standard data-fetching patterns used across the app
+      "react-hooks/set-state-in-effect": "off",
+      "react-hooks/immutability": "off",
+      "react-hooks/purity": "off",
+      "react-hooks/refs": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;

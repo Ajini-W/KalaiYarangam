@@ -3,6 +3,12 @@
 import * as React from "react";
 import { toast } from "sonner";
 import { progressService } from "@/services/progress.service";
+import { withMockFallback } from "@/lib/mock-fallback";
+import {
+  getMockProgressList,
+  getMockProgressRecord,
+  MOCK_PROGRESS_SUMMARY,
+} from "@/mocks";
 import type {
   CreateProgressPayload,
   ProgressListParams,
@@ -18,15 +24,20 @@ export function useProgressList(initialParams: ProgressListParams = {}) {
   const [meta, setMeta] = React.useState({ page: 1, pageSize: 10, total: 0, totalPages: 1 });
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
+  const [usingMock, setUsingMock] = React.useState(false);
   const [params, setParams] = React.useState(initialParams);
 
   const fetch = React.useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const result = await progressService.list(params);
-      setRecords(result.data);
-      setMeta(result.meta);
+      const { data, usingMock: isMock } = await withMockFallback(
+        () => progressService.list(params),
+        getMockProgressList,
+      );
+      setRecords(data.data);
+      setMeta(data.meta);
+      setUsingMock(isMock);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to load progress";
       setError(message);
@@ -40,21 +51,26 @@ export function useProgressList(initialParams: ProgressListParams = {}) {
     fetch();
   }, [fetch]);
 
-  return { records, meta, loading, error, params, setParams, refetch: fetch };
+  return { records, meta, loading, error, usingMock, params, setParams, refetch: fetch };
 }
 
 export function useProgressSummary(initialParams: ProgressSummaryParams = {}) {
   const [summary, setSummary] = React.useState<ProgressSummary | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
+  const [usingMock, setUsingMock] = React.useState(false);
   const [params, setParams] = React.useState(initialParams);
 
   const fetch = React.useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const result = await progressService.getSummary(params);
-      setSummary(result);
+      const { data, usingMock: isMock } = await withMockFallback(
+        () => progressService.getSummary(params),
+        () => MOCK_PROGRESS_SUMMARY,
+      );
+      setSummary(data);
+      setUsingMock(isMock);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to load summary";
       setError(message);
@@ -68,13 +84,14 @@ export function useProgressSummary(initialParams: ProgressSummaryParams = {}) {
     fetch();
   }, [fetch]);
 
-  return { summary, loading, error, params, setParams, refetch: fetch };
+  return { summary, loading, error, usingMock, params, setParams, refetch: fetch };
 }
 
 export function useProgressRecord(id: string | null) {
   const [record, setRecord] = React.useState<ProgressRecord | null>(null);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [usingMock, setUsingMock] = React.useState(false);
 
   const fetch = React.useCallback(async () => {
     if (!id) {
@@ -84,8 +101,16 @@ export function useProgressRecord(id: string | null) {
     setLoading(true);
     setError(null);
     try {
-      const result = await progressService.getById(id);
-      setRecord(result);
+      const { data, usingMock: isMock } = await withMockFallback(
+        () => progressService.getById(id),
+        () => {
+          const mock = getMockProgressRecord(id);
+          if (!mock) throw new Error("Progress record not found");
+          return mock;
+        },
+      );
+      setRecord(data);
+      setUsingMock(isMock);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to load progress record";
       setError(message);
@@ -99,7 +124,7 @@ export function useProgressRecord(id: string | null) {
     fetch();
   }, [fetch]);
 
-  return { record, loading, error, refetch: fetch };
+  return { record, loading, error, usingMock, refetch: fetch };
 }
 
 export function useProgressMutations() {

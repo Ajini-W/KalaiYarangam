@@ -3,6 +3,12 @@
 import * as React from "react";
 import { toast } from "sonner";
 import { certificatesService } from "@/services/certificates.service";
+import { withMockFallback } from "@/lib/mock-fallback";
+import {
+  getMockCertificate,
+  getMockCertificateList,
+  MOCK_CERTIFICATE_TEMPLATES,
+} from "@/mocks";
 import type {
   Certificate,
   CertificateListParams,
@@ -17,15 +23,20 @@ export function useCertificateList(initialParams: CertificateListParams = {}) {
   const [meta, setMeta] = React.useState({ page: 1, pageSize: 10, total: 0, totalPages: 1 });
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
+  const [usingMock, setUsingMock] = React.useState(false);
   const [params, setParams] = React.useState(initialParams);
 
   const fetch = React.useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const result = await certificatesService.list(params);
-      setCertificates(result.data);
-      setMeta(result.meta);
+      const { data, usingMock: isMock } = await withMockFallback(
+        () => certificatesService.list(params),
+        getMockCertificateList,
+      );
+      setCertificates(data.data);
+      setMeta(data.meta);
+      setUsingMock(isMock);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to load certificates";
       setError(message);
@@ -39,13 +50,14 @@ export function useCertificateList(initialParams: CertificateListParams = {}) {
     fetch();
   }, [fetch]);
 
-  return { certificates, meta, loading, error, params, setParams, refetch: fetch };
+  return { certificates, meta, loading, error, usingMock, params, setParams, refetch: fetch };
 }
 
 export function useCertificate(id: string | null) {
   const [certificate, setCertificate] = React.useState<Certificate | null>(null);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [usingMock, setUsingMock] = React.useState(false);
 
   const fetch = React.useCallback(async () => {
     if (!id) {
@@ -55,8 +67,16 @@ export function useCertificate(id: string | null) {
     setLoading(true);
     setError(null);
     try {
-      const result = await certificatesService.getById(id);
-      setCertificate(result);
+      const { data, usingMock: isMock } = await withMockFallback(
+        () => certificatesService.getById(id),
+        () => {
+          const mock = getMockCertificate(id);
+          if (!mock) throw new Error("Certificate not found");
+          return mock;
+        },
+      );
+      setCertificate(data);
+      setUsingMock(isMock);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to load certificate";
       setError(message);
@@ -70,18 +90,24 @@ export function useCertificate(id: string | null) {
     fetch();
   }, [fetch]);
 
-  return { certificate, loading, error, refetch: fetch };
+  return { certificate, loading, error, usingMock, refetch: fetch };
 }
 
 export function useCertificateTemplates() {
   const [templates, setTemplates] = React.useState<CertificateTemplate[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
+  const [usingMock, setUsingMock] = React.useState(false);
 
   React.useEffect(() => {
-    certificatesService
-      .listTemplates()
-      .then(setTemplates)
+    withMockFallback(
+      () => certificatesService.listTemplates(),
+      () => MOCK_CERTIFICATE_TEMPLATES,
+    )
+      .then(({ data, usingMock: isMock }) => {
+        setTemplates(data);
+        setUsingMock(isMock);
+      })
       .catch((err) => {
         const message = err instanceof Error ? err.message : "Failed to load templates";
         setError(message);
@@ -89,7 +115,7 @@ export function useCertificateTemplates() {
       .finally(() => setLoading(false));
   }, []);
 
-  return { templates, loading, error };
+  return { templates, loading, error, usingMock };
 }
 
 export function useCertificateVerification(certificateNo: string | null) {

@@ -50,8 +50,8 @@ export default function PermissionManagementPage() {
       toast.success("Permission created");
       setFormModule(""); setFormAction(""); setFormDesc(""); setShowForm(false);
       fetchPermissions();
-    } catch (err: any) {
-      toast.error(err.message);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Failed to create permission");
     } finally {
       setSaving(false);
     }
@@ -77,8 +77,8 @@ export default function PermissionManagementPage() {
       toast.success("Permission updated");
       cancelEdit();
       fetchPermissions();
-    } catch (err: any) {
-      toast.error(err.message);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Failed to create permission");
     } finally {
       setSaving(false);
     }
@@ -90,8 +90,8 @@ export default function PermissionManagementPage() {
       await rbacService.deletePermission(id);
       toast.success("Permission deleted");
       fetchPermissions();
-    } catch (err: any) {
-      toast.error(err.message);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Failed to create permission");
     }
   };
 

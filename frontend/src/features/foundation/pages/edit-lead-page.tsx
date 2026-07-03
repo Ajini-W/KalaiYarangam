@@ -4,8 +4,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { PageContainer } from "@/components/layout";
 import { Card, CardBody, Skeleton } from "@/components/ui";
-import { LeadForm } from "../components/LeadForm";
-import { getLead, updateLead } from "@/services/leads";
+import { LeadForm, type LeadFormData } from "../components/LeadForm";
+import { getLead, updateLead, type Lead } from "@/services/leads";
 import { toast } from "sonner";
 
 interface EditLeadPageProps {
@@ -14,7 +14,7 @@ interface EditLeadPageProps {
 
 export function EditLeadPage({ leadId }: EditLeadPageProps) {
   const router = useRouter();
-  const [lead, setLead] = useState<any>(null);
+  const [lead, setLead] = useState<Lead | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
@@ -25,7 +25,7 @@ export function EditLeadPage({ leadId }: EditLeadPageProps) {
       .finally(() => setLoading(false));
   }, [leadId, router]);
 
-  const handleSubmit = async (formData: any) => {
+  const handleSubmit = async (formData: LeadFormData) => {
     setSubmitting(true);
     try {
       await updateLead(leadId, formData);

@@ -1,4 +1,6 @@
 import { apiClient } from "./api-client";
+import { withMockFallback } from "@/lib/mock-fallback";
+import { getMockSearchResults } from "@/mocks";
 
 export type SearchType = "students" | "leads" | "batches" | "trainers";
 
@@ -25,10 +27,16 @@ export async function searchEntities(
   query: string,
   extraParams?: Record<string, string>,
 ): Promise<SearchResultItem[]> {
-  const response = await apiClient.get<ApiEnvelope<SearchResultItem[]>>(
-    SEARCH_PATHS[searchType],
-    { params: { q: query, ...extraParams } },
+  const { data } = await withMockFallback(
+    async () => {
+      const response = await apiClient.get<ApiEnvelope<SearchResultItem[]>>(
+        SEARCH_PATHS[searchType],
+        { params: { q: query, ...extraParams } },
+      );
+      const payload = response.data.data ?? response.data;
+      return Array.isArray(payload) ? payload : [];
+    },
+    () => getMockSearchResults(searchType, query),
   );
-  const payload = response.data.data ?? response.data;
-  return Array.isArray(payload) ? payload : [];
+  return data;
 }

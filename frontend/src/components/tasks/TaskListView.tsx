@@ -2,7 +2,8 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Plus, RefreshCw } from "lucide-react";
+import { motion } from "framer-motion";
+import { Plus, RefreshCw, CheckSquare } from "lucide-react";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -10,6 +11,7 @@ import { Table, type Column } from "@/components/ui/Table";
 import { Pagination } from "@/components/ui/Pagination";
 import { ErrorState } from "@/components/ui/EmptyState";
 import { useTaskList } from "@/hooks/useTasks";
+import { DevModeBadge } from "@/components/shared/DevModeBadge";
 import { TaskFiltersCard, type TaskFiltersValue } from "./TaskFilters";
 import { TaskStatusBadge, TaskTypeBadge, formatTaskDueDate } from "./TaskBadges";
 import type { Task } from "@/types/tasks";
@@ -33,7 +35,7 @@ export function TaskListView({
   });
   const [page, setPage] = React.useState(1);
 
-  const { tasks, meta, loading, error, setParams, refetch } = useTaskList({
+  const { tasks, meta, loading, error, usingMock, setParams, refetch } = useTaskList({
     page: 1,
     pageSize: 10,
   });
@@ -124,33 +126,44 @@ export function TaskListView({
         </Link>
       }
     >
-      <TaskFiltersCard value={filters} onChange={setFilters} onApply={applyFilters} />
+      <DevModeBadge visible={usingMock} className="mb-4" />
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="space-y-6"
+      >
+        <TaskFiltersCard value={filters} onChange={setFilters} onApply={applyFilters} />
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between gap-3">
-            <CardTitle>All tasks</CardTitle>
-            <Button variant="ghost" size="sm" onClick={refetch} leftIcon={<RefreshCw size={14} />}>
-              Refresh
-            </Button>
-          </div>
-        </CardHeader>
-        <CardBody className="pt-0 space-y-4">
-          <Table
-            columns={columns}
-            data={tasks}
-            loading={loading}
-            emptyTitle="No tasks yet"
-            emptyDescription="Create your first task to get started."
-          />
-          <Pagination
-            page={meta.page}
-            pageSize={meta.pageSize}
-            total={meta.total}
-            onPageChange={setPage}
-          />
-        </CardBody>
-      </Card>
+        <Card variant="elevated">
+          <CardHeader>
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <CheckSquare className="text-primary" size={20} />
+                <CardTitle>All tasks</CardTitle>
+              </div>
+              <Button variant="ghost" size="sm" onClick={refetch} leftIcon={<RefreshCw size={14} />}>
+                Refresh
+              </Button>
+            </div>
+          </CardHeader>
+          <CardBody className="pt-0 space-y-4">
+            <Table
+              columns={columns}
+              data={tasks}
+              loading={loading}
+              emptyTitle="No tasks yet"
+              emptyDescription="Create your first task to get started."
+            />
+            <Pagination
+              page={meta.page}
+              pageSize={meta.pageSize}
+              total={meta.total}
+              onPageChange={setPage}
+            />
+          </CardBody>
+        </Card>
+      </motion.div>
     </PageContainer>
   );
 }

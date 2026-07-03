@@ -49,7 +49,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         localStorage.setItem("refreshToken", res.refreshToken);
       }
       const isFirstLogin = res.isFirstLogin ?? false;
-      const onboardingRequired = (res as any).onboardingRequired ?? false;
+      const onboardingRequired = res.onboardingRequired ?? false;
       set({
         user: res.user,
         accessToken: res.accessToken,

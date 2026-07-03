@@ -13,8 +13,13 @@ interface UpcomingWidgetProps {
 
 export function UpcomingWidget({ items, loading }: UpcomingWidgetProps) {
   return (
-    <Card>
-      <CardHeader><CardTitle>Upcoming</CardTitle></CardHeader>
+    <Card variant="elevated">
+      <CardHeader>
+        <div className="flex items-center gap-2">
+          <Calendar className="text-primary" size={18} />
+          <CardTitle>Upcoming</CardTitle>
+        </div>
+      </CardHeader>
       <CardBody className="pt-0">
         {loading ? (
           <div className="space-y-3">
@@ -27,10 +32,10 @@ export function UpcomingWidget({ items, loading }: UpcomingWidgetProps) {
         ) : (
           <ul className="space-y-3">
             {items.map((item) => (
-              <li key={item.id} className="flex gap-3 rounded-[var(--radius-sm)] border border-border p-3">
+              <li key={item.id} className="flex gap-3 rounded-[var(--radius-md)] border border-border bg-surface-overlay p-3 transition-colors hover:border-primary/30">
                 <Calendar size={16} className="mt-0.5 shrink-0 text-primary" aria-hidden />
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-text-primary">{item.title}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-text-primary">{item.title}</p>
                   <p className="text-xs text-text-secondary">
                     {item.type} · {new Date(item.date).toLocaleString()}
                   </p>

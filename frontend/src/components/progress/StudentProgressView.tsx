@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { motion } from "framer-motion";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/Card";
 import { SkeletonCard } from "@/components/ui/Skeleton";
@@ -69,8 +70,13 @@ export function StudentProgressView({
 
   return (
     <PageContainer title={title} subtitle={subtitle}>
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-1">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="grid grid-cols-1 gap-6 lg:grid-cols-3"
+      >
+        <Card variant="elevated" className="lg:col-span-1">
           <CardHeader><CardTitle>Your level</CardTitle></CardHeader>
           <CardBody className="flex flex-col items-center gap-4 pt-0">
             <LevelBeltIndicator
@@ -89,8 +95,8 @@ export function StudentProgressView({
           </CardBody>
         </Card>
 
-        <Card className="lg:col-span-2">
-          <CardHeader><CardTitle>What you've learned</CardTitle></CardHeader>
+        <Card variant="elevated" className="lg:col-span-2">
+          <CardHeader><CardTitle>What you&apos;ve learned</CardTitle></CardHeader>
           <CardBody className="space-y-6 pt-0">
             <SkillChecklist items={skills} title="Skills" />
             <div className="space-y-3">
@@ -100,7 +106,7 @@ export function StudentProgressView({
             </div>
           </CardBody>
         </Card>
-      </div>
+      </motion.div>
     </PageContainer>
   );
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { Activity } from "lucide-react";
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -12,8 +13,13 @@ interface RecentActivityProps {
 
 export function RecentActivity({ activities, loading }: RecentActivityProps) {
   return (
-    <Card>
-      <CardHeader><CardTitle>Recent Activity</CardTitle></CardHeader>
+    <Card variant="elevated">
+      <CardHeader>
+        <div className="flex items-center gap-2">
+          <Activity className="text-primary" size={18} />
+          <CardTitle>Recent Activity</CardTitle>
+        </div>
+      </CardHeader>
       <CardBody className="pt-0">
         {loading ? (
           <div className="space-y-3">
@@ -28,7 +34,7 @@ export function RecentActivity({ activities, loading }: RecentActivityProps) {
             {activities.map((activity) => (
               <li key={activity.id} className="flex flex-wrap items-baseline justify-between gap-2 py-3 text-sm">
                 <div>
-                  <span className="font-medium text-text-primary">{activity.action}</span>
+                  <span className="font-semibold text-text-primary">{activity.action}</span>
                   <span className="text-text-secondary"> · {activity.entity}</span>
                   {activity.actor && (
                     <span className="text-text-secondary"> by {activity.actor}</span>

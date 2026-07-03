@@ -20,8 +20,8 @@ export function StudentsPage() {
     setLoading(true);
     try {
       const res = await getStudents(search);
-      setStudents(res.data?.data ?? []);
-      setTotal(res.data?.meta?.total ?? 0);
+      setStudents(res.data?.items ?? []);
+      setTotal(res.data?.total ?? 0);
     } catch {
       setStudents([]);
     } finally {

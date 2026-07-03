@@ -26,6 +26,7 @@ export interface TableProps<T extends { id?: string | number }> {
   onSort?: (key: string) => void;
   emptyTitle?: string;
   emptyDescription?: string;
+  onRowClick?: (row: T) => void;
   className?: string;
 }
 
@@ -34,6 +35,7 @@ export function Table<T extends { id?: string | number }>({
   selectedIds, onSelectAll, onSelectRow,
   sortKey, sortDir, onSort,
   emptyTitle = "No data", emptyDescription,
+  onRowClick,
   className,
 }: TableProps<T>) {
   const allSelected = data.length > 0 && data.every((r) => r.id != null && selectedIds?.has(r.id));
@@ -101,7 +103,9 @@ export function Table<T extends { id?: string | number }>({
                 className={cn(
                   "border-b border-border-subtle transition-colors last:border-0 hover:bg-surface-raised",
                   row.id != null && selectedIds?.has(row.id) && "bg-primary/5",
+                  onRowClick && "cursor-pointer",
                 )}
+                onClick={() => onRowClick?.(row)}
               >
                 {selectable && (
                   <td className="px-3 py-3">

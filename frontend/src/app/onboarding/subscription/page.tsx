@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/Badge";
 import { selectSubscription } from "@/services/onboarding";
 import { setTokens } from "@/services/api-client";
 import { useAuthStore } from "@/store/auth.store";
+import type { AuthUser } from "@/services/auth.service";
 
 const PLANS = [
   {
@@ -62,7 +63,7 @@ export default function SubscriptionPage() {
       if (res.data.token) {
         const { accessToken, user } = res.data.token;
         setTokens(accessToken, accessToken);
-        setUser(user as any);
+        setUser(user as unknown as AuthUser);
         localStorage.setItem("accessToken", accessToken);
       }
       toast.success("Setup complete! Welcome aboard.");

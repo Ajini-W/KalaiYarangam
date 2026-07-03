@@ -25,5 +25,8 @@ export * from "./Card";
 // Overlay
 export * from "./Modal";
 
+// Document
+export * from "./PdfViewer";
+
 // Form
 export * from "./ColorPicker";

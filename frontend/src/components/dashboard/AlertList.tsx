@@ -27,8 +27,13 @@ interface AlertListProps {
 
 export function AlertList({ alerts, loading }: AlertListProps) {
   return (
-    <Card>
-      <CardHeader><CardTitle>Alerts</CardTitle></CardHeader>
+    <Card variant="elevated">
+      <CardHeader>
+        <div className="flex items-center gap-2">
+          <Bell className="text-primary" size={18} />
+          <CardTitle>Alerts</CardTitle>
+        </div>
+      </CardHeader>
       <CardBody className="pt-0">
         {loading ? (
           <div className="space-y-3">
@@ -43,11 +48,11 @@ export function AlertList({ alerts, loading }: AlertListProps) {
             {alerts.map((alert) => {
               const Icon = SEVERITY_ICON[alert.severity];
               const content = (
-                <div className="flex gap-3 rounded-[var(--radius-sm)] border border-border p-3">
+                <div className="flex gap-3 rounded-[var(--radius-md)] border border-border bg-surface-overlay p-3 transition-colors hover:border-primary/30">
                   <Icon size={16} className="mt-0.5 shrink-0 text-text-secondary" aria-hidden />
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-sm font-medium text-text-primary">{alert.title}</p>
+                      <p className="text-sm font-semibold text-text-primary">{alert.title}</p>
                       <Badge variant={SEVERITY_VARIANT[alert.severity] as "info" | "warning" | "danger"} size="sm">
                         {alert.severity}
                       </Badge>

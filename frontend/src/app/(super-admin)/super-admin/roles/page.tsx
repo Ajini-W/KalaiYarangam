@@ -74,8 +74,8 @@ export default function RoleManagementPage() {
       );
       toast.success(`Permissions updated for ${ROLES.find((r) => r.value === editingRole)?.label}`);
       setEditingRole(null);
-    } catch (err: any) {
-      toast.error(err.message);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Failed to update permissions");
     } finally {
       setSaving(false);
     }

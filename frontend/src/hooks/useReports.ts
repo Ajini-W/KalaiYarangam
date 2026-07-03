@@ -3,20 +3,27 @@
 import * as React from "react";
 import { toast } from "sonner";
 import { reportsService } from "@/services/reports.service";
+import { withMockFallback } from "@/lib/mock-fallback";
+import { getMockReport } from "@/mocks";
 import type { ExportFormat, ReportData, ReportQueryParams, ReportType } from "@/types/reports";
 
 export function useReport(type: ReportType, params: ReportQueryParams | null) {
   const [data, setData] = React.useState<ReportData | null>(null);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [usingMock, setUsingMock] = React.useState(false);
 
   const fetch = React.useCallback(async () => {
     if (!params) return;
     setLoading(true);
     setError(null);
     try {
-      const result = await reportsService.getReport(type, params);
+      const { data: result, usingMock: isMock } = await withMockFallback(
+        () => reportsService.getReport(type, params),
+        () => getMockReport(type),
+      );
       setData(result);
+      setUsingMock(isMock);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to load report";
       setError(message);
@@ -30,7 +37,7 @@ export function useReport(type: ReportType, params: ReportQueryParams | null) {
     fetch();
   }, [fetch]);
 
-  return { data, loading, error, refetch: fetch };
+  return { data, loading, error, usingMock, refetch: fetch };
 }
 
 export function useReportExport() {

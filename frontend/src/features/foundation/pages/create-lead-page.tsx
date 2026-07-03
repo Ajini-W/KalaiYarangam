@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { PageContainer } from "@/components/layout";
 import { Card, CardBody } from "@/components/ui";
-import { LeadForm } from "../components/LeadForm";
+import { LeadForm, type LeadFormData } from "../components/LeadForm";
 import { createLead } from "@/services/leads";
 import { toast } from "sonner";
 
@@ -12,7 +12,7 @@ export function CreateLeadPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (formData: any) => {
+  const handleSubmit = async (formData: LeadFormData) => {
     setLoading(true);
     try {
       const res = await createLead(formData);

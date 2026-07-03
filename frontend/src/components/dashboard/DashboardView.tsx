@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { RefreshCw } from "lucide-react";
+import { motion } from "framer-motion";
+import { RefreshCw, LayoutDashboard } from "lucide-react";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Button } from "@/components/ui/Button";
 import { ErrorState } from "@/components/ui/EmptyState";
@@ -12,6 +13,7 @@ import { UpcomingWidget } from "./UpcomingWidget";
 import { AlertList } from "./AlertList";
 import { RecentActivity } from "./RecentActivity";
 import { QuickSummary } from "./QuickSummary";
+import { DevModeBadge } from "@/components/shared/DevModeBadge";
 import type { DashboardActivity } from "@/types/dashboard";
 
 interface DashboardViewProps {
@@ -21,7 +23,7 @@ interface DashboardViewProps {
 
 export function DashboardView({ roleLabel, quickActions }: DashboardViewProps) {
   const user = useAuthStore((s) => s.user);
-  const { summary, metrics, upcoming, alerts, loading, error, refetch } = useDashboard();
+  const { summary, metrics, upcoming, alerts, loading, error, usingMock, refetch } = useDashboard();
 
   const displayMetrics = metrics.length > 0 ? metrics : (summary?.metrics ?? []);
   const activities: DashboardActivity[] = React.useMemo(() => {
@@ -63,9 +65,17 @@ export function DashboardView({ roleLabel, quickActions }: DashboardViewProps) {
         </Button>
       }
     >
-      <div className="mb-8">
-        <div className="mb-6 flex items-center gap-4">
-          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-lg font-bold text-primary-foreground">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="space-y-8"
+      >
+        <DevModeBadge visible={usingMock} />
+
+        {/* Welcome Section */}
+        <div className="flex items-center gap-4">
+          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/80 text-xl font-bold text-primary-foreground shadow-lg">
             {initials}
           </span>
           <div>
@@ -76,25 +86,24 @@ export function DashboardView({ roleLabel, quickActions }: DashboardViewProps) {
           </div>
         </div>
 
-        <div className="mb-8">
-          <QuickSummary summary={summary} loading={loading} />
-        </div>
+        {/* Quick Summary */}
+        <QuickSummary summary={summary} loading={loading} />
 
-        <div className="mb-8">
-          <MetricCards metrics={displayMetrics} loading={loading} />
-        </div>
+        {/* Metric Cards */}
+        <MetricCards metrics={displayMetrics} loading={loading} />
 
+        {/* Quick Actions */}
         {quickActions}
-      </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <UpcomingWidget items={upcoming} loading={loading} />
-        <AlertList alerts={alerts} loading={loading} />
-      </div>
+        {/* Upcoming and Alerts */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <UpcomingWidget items={upcoming} loading={loading} />
+          <AlertList alerts={alerts} loading={loading} />
+        </div>
 
-      <div className="mt-6">
+        {/* Recent Activity */}
         <RecentActivity activities={activities} loading={loading} />
-      </div>
+      </motion.div>
     </PageContainer>
   );
 }
