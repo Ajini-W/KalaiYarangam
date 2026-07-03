@@ -5,6 +5,7 @@ import { Throttle } from '@nestjs/throttler';
 import { CurrentUser, Public } from '@/common/decorators';
 import { AuthThrottlerGuard, GoogleOAuthGuard } from '@/common/guards';
 import { AuthenticatedUser } from '@/common/interfaces';
+import { env } from '@/config';
 import { AuthService } from './auth.service';
 import {
   AuthErrorLogDto,
@@ -15,7 +16,6 @@ import {
   RefreshTokenDto,
   ResetPasswordDto,
   SendVerificationTokenDto,
-  SetPasswordDto,
   UpdatePreferencesDto,
   UpdateProfileDto,
   UpdateUserStatusDto,
@@ -27,10 +27,10 @@ import {
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  // ================= AUTH BASIC =================
+
   @Public()
   @Post('register')
-  @UseGuards(AuthThrottlerGuard)
-  @Throttle({ default: { limit: 3, ttl: 3600000 } })
   register(@Body() dto: RegisterDto) {
     return this.authService.register(dto);
   }
@@ -64,30 +64,24 @@ export class AuthController {
   }
 
   @Post('change-password')
-  @HttpCode(200)
   changePassword(@Body() dto: ChangePasswordDto, @CurrentUser() user: AuthenticatedUser) {
     return this.authService.changePassword(dto, user.id);
   }
 
-  @Post('set-password')
-  @HttpCode(200)
-  setPassword(@Body() dto: SetPasswordDto, @CurrentUser() user: AuthenticatedUser) {
-    return this.authService.setPassword(dto, user.id);
-  }
+  // ================= LOGIN =================
 
   @Public()
   @Post('login')
   @UseGuards(AuthThrottlerGuard)
-  @Throttle({ default: { limit: 15, ttl: 3600000 } })
   login(@Body() dto: LoginDto, @Req() req: Request) {
-    const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0] ?? req.ip;
+    const ip =
+      (req.headers['x-forwarded-for'] as string)?.split(',')[0] ?? req.ip;
+
     return this.authService.login(dto, ip, req.headers['user-agent']);
   }
 
   @Public()
   @Post('refresh')
-  @UseGuards(AuthThrottlerGuard)
-  @Throttle({ default: { limit: 10, ttl: 3600000 } })
   refresh(@Body() dto: RefreshTokenDto) {
     return this.authService.refresh(dto);
   }
@@ -98,12 +92,13 @@ export class AuthController {
     return this.authService.logout(dto.refreshToken);
   }
 
+  // ================= GOOGLE LOGIN =================
+
   @Public()
   @Get('google')
   @UseGuards(GoogleOAuthGuard)
-  @ApiOperation({ summary: 'Initiate Google OAuth login' })
-  async googleAuth(@Req() req: Request) {
-    // Initiates the Google OAuth flow
+  googleAuth() {
+    return { message: 'Redirecting to Google...' };
   }
 
   @Public()
@@ -121,6 +116,8 @@ export class AuthController {
     );
   }
 
+  // ================= USER =================
+
   @Get('me')
   me(@CurrentUser() user: AuthenticatedUser) {
     return this.authService.me(user);
@@ -136,32 +133,15 @@ export class AuthController {
     return this.authService.updateProfile(user.id, dto);
   }
 
-  @Get('preferences')
-  getPreferences(@CurrentUser() user: AuthenticatedUser) {
-    return this.authService.getPreferences(user.id);
-  }
+  // ================= STATUS & LOGGING =================
 
-  @Put('preferences')
-  updatePreferences(@Body() dto: UpdatePreferencesDto, @CurrentUser() user: AuthenticatedUser) {
-    return this.authService.updatePreferences(user.id, dto.preferences ?? {});
-  }
-
-  @Public()
   @Post('user-status')
   updateUserStatus(@Body() dto: UpdateUserStatusDto) {
     return this.authService.updateUserStatus(dto);
   }
 
-  @Public()
   @Post('error-log')
   logAuthError(@Body() dto: AuthErrorLogDto) {
-    return this.authService.logAuthError(
-      dto.errorCode,
-      dto.errorMessage,
-      dto.provider,
-      dto.userId,
-      dto.metadata,
-    );
+    return this.authService.logAuthError(dto.errorCode, dto.errorMessage, dto.provider, dto.userId, dto.metadata);
   }
 }
-

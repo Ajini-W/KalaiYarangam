@@ -1,0 +1,111 @@
+meta {
+  name: Health
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{base-url}}/health
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
+
+example {
+  name: 200
+  
+  request: {
+    url: {{base-url}}/health
+    method: GET
+    mode: none
+  }
+  
+  response: {
+    headers: {
+      content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+      cross-origin-opener-policy: same-origin
+      cross-origin-resource-policy: same-origin
+      origin-agent-cluster: ?1
+      referrer-policy: no-referrer
+      strict-transport-security: max-age=31536000; includeSubDomains
+      x-content-type-options: nosniff
+      x-dns-prefetch-control: off
+      x-download-options: noopen
+      x-frame-options: SAMEORIGIN
+      x-permitted-cross-domain-policies: none
+      x-xss-protection: 0
+      access-control-allow-origin: http://localhost:3000
+      vary: Origin, Accept-Encoding
+      access-control-allow-credentials: true
+      content-type: application/json; charset=utf-8
+      content-length: 616
+      etag: W/"268-/f1GiB9w+KX9eDiKOoMFu4HgloM"
+      date: Thu, 02 Jul 2026 13:21:06 GMT
+      connection: keep-alive
+      keep-alive: timeout=5
+    }
+  
+    status: {
+      code: 200
+      text: OK
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "httpStatusCode": 200,
+          "message": "Success",
+          "data": {
+            "status": "ok",
+            "service": "kalai-arangam-api",
+            "version": "0.1.0",
+            "environment": "development",
+            "timestamp": "2026-07-02T13:21:06.838Z",
+            "uptime": {
+              "seconds": 8,
+              "humanReadable": "0d 0h 0m 8s"
+            },
+            "checks": {
+              "database": {
+                "status": "ok",
+                "latencyMs": 409,
+                "details": {
+                  "users": 4,
+                  "tenants": 2,
+                  "accessRequests": 0
+                }
+              },
+              "memory": {
+                "status": "ok",
+                "details": {
+                  "heapUsedMB": 66,
+                  "heapTotalMB": 102,
+                  "rssMB": 276,
+                  "externalMB": 7
+                }
+              },
+              "cpu": {
+                "status": "ok",
+                "details": {
+                  "cores": 20,
+                  "model": "12th Gen Intel(R) Core(TM) i7-12700H",
+                  "loadAverage": {
+                    "1m": 1.36,
+                    "5m": 0.97,
+                    "15m": 1.36
+                  }
+                }
+              }
+            }
+          },
+          "timestamp": "2026-07-02T13:21:06.839Z"
+        }
+      '''
+    }
+  }
+}

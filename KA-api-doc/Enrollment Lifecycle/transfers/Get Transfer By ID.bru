@@ -1,0 +1,11 @@
+meta {
+  name: Get Transfer By ID
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{base-url}}/transfers/:transferId
+  body: none
+  auth: inherit
+}

@@ -1,0 +1,78 @@
+meta {
+  name: Create Activity Log
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{base-url}}/security/activity-logs
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: bearer {{accessToken}}
+}
+
+body:json {
+  {
+    "activity": "Updated billing address",
+    "userId": "user-uuid-here",
+    "details": {
+      "field": "address",
+      "old": "123 Main St",
+      "new": "456 Oak Ave"
+    }
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
+
+example {
+  name: 200
+  
+  request: {
+    url: {{base-url}}/security/activity-logs
+    method: POST
+    headers: {
+      Authorization: bearer {{accessToken}}
+      Content-Type: application/json
+    }
+    body: {
+      type: json
+      content: '''
+        {
+          "activity": "Updated billing address",
+          "userId": "user-uuid-here",
+          "details": {
+            "field": "address",
+            "old": "123 Main St",
+            "new": "456 Oak Ave"
+          }
+        }
+      '''
+    }
+  }
+  
+  response: {
+    status: {
+      code: 201
+      text: Created
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "httpStatusCode": 201,
+          "message": "Activity log created",
+          "data": null,
+          "timestamp": "2026-06-28T10:30:00.000Z"
+        }
+      '''
+    }
+  }
+}

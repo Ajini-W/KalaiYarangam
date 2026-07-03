@@ -1,0 +1,20 @@
+meta {
+  name: File - Archive
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{base-url}}/training/files/{{fileId}}/archive
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

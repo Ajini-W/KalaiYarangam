@@ -1,0 +1,36 @@
+meta {
+  name: Trainer - Create
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base-url}}/training/trainers
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "name": "John Trainer",
+    "email": "john@example.com",
+    "phone": "9876543210",
+    "password": "password123",
+    "specialties": "Yoga, Pilates",
+    "notes": "Certified instructor"
+  }
+}
+
+script:post-response {
+  const body = res.getBody();
+  if (body.data) { bru.setVar("trainerId", body.data.id); }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

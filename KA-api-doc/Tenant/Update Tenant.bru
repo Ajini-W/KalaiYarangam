@@ -1,0 +1,31 @@
+meta {
+  name: Update Tenant
+  type: http
+  seq: 3
+}
+
+patch {
+  url: {{base-url}}/training/tenant
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "name": "Alpha Training Academy",
+    "phone": "9876656214",
+    "email": "beta@gmail.com",
+    "website": "https://zyxcademy.com",
+    "logoUrl": "https://zyxacademy.com/logo.png",
+    "industry": "TRAINING"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

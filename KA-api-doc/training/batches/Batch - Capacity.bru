@@ -1,0 +1,20 @@
+meta {
+  name: Batch - Capacity
+  type: http
+  seq: 16
+}
+
+get {
+  url: {{base-url}}/training/batches/{{batchId}}/capacity
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

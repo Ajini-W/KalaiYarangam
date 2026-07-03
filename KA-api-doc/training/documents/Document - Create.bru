@@ -1,0 +1,37 @@
+meta {
+  name: Document - Create
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base-url}}/training/documents
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "studentId": "{{studentId}}",
+    "name": "ID Proof - Aadhaar",
+    "type": "ID_PROOF",
+    "fileUrl": "https://storage.example.com/docs/aadhaar.pdf",
+    "fileSize": 204800,
+    "mimeType": "application/pdf",
+    "notes": "Front and back"
+  }
+}
+
+script:post-response {
+  const body = res.getBody();
+  if (body.data) { bru.setVar("documentId", body.data.id); }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -5,6 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
 import { MobileNav } from "./MobileNav";
+import { ProfileDialog } from "@/components/shared/ProfileDialog";
 import { cn } from "@/lib/cn";
 import { useAuthStore } from "@/store/auth.store";
 
@@ -32,6 +33,7 @@ export function AppShell({ children, className }: AppShellProps) {
     const noRedirectStatuses = ["ACCESS_REQUESTED", "PENDING_APPROVAL", "APPROVED", "ACTIVE"];
     const needsOnboarding = !user.tenantId
       && user.role !== "CLIENT"
+      && user.role !== "SUPER_ADMIN"
       && !noRedirectStatuses.includes(user.status);
     if (needsOnboarding && !pathname.startsWith("/onboarding")) {
       redirectedRef.current = true;
@@ -81,6 +83,9 @@ export function AppShell({ children, className }: AppShellProps) {
 
       {/* Bottom nav — mobile only */}
       <MobileNav />
+
+      {/* Profile dialog */}
+      <ProfileDialog />
     </div>
   );
 }

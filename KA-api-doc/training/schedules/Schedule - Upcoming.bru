@@ -1,0 +1,20 @@
+meta {
+  name: Schedule - Upcoming
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{base-url}}/training/schedules/upcoming
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

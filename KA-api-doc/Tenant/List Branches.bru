@@ -1,0 +1,20 @@
+meta {
+  name:  List Branches
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{base-url}}/training/branches
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

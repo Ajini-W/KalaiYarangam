@@ -22,7 +22,7 @@ export interface TableProps<T extends { id?: string | number }> {
   onSelectAll?: (checked: boolean) => void;
   onSelectRow?: (id: string | number, checked: boolean) => void;
   sortKey?: string;
-  sortDir?: "asc" | "desc";
+  sortDir?: string;
   onSort?: (key: string) => void;
   emptyTitle?: string;
   emptyDescription?: string;

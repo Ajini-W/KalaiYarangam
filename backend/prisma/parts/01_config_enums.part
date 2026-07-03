@@ -114,6 +114,8 @@ enum EnrollmentStatus {
   DROPPED
   SUSPENDED
   TRANSFERRED
+  WAITING
+  WITHDRAWN
 }
 
 enum BatchStatus {

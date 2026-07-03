@@ -28,8 +28,9 @@ model Student {
   enrollments  Enrollment[]
   attendance   StudentAttendance[]
   progress     StudentProgress[]
-  certificates Certificate[]
-  invoices     Invoice[]
+  certificates      Certificate[]
+  invoices          Invoice[]
+  trainingDocuments TrainingDocument[]
 
   @@unique([tenantId, phone])
   @@index([tenantId])
@@ -94,11 +95,13 @@ model Enrollment {
   batchId     String           @map("batch_id") @db.Uuid
   feePlanId   String?          @map("fee_plan_id") @db.Uuid
   status      EnrollmentStatus @default(ACTIVE)
-  enrolledAt  DateTime         @default(now()) @map("enrolled_at")
-  completedAt DateTime?        @map("completed_at")
-  droppedAt   DateTime?        @map("dropped_at")
-  remarks     String?          @db.Text
-  createdAt   DateTime         @default(now()) @map("created_at")
+  enrolledAt       DateTime         @default(now()) @map("enrolled_at")
+  completedAt      DateTime?        @map("completed_at")
+  droppedAt        DateTime?        @map("dropped_at")
+  waitlistPosition Int?             @map("waitlist_position")
+  promotedAt       DateTime?        @map("promoted_at")
+  remarks          String?          @db.Text
+  createdAt        DateTime         @default(now()) @map("created_at")
   updatedAt   DateTime         @updatedAt @map("updated_at")
 
   tenant  Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)

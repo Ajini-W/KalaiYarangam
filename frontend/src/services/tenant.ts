@@ -20,6 +20,8 @@ export interface ClaimTenantRequest {
   industry?: string;
   phone?: string;
   email?: string;
+  primaryColor?: string;
+  secondaryColor?: string;
 }
 
 export interface ClaimTenantResponse {

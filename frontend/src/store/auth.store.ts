@@ -18,7 +18,7 @@ interface AuthState {
   isLoading: boolean;
   isFirstLogin: boolean;
 
-  login: (payload: LoginPayload) => Promise<{ isFirstLogin?: boolean }>;
+  login: (payload: LoginPayload) => Promise<{ isFirstLogin?: boolean; onboardingRequired?: boolean }>;
   register: (payload: RegisterPayload) => Promise<{ isFirstLogin?: boolean }>;
   logout: () => Promise<void>;
   setUser: (user: AuthUser) => void;
@@ -49,6 +49,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         localStorage.setItem("refreshToken", res.refreshToken);
       }
       const isFirstLogin = res.isFirstLogin ?? false;
+      const onboardingRequired = (res as any).onboardingRequired ?? false;
       set({
         user: res.user,
         accessToken: res.accessToken,
@@ -57,7 +58,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         isFirstLogin,
         isLoading: false,
       });
-      return { isFirstLogin };
+      return { isFirstLogin, onboardingRequired };
     } catch (error) {
       set({ isLoading: false });
       throw error;

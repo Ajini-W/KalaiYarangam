@@ -1,0 +1,33 @@
+meta {
+  name: Create Fee Plan
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:4000/api/v1/fee-plans
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "tenantId": "af77d8b0-bf74-480a-8e91-2cdb31525312",
+    "courseId": "YOUR_COURSE_ID",
+    "name": "Java Full Stack",
+    "feeType": "MONTHLY",
+    "totalAmount": 25000,
+    "currency": "INR",
+    "installments": 5,
+    "durationMonths": 6
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -1,0 +1,20 @@
+meta {
+  name: Schedule - Today
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{base-url}}/training/schedules/today
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

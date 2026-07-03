@@ -1,0 +1,27 @@
+meta {
+  name: Trainer - Update
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{base-url}}/training/trainers/{{trainerId}}
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "name": "John Trainer Updated",
+    "phone": "9876543211"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

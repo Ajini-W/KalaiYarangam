@@ -168,3 +168,28 @@ model AnalyticsSnapshot {
   @@index([tenantId])
   @@map("analytics_snapshots")
 }
+
+// ═══════════════════════════════════════════════════════════════
+// 12. BULK OPERATIONS JOB TRACKING
+// ═══════════════════════════════════════════════════════════════
+
+model BulkJob {
+  id             String   @id @default(uuid()) @db.Uuid
+  tenantId       String   @map("tenant_id") @db.Uuid
+  type           String   @db.VarChar(50) /// STUDENT_IMPORT, STUDENT_EXPORT, ATTENDANCE, TASKS, CERTIFICATES
+  status         String   @default("PENDING") @db.VarChar(20) /// PENDING, PROCESSING, COMPLETED, FAILED
+  totalItems     Int      @default(0) @map("total_items")
+  processedItems Int      @default(0) @map("processed_items")
+  failedItems    Int      @default(0) @map("failed_items")
+  result         Json?    /// Summary / errors / output data
+  startedAt      DateTime? @map("started_at")
+  completedAt    DateTime? @map("completed_at")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([status])
+  @@map("bulk_jobs")
+}

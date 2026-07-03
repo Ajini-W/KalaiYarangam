@@ -1,0 +1,28 @@
+meta {
+  name: Update Modules
+  type: http
+  seq: 14
+}
+
+patch {
+  url: {{base-url}}/training/modules
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "trainingManagement": true,
+    "rentalManagement": false,
+    "eventManagement": true
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

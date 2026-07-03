@@ -45,6 +45,11 @@ export interface TenantSetupRequest {
   primaryColor?: string;
   secondaryColor?: string;
   address?: string;
+  city?: string;
+  state?: string;
+  pincode?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface BranchSetupRequest {
@@ -136,8 +141,8 @@ export async function setupProfile(data: ProfileSetupRequest): Promise<ApiRespon
   return response.data;
 }
 
-export async function setupTenant(data: TenantSetupRequest): Promise<ApiResponse<{ tenant: { id: string; name: string; slug: string }; token?: { accessToken: string; user: Record<string, unknown> }; redirectTo?: string }>> {
-  const response = await apiClient.post<ApiResponse<{ tenant: { id: string; name: string; slug: string }; token?: { accessToken: string; user: Record<string, unknown> }; redirectTo?: string }>>("/onboarding/tenant", data);
+export async function setupTenant(data: TenantSetupRequest): Promise<ApiResponse<{ tenant: { id: string; name: string; slug: string }; nextStep: string }>> {
+  const response = await apiClient.post<ApiResponse<{ tenant: { id: string; name: string; slug: string }; nextStep: string }>>("/onboarding/tenant", data);
   return response.data;
 }
 
@@ -151,8 +156,8 @@ export async function selectModules(data: ModuleSelectionRequest): Promise<ApiRe
   return response.data;
 }
 
-export async function selectSubscription(data: SubscriptionSelectionRequest): Promise<ApiResponse<{ token?: { accessToken: string; user: Record<string, unknown> }; redirectTo: string }>> {
-  const response = await apiClient.post<ApiResponse<{ token?: { accessToken: string; user: Record<string, unknown> }; redirectTo: string }>>("/onboarding/subscription", data);
+export async function selectSubscription(data: SubscriptionSelectionRequest): Promise<ApiResponse<{ token: { accessToken: string; user: Record<string, unknown> }; redirectTo: string }>> {
+  const response = await apiClient.post<ApiResponse<{ token: { accessToken: string; user: Record<string, unknown> }; redirectTo: string }>>("/onboarding/subscription", data);
   return response.data;
 }
 
@@ -167,7 +172,7 @@ export async function searchTenants(data: SearchTenantRequest): Promise<ApiRespo
 }
 
 export async function requestAccess(data: RequestAccessPayload): Promise<ApiResponse<{ status: string; tokens?: { accessToken: string; refreshToken: string; user: Record<string, unknown> } }>> {
-  const response = await apiClient.post<ApiResponse<{ status: string }>>("/onboarding/request-access", data);
+  const response = await apiClient.post<ApiResponse<{ status: string; tokens?: { accessToken: string; refreshToken: string; user: Record<string, unknown> } }>>("/onboarding/request-access", data);
   return response.data;
 }
 
@@ -184,5 +189,10 @@ export async function approveAccessRequest(data: ApproveAccessRequest): Promise<
 
 export async function rejectAccessRequest(data: RejectAccessRequest): Promise<ApiResponse<{ status: string }>> {
   const response = await apiClient.post<ApiResponse<{ status: string }>>("/onboarding/access-requests/reject", data);
+  return response.data;
+}
+
+export async function getMyAccessRequests(): Promise<ApiResponse<AccessRequest[]>> {
+  const response = await apiClient.get<ApiResponse<AccessRequest[]>>("/onboarding/my-access-requests");
   return response.data;
 }

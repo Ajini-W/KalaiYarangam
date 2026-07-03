@@ -1,0 +1,36 @@
+meta {
+  name: Schedule - Create
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base-url}}/training/schedules
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "batchId": "{{batchId}}",
+    "date": "2026-07-05",
+    "startTime": "06:00",
+    "endTime": "07:00",
+    "topic": "Sun Salutation Basics",
+    "notes": "Bring mats"
+  }
+}
+
+script:post-response {
+  const body = res.getBody();
+  if (body.data) { bru.setVar("scheduleId", body.data.id); }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

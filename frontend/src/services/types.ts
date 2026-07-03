@@ -3,6 +3,12 @@ export interface ApiResponse<T> {
   message: string;
   data: T;
   timestamp: string;
+  meta?: {
+    page: number;
+    pageSize: number;
+    total: number;
+    totalPages: number;
+  };
 }
 
 export interface PaginatedData<T> {

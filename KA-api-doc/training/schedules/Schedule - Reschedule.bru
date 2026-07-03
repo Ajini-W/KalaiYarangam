@@ -1,0 +1,28 @@
+meta {
+  name: Schedule - Reschedule
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{base-url}}/training/schedules/{{scheduleId}}/reschedule
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "date": "2026-07-06",
+    "startTime": "07:00",
+    "endTime": "08:00"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

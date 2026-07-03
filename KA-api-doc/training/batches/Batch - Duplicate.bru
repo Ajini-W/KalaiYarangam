@@ -1,0 +1,26 @@
+meta {
+  name: Batch - Duplicate
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{base-url}}/training/batches/{{batchId}}/duplicate
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "name": "Morning Yoga Batch (Copy)"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

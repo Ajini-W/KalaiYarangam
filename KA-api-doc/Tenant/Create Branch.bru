@@ -1,0 +1,42 @@
+meta {
+  name: Create Branch
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{base-url}}/training/branches
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "name": "Downtown Branch",
+    "code": "DT-001",
+    "address": "123 Main Street",
+    "city": "Chennai",
+    "state": "Tamil Nadu",
+    "pincode": "600001",
+    "phone": "8838121130",
+    "email": "semmozhiyan40@gmail.com"
+  }
+}
+
+vars:post-response {
+  branchId: data.id
+}
+
+script:post-response {
+  const body = res.getBody();
+  if (body.data) { bru.setVar("branchId", body.data.id); }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

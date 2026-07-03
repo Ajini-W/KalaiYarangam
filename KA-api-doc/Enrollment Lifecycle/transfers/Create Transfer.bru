@@ -1,0 +1,18 @@
+meta {
+  name: Create Transfer
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base-url}}/transfers
+  body: json
+  auth: inherit
+
+  {
+    "enrollmentId": "your-enrollment-uuid",
+    "tenantId": "your-tenant-uuid",
+    "fromBatchId": "your-from-batch-uuid",
+    "toBatchId": "your-to-batch-uuid"
+  }
+}

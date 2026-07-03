@@ -1,0 +1,11 @@
+meta {
+  name: Approve Transfer
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{base-url}}/transfers/:transferId/approve
+  body: none
+  auth: inherit
+}
